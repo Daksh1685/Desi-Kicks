@@ -1,0 +1,42 @@
+import React from 'react';
+import { Icon } from './ui/Icon';
+
+export const IMG = {
+  rec1: "https://lh3.googleusercontent.com/aida-public/AB6AXuBhc9q-G_5mqhwNkMW1cYNGxRT307uRj3GlTvRK1iC5O5NsGCH-heqlDicfGdt4aufI4dbbY-cKq0aw-Z6YWM1OU2Wg_nQ9c1AG0ENAVHXu-M_Va7-JTqZmfE7MpFMkTGU7BHuCp79PY8mY1CEW4UgjsJ1-lMVOTpywrPrtEcTGoZsHuwQeMVwVRxpwwc0T6Jy1uXS0pUhNIiJw1sVc3f6KHTrOAa0NeMYQWD86nhLuaMB9xMKZp4UTAjjMrjbuLM6YpY_vPjQM6jk",
+  rec2: "https://lh3.googleusercontent.com/aida-public/AB6AXuB7UiLCZvBdBwQH2NfedN7JzzeoIstyhJIilTASqLBtOApphFk-3i19bFC6lSOgREu3drQp3gurLi8pxQSWbyuHEA7FAh5ygT-MjZIf4c0M05p-GqNe-lkSnSVYskXIFAr8l1vxCUTYJGCHNQYCUIIHXVWcxh6A4cI_ZLFqZdLlcEbfBzqT6AlW3QHKPPCTA6aoapYJ5UjLQJvr310yZvijc86GYTHrLP3iGT2W5FDdSWpiYotwRNpbjlt3sQ6IgwBEFrLRg3EQW1o",
+  rec3: "https://lh3.googleusercontent.com/aida-public/AB6AXuAK7kF8yuCvTM4WvFizOhTccf9z3spg0ZJsWJAidMpA86H4Xm9avqm-MAb0zEpYtHGIk4p5TZzSoMjRPnSrx_3E9Cqd-e8OVoVs28nyLhQl4-fbvpufwCqf65JyUbhL3uRhxfk2kTr1Z2f3wAD63C0VdMIOcTXm27lGAbd-cs9boIy6o0HatWNKh9d5FwN4P-tK7b-yjFNyw8_J_zU1hYFfIUQSrDkSVaddxlCU5EVRvWoulJv0TaLxhslZMoPiA6WAI0X8QXx1qik",
+  hero: "https://lh3.googleusercontent.com/aida-public/AB6AXuDN4doJFtCvN6s3WphUUlY-OdkUU2LPw_3cTNdg_OpRcdFprY2STUD9LmQUVyzvrX5JlSkUaejTG2UdHypBaY4Ky2ddvd3wz-QC8eUPK52WxLqFh6X7nQzSYzC3nDzN8bUUwOGGRsGqdHPZW8Bo1ESh4_lMwBqJWii6O4W876CVJl4kJ8VeYlrQTGRmb8axYkajaZjewY3Otnz8bPOdeoTnREVJqInxp1RqRQK7QgBD3fUOA3eVe1Z-wPJj_dJvE1pC8l_0A4I9JrI",
+  trend1: "https://lh3.googleusercontent.com/aida-public/AB6AXuAxqiwmIrJonmZDKTR3cs8lWQmPNn5BIu78gT7ILKVkYw6dzCO8krT5PJilPl52ZA_Wiy-ue0InuKz6T5tWj7jcP3h8fryAeGCIFvJWKTeLkLf0GSHMr9HZEd7JozWD-OUrNgDAsyrTaR5tYy6I1V1jgRHmApj7CLK60ASPeJPOAxkETfA2ZFRNg__bUuJJs6ox_Dj9aqbTAenZ0OOkbwXOeG5neus8FCcasbPBN3vkUA0cM2-1uHSDNFFC2uXpdJin4Tmqc5g7SkM",
+  trend3: "https://lh3.googleusercontent.com/aida-public/AB6AXuBxntBZ3hBjVX7XR0BwYqplB_849VhlGbphJN93dsuwYDv5Tv1_5M84keq6Fm2CvSqVBnSF5IWaxYSHte8aMArh8aoLIC9I3Ef_CMq80E7V4v5wu3RD4Mr-OfP6WxyOTPWYz8doDfmf8UXmOI2qyoxA2MS7v08ZIHsX6qyt4vyXu77zM2LbW6KBE8dQJiQWGpN3i6IsbnKSt-VaPW34BR4Jg0DrKkgNUwS3XNLudh55CxniP320rB9N8-GShToZS5MvnvZLZ5HXk1s",
+  trend4: "https://lh3.googleusercontent.com/aida-public/AB6AXuCrZuyQe6TxiJGolwrmb5Yu6Ci6prsPrW_RAAAx9E0UyIpiiyqLPKtfOCrXGvUsA0IHTP1I6g34mBGr84tUWFo8C0R0Y53KGobyE5cAXG8TwhEUZ8yyJ3EkFXTdbcalq6J3bR0xT_M4VaootJixPRMOQv9TXymBgfe7yMgeNuMRiQBt5tHNmtQBQ-681uR_VSNGGjrBrF8HZyiWsHlEETFG4_cttUVpcsC5-IQKHHyCJQ1PhPiv3HrIFbZeKjj3Kq5kEk2kOvt-feA",
+  banner: "https://lh3.googleusercontent.com/aida-public/AB6AXuD4LFO1b1T8b7NwUIabGRtrfWxxRKNuucK1tOrr5XRcqldXfw00_8a-8FjimrkUtUV5Xb5ZGCzgvSMMUilkACI9c0ZecU-2x0ew1nz-D9Z9hcg_tps-jFu5ZCX186KQNvEN0HTD72YXBAxwoZ_C5S_B0jbrVq2dUrE-pcDsFIeDn3GtMfCXkQXBzXe3gO_iJgVpZlyo6dYCt0ck41g2Uw7SLO0nsG9S5bByK1u2Jyn3BPQGGFRrV1eayJOKWhfbOap0rW55LuO80hE",
+  feature: "https://lh3.googleusercontent.com/aida-public/AB6AXuB4d9_LF7a--GRV2J6kUIukt6XiXzKVEzYQ8eqkyv8roXjg4srTUuWiSfAKifdkLiW4cOsHNL8f4S_VLJpripPKS4Uqq4iEVG11nmHkONFmk-PCZ9REjGuvzfyXrTlJLv09-fUQhGrRsaGZROMz067VvAGBffCxIhxAdXum31teiOWjB5txZFS4zLGh43i709FLMwvCnAlD5PePyp7rbSfhoNMq8X51tX8TabMRd7Lzdy0E8P9mQdrraQuWeUeA21iUb7XXbJWZvEI",
+};
+
+export function Hero() {
+  return (
+    <section className="relative w-full aspect-[4/3] sm:aspect-[16/9] md:aspect-[25/8] overflow-hidden bg-gray-100 group">
+      <div className="absolute inset-0 flex">
+        <div className="min-w-full h-full relative">
+          <img className="w-full h-full object-cover object-[80%_center] md:object-center" src={IMG.hero} alt="Velocity X-1 Red Edition" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent flex flex-col justify-center px-5 md:px-12 lg:px-24 text-white">
+            <span className="absolute top-4 md:top-8 bg-primary px-1.5 py-0.5 md:px-2 md:py-1 text-[8px] md:text-[10px] font-bold w-fit uppercase tracking-wider">Big Billion Drops</span>
+            <h2 className="font-anton text-3xl sm:text-4xl md:text-[64px] leading-[1.1] md:leading-[1] mb-2 md:mb-3 tracking-wide mt-2 md:mt-0">
+              VELOCITY X-1<br />RED EDITION
+            </h2>
+            <p className="text-sm md:text-xl max-w-[250px] md:max-w-md mb-4 md:mb-6 text-white/90">Engineered for the relentless. Now live with introductory pricing.</p>
+            <button className="bg-primary hover:bg-[#8A2600] text-white px-5 py-2 md:px-8 md:py-3 rounded-full font-bold transition-all w-fit uppercase tracking-wider text-xs md:text-base">
+              Shop Now
+            </button>
+          </div>
+        </div>
+      </div>
+      <button className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 text-gray-900 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white cursor-pointer">
+        <Icon name="chevron_left" />
+      </button>
+      <button className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 text-gray-900 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white cursor-pointer">
+        <Icon name="chevron_right" />
+      </button>
+    </section>
+  );
+}
