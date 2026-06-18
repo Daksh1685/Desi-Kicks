@@ -1,15 +1,6 @@
-import React from 'react';
 import { Icon } from './ui/Icon';
 import { useTypingEffect } from '../hooks/useTypingEffect';
-
-export const SEARCH_KEYWORDS = [
-  'sneakers',
-  'Jordans',
-  'Yeezys',
-  'running shoes',
-  'streetwear',
-  'brands'
-];
+import { SEARCH_KEYWORDS } from '../constants/search';
 
 export function MobileSearch() {
   const typedText = useTypingEffect(SEARCH_KEYWORDS);

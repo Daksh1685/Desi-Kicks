@@ -1,7 +1,6 @@
-import React from 'react';
 import { Icon } from './ui/Icon';
 import { useTypingEffect } from '../hooks/useTypingEffect';
-import { SEARCH_KEYWORDS } from './MobileSearch';
+import { SEARCH_KEYWORDS } from '../constants/search';
 
 export function Navbar() {
   const typedText = useTypingEffect(SEARCH_KEYWORDS);
