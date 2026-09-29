@@ -15,7 +15,10 @@ export function PromoBanner() {
           <p className="text-white/90 text-xs sm:text-sm md:text-base max-w-xl mb-4 md:mb-6 leading-relaxed">
             From grand Indian celebrations and everyday work commutes to gym workouts and relaxed weekends — handcrafted comfort tailored for Indian feet.
           </p>
-          <button className="bg-primary hover:bg-[#8A2600] text-white px-6 py-2.5 md:px-8 md:py-3 rounded-full font-bold transition-all uppercase tracking-widest text-xs md:text-sm shadow-lg cursor-pointer">
+          <button
+            onClick={() => document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' })}
+            className="bg-primary hover:bg-[#8A2600] text-white px-6 py-2.5 md:px-8 md:py-3 rounded-full font-bold transition-all uppercase tracking-widest text-xs md:text-sm shadow-lg cursor-pointer"
+          >
             Explore All Collections
           </button>
         </div>

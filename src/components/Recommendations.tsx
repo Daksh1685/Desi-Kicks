@@ -64,7 +64,7 @@ export function Recommendations() {
   };
 
   return (
-    <section className="bg-white py-10 border-b border-gray-100">
+    <section id="recommendations" className="bg-white py-10 border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-end mb-6">
           <div>

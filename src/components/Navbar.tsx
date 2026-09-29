@@ -1,14 +1,52 @@
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Icon } from './ui/Icon';
 import { useTypingEffect } from '../hooks/useTypingEffect';
-import { SEARCH_KEYWORDS } from '../constants/search';
+import { SEARCH_KEYWORDS, ALL_PRODUCTS } from '../constants/search';
 import { useCart } from '../context/CartContext';
+import { useProductModal } from '../context/ProductModalContext';
 
 export function Navbar() {
   const typedText = useTypingEffect(SEARCH_KEYWORDS);
   const { totalItemsCount } = useCart();
+  const { openProductModal } = useProductModal();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Close search dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setIsSearchFocused(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase();
+    return ALL_PRODUCTS.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q) ||
+        p.tag.toLowerCase().includes(q)
+    );
+  }, [searchQuery]);
+
+  const handleCategoryNav = () => {
+    if (pathname !== '/') {
+      navigate('/');
+    }
+    setTimeout(() => {
+      document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
@@ -20,21 +58,102 @@ export function Navbar() {
           DESIKICKS.
         </Link>
         <nav className="hidden lg:flex items-center gap-6 xl:gap-8 font-medium text-gray-700 text-sm">
-          <Link className="hover:text-primary transition-colors" to="/#men">Men</Link>
-          <Link className="hover:text-primary transition-colors" to="/#women">Women</Link>
-          <Link className="hover:text-primary transition-colors font-semibold text-primary" to="/#festive">Festive & Ethnic</Link>
-          <Link className="hover:text-primary transition-colors" to="/#daily">Daily Comfort</Link>
-          <Link className="hover:text-primary transition-colors" to="/#gym">Gym & Sports</Link>
-          <Link className="hover:text-primary text-red-600 font-bold transition-colors" to="/#sale">Sale</Link>
+          <button onClick={handleCategoryNav} className="hover:text-primary transition-colors cursor-pointer">Men</button>
+          <button onClick={handleCategoryNav} className="hover:text-primary transition-colors cursor-pointer">Women</button>
+          <button onClick={handleCategoryNav} className="hover:text-primary transition-colors font-semibold text-primary cursor-pointer">Festive & Ethnic</button>
+          <button onClick={handleCategoryNav} className="hover:text-primary transition-colors cursor-pointer">Daily Comfort</button>
+          <button onClick={handleCategoryNav} className="hover:text-primary transition-colors cursor-pointer">Gym & Sports</button>
+          <button onClick={handleCategoryNav} className="hover:text-primary text-red-600 font-bold transition-colors cursor-pointer">Sale</button>
         </nav>
-        <div className="hidden md:flex relative flex-1 max-w-md">
-          <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+        <div ref={searchContainerRef} className="hidden md:flex relative flex-1 max-w-md">
+          <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
           <input
             type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setIsSearchFocused(true)}
             placeholder={`Search for ${typedText}|`}
             className="w-full h-10 pl-10 pr-10 rounded-full bg-gray-100 border-none text-sm focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 transition-all placeholder:transition-all"
           />
-          <Icon name="photo_camera" className="absolute right-3 top-1/2 -translate-y-1/2 text-primary cursor-pointer w-5 h-5 hover:scale-110 transition-transform" />
+          {searchQuery ? (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer p-1"
+            >
+              <Icon name="close" className="w-4 h-4" />
+            </button>
+          ) : (
+            <Icon name="photo_camera" className="absolute right-3 top-1/2 -translate-y-1/2 text-primary cursor-pointer w-5 h-5 hover:scale-110 transition-transform" />
+          )}
+
+          {/* Live Search Results Dropdown */}
+          {isSearchFocused && (
+            <div className="absolute top-12 inset-x-0 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-40 max-h-96 overflow-y-auto animate-fade-in">
+              {searchQuery.trim() ? (
+                searchResults.length > 0 ? (
+                  <div className="p-2 space-y-1">
+                    <div className="px-3 py-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                      Footwear Matches ({searchResults.length})
+                    </div>
+                    {searchResults.map((item) => (
+                      <div
+                        key={item.name}
+                        onClick={() => {
+                          openProductModal({
+                            name: item.name,
+                            category: item.category,
+                            price: item.price,
+                            originalPrice: item.originalPrice,
+                            tag: item.tag,
+                            rating: item.rating,
+                            img: item.img,
+                          });
+                          setIsSearchFocused(false);
+                          setSearchQuery('');
+                        }}
+                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"
+                      >
+                        <img src={item.img} alt={item.name} className="w-12 h-12 object-cover rounded-lg shrink-0 border border-gray-100" />
+                        <div className="flex-1 min-w-0">
+                          <h5 className="font-semibold text-xs text-gray-900 truncate">{item.name}</h5>
+                          <span className="text-[10px] text-gray-400 block">{item.category}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="font-bold text-xs text-primary">{item.price}</span>
+                          <div className="flex items-center gap-0.5 text-[10px] text-amber-500 font-bold justify-end">
+                            <Icon name="star" className="w-3 h-3 fill-amber-500 text-amber-500" filled />
+                            <span>{item.rating}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-6 text-center text-xs text-gray-500">
+                    <p>No footwear found matching "{searchQuery}".</p>
+                    <p className="text-[11px] text-gray-400 mt-1">Try "mojari", "loafer", "heel", or "sports".</p>
+                  </div>
+                )
+              ) : (
+                <div className="p-4">
+                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">
+                    Popular Footwear Searches
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {SEARCH_KEYWORDS.slice(0, 6).map((kw) => (
+                      <button
+                        key={kw}
+                        onClick={() => setSearchQuery(kw)}
+                        className="bg-gray-100 hover:bg-primary/10 hover:text-primary text-gray-700 text-xs px-2.5 py-1 rounded-full transition-colors cursor-pointer"
+                      >
+                        {kw}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-1 md:gap-3 text-gray-700">
           <button

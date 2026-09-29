@@ -29,7 +29,8 @@ export type IconName =
   | 'trash'
   | 'plus'
   | 'minus'
-  | 'tag';
+  | 'tag'
+  | 'close';
 
 interface IconProps extends React.SVGProps<SVGSVGElement> {
   name: IconName;
@@ -254,6 +255,13 @@ export function Icon({ name, className = '', filled = false, ...props }: IconPro
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`lucide lucide-tag ${className}`} {...props}>
           <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
           <circle cx="7" cy="7" r="1.5" fill="currentColor" />
+        </svg>
+      );
+    case 'close':
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`lucide lucide-x ${className}`} {...props}>
+          <path d="M18 6 6 18" />
+          <path d="m6 6 12 12" />
         </svg>
       );
     default:

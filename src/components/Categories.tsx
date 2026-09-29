@@ -68,6 +68,7 @@ export function Categories() {
           {CATEGORIES.map((cat) => (
             <div
               key={cat.name}
+              onClick={() => document.getElementById('recommendations')?.scrollIntoView({ behavior: 'smooth' })}
               className="group relative h-36 sm:h-40 md:h-44 rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100"
             >
               {/* Background Image with Hover Zoom */}

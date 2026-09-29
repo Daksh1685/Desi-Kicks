@@ -72,7 +72,10 @@ export function Hero() {
               <p className="text-xs sm:text-sm md:text-lg max-w-[280px] sm:max-w-sm md:max-w-md mb-4 md:mb-6 text-white/90 leading-snug">
                 {slide.subtitle}
               </p>
-              <button className="bg-primary hover:bg-[#8A2600] active:scale-95 text-white px-5 py-2.5 md:px-8 md:py-3.5 rounded-full font-bold transition-all w-fit uppercase tracking-wider text-xs md:text-sm shadow-lg hover:shadow-primary/30 cursor-pointer">
+              <button
+                onClick={() => document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' })}
+                className="bg-primary hover:bg-[#8A2600] active:scale-95 text-white px-5 py-2.5 md:px-8 md:py-3.5 rounded-full font-bold transition-all w-fit uppercase tracking-wider text-xs md:text-sm shadow-lg hover:shadow-primary/30 cursor-pointer"
+              >
                 {slide.cta}
               </button>
             </div>

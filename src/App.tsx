@@ -8,6 +8,8 @@ import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { BottomNav } from './components/BottomNav';
 import { CartProvider } from './context/CartContext';
+import { ProductModalProvider } from './context/ProductModalContext';
+import { ProductDetailModal } from './components/ProductDetailModal';
 
 export type PageRoute = 'landing' | 'profile' | 'cart';
 
@@ -51,15 +53,18 @@ function App() {
   return (
     <BrowserRouter>
       <CartProvider>
-        <ScrollAndHashRedirectHandler />
-        <Layout>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Layout>
+        <ProductModalProvider>
+          <ScrollAndHashRedirectHandler />
+          <Layout>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Layout>
+          <ProductDetailModal />
+        </ProductModalProvider>
       </CartProvider>
     </BrowserRouter>
   );

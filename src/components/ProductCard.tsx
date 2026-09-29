@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Icon } from './ui/Icon';
 import { useCart } from '../context/CartContext';
+import { useProductModal } from '../context/ProductModalContext';
 
 export interface ProductCardProps {
   name: string;
@@ -15,6 +16,19 @@ export function ProductCard({ name, rating, price, originalPrice, tag, img }: Pr
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
   const { addToCart } = useCart();
+  const { openProductModal } = useProductModal();
+
+  const handleCardClick = () => {
+    openProductModal({
+      name,
+      rating,
+      price,
+      originalPrice,
+      tag,
+      img,
+      category: tag || 'Footwear',
+    });
+  };
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -43,7 +57,10 @@ export function ProductCard({ name, rating, price, originalPrice, tag, img }: Pr
   };
 
   return (
-    <div className="group min-w-[220px] md:min-w-[245px] bg-white p-3.5 rounded-2xl border border-gray-200 flex flex-col snap-start shadow-sm hover:shadow-lg transition-all duration-300 relative cursor-pointer">
+    <div
+      onClick={handleCardClick}
+      className="group min-w-[220px] md:min-w-[245px] bg-white p-3.5 rounded-2xl border border-gray-200 flex flex-col snap-start shadow-sm hover:shadow-lg transition-all duration-300 relative cursor-pointer"
+    >
       {/* Top badges & Wishlist */}
       <div className="relative aspect-[4/3] bg-gray-50 rounded-xl mb-3 overflow-hidden flex items-center justify-center p-2">
         {tag && (

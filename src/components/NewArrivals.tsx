@@ -1,6 +1,10 @@
+import { useNavigate } from 'react-router-dom';
 import { Icon } from './ui/Icon';
+import { useProductModal } from '../context/ProductModalContext';
 
 export function NewArrivals() {
+  const { openProductModal } = useProductModal();
+  const navigate = useNavigate();
   return (
     <section className="bg-gray-50 py-12 border-t border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -11,14 +15,29 @@ export function NewArrivals() {
               NEW SEASON DROPS
             </h3>
           </div>
-          <span className="text-primary text-xs md:text-sm font-bold cursor-pointer hover:underline uppercase tracking-wider">
+          <span
+            onClick={() => document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' })}
+            className="text-primary text-xs md:text-sm font-bold cursor-pointer hover:underline uppercase tracking-wider"
+          >
             View All New In
           </span>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {/* Main Hero Card: Festive Edit */}
-          <div className="col-span-2 row-span-2 bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col group cursor-pointer border border-gray-200/70">
+          <div
+            onClick={() =>
+              openProductModal({
+                name: 'Maharaja Velvet Zari Mojari',
+                price: '₹3,495',
+                originalPrice: '₹5,995',
+                tag: 'Festive Spotlight',
+                category: 'Festive & Ethnic',
+                img: 'https://images.unsplash.com/photo-1535043934128-cf0b28d52f95?q=80&w=800&auto=format&fit=crop',
+              })
+            }
+            className="col-span-2 row-span-2 bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col group cursor-pointer border border-gray-200/70"
+          >
             <div className="relative flex-1 overflow-hidden aspect-[4/3] md:aspect-auto min-h-[220px]">
               <img
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
@@ -48,7 +67,19 @@ export function NewArrivals() {
           </div>
 
           {/* Daily Comfort Card */}
-          <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col group cursor-pointer border border-gray-200/70">
+          <div
+            onClick={() =>
+              openProductModal({
+                name: 'BreezeStep Knit Slip-On',
+                price: '₹2,295',
+                originalPrice: '₹3,495',
+                tag: 'Daily Wear',
+                category: 'Daily Comfort',
+                img: 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=600&auto=format&fit=crop',
+              })
+            }
+            className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col group cursor-pointer border border-gray-200/70"
+          >
             <div className="aspect-[4/3] relative overflow-hidden">
               <img
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -70,7 +101,19 @@ export function NewArrivals() {
           </div>
 
           {/* Women Evening / Party Card */}
-          <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col group cursor-pointer border border-gray-200/70">
+          <div
+            onClick={() =>
+              openProductModal({
+                name: 'Stella Shimmer Block Heel',
+                price: '₹2,995',
+                originalPrice: '₹4,495',
+                tag: "Women's Festive",
+                category: "Women's Festive",
+                img: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=600&auto=format&fit=crop',
+              })
+            }
+            className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col group cursor-pointer border border-gray-200/70"
+          >
             <div className="aspect-[4/3] relative overflow-hidden">
               <img
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -92,7 +135,10 @@ export function NewArrivals() {
           </div>
 
           {/* Family Club Card */}
-          <div className="col-span-2 bg-primary/10 border border-primary/20 rounded-2xl p-5 md:p-6 flex items-center justify-between group cursor-pointer overflow-hidden relative">
+          <div
+            onClick={() => navigate('/profile')}
+            className="col-span-2 bg-primary/10 border border-primary/20 rounded-2xl p-5 md:p-6 flex items-center justify-between group cursor-pointer overflow-hidden relative"
+          >
             <div className="z-10">
               <span className="text-primary font-bold text-xs uppercase tracking-wider">DesiKicks Club</span>
               <h4 className="font-anton text-xl md:text-2xl text-primary uppercase tracking-wide mt-0.5">
@@ -101,7 +147,7 @@ export function NewArrivals() {
               <p className="text-gray-600 max-w-[240px] sm:max-w-xs mt-1.5 text-xs sm:text-sm leading-relaxed">
                 Enjoy 10% off your first festive, casual, or active pair plus priority size replacements.
               </p>
-              <button className="mt-3.5 bg-primary text-white px-5 py-2 rounded-full font-bold uppercase tracking-wider text-xs group-hover:bg-[#8A2600] transition-colors shadow-sm">
+              <button className="mt-3.5 bg-primary text-white px-5 py-2 rounded-full font-bold uppercase tracking-wider text-xs group-hover:bg-[#8A2600] transition-colors shadow-sm cursor-pointer">
                 Join Club For Free
               </button>
             </div>
