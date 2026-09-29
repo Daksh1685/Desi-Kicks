@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
 
-export function useTypingEffect(words: string[], typingSpeed = 100, deletingSpeed = 50, pauseDuration = 1500) {
+export function useTypingEffect(
+  words: string[],
+  typingSpeed = 100,
+  deletingSpeed = 50,
+  pauseDuration = 1500
+) {
   const [wordIndex, setWordIndex] = useState(0);
   const [text, setText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
@@ -8,25 +13,33 @@ export function useTypingEffect(words: string[], typingSpeed = 100, deletingSpee
   useEffect(() => {
     if (!words || words.length === 0) return;
     const currentWord = words[wordIndex];
-    
-    const timeout = setTimeout(() => {
+
+    const delay = isDeleting
+      ? text === ''
+        ? 300
+        : deletingSpeed
+      : text === currentWord
+      ? pauseDuration
+      : typingSpeed;
+
+    const timer = setTimeout(() => {
       if (!isDeleting) {
-        setText(currentWord.substring(0, text.length + 1));
-        
         if (text === currentWord) {
-          setTimeout(() => setIsDeleting(true), pauseDuration); // Pause at full word
+          setIsDeleting(true);
+        } else {
+          setText(currentWord.substring(0, text.length + 1));
         }
       } else {
-        setText(currentWord.substring(0, text.length - 1));
-        
         if (text === '') {
           setIsDeleting(false);
           setWordIndex((prev) => (prev + 1) % words.length);
+        } else {
+          setText(currentWord.substring(0, text.length - 1));
         }
       }
-    }, isDeleting ? deletingSpeed : typingSpeed);
+    }, delay);
 
-    return () => clearTimeout(timeout);
+    return () => clearTimeout(timer);
   }, [text, isDeleting, wordIndex, words, typingSpeed, deletingSpeed, pauseDuration]);
 
   return text;

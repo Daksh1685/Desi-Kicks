@@ -1,24 +1,107 @@
+import { useState } from 'react';
 import { Icon } from './ui/Icon';
+import { useCart } from '../context/CartContext';
 
 export interface ProductCardProps {
   name: string;
   rating: number;
   price: string;
+  originalPrice?: string;
+  tag?: string;
   img: string;
 }
 
-export function ProductCard({ name, rating, price, img }: ProductCardProps) {
+export function ProductCard({ name, rating, price, originalPrice, tag, img }: ProductCardProps) {
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isAdded, setIsAdded] = useState(false);
+  const { addToCart } = useCart();
+
+  const handleQuickAdd = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const cleanPrice = parseInt(price.replace(/[^0-9]/g, ''), 10) || 2995;
+    const cleanOriginalPrice = originalPrice
+      ? parseInt(originalPrice.replace(/[^0-9]/g, ''), 10)
+      : cleanPrice + 1500;
+
+    addToCart({
+      id: `${name}-${cleanPrice}`,
+      name,
+      category: tag || 'Footwear',
+      price: cleanPrice,
+      originalPrice: cleanOriginalPrice,
+      size: 'UK 9',
+      img,
+    });
+
+    setIsAdded(true);
+    setTimeout(() => setIsAdded(false), 1800);
+  };
+
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsWishlisted(!isWishlisted);
+  };
+
   return (
-    <div className="min-w-[220px] md:min-w-[240px] bg-white p-4 rounded-2xl border border-gray-200 flex flex-col snap-start shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-      <div className="aspect-[4/3] bg-gray-100 rounded-xl mb-4 overflow-hidden flex items-center justify-center p-2">
-        <img className="w-full h-full object-cover rounded-lg mix-blend-multiply" src={img} alt={name} />
+    <div className="group min-w-[220px] md:min-w-[245px] bg-white p-3.5 rounded-2xl border border-gray-200 flex flex-col snap-start shadow-sm hover:shadow-lg transition-all duration-300 relative cursor-pointer">
+      {/* Top badges & Wishlist */}
+      <div className="relative aspect-[4/3] bg-gray-50 rounded-xl mb-3 overflow-hidden flex items-center justify-center p-2">
+        {tag && (
+          <span className="absolute top-2.5 left-2.5 z-10 bg-black/80 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">
+            {tag}
+          </span>
+        )}
+
+        <button
+          onClick={handleWishlistToggle}
+          aria-label="Add to Wishlist"
+          className="absolute top-2.5 right-2.5 z-10 p-1.5 rounded-full bg-white/90 hover:bg-white text-gray-700 shadow-sm transition-all hover:scale-110 active:scale-90"
+        >
+          <Icon
+            name="favorite"
+            filled={isWishlisted}
+            className={`w-4 h-4 transition-colors ${
+              isWishlisted ? 'text-primary fill-primary' : 'text-gray-600'
+            }`}
+          />
+        </button>
+
+        <img
+          className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-500"
+          src={img}
+          alt={name}
+          loading="lazy"
+        />
+
+        {/* Hover Quick Add Overlay */}
+        <button
+          onClick={handleQuickAdd}
+          className={`absolute bottom-2 inset-x-2 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-all duration-300 shadow-md ${
+            isAdded
+              ? 'bg-green-600 text-white opacity-100 translate-y-0'
+              : 'bg-white/95 text-gray-900 opacity-0 group-hover:opacity-100 hover:bg-primary hover:text-white translate-y-2 group-hover:translate-y-0'
+          }`}
+        >
+          {isAdded ? '✓ Added to Cart' : '+ Quick Add'}
+        </button>
       </div>
-      <h4 className="text-lg font-medium text-gray-900 truncate mb-1">{name}</h4>
-      <div className="flex items-center gap-1 mb-2">
-        <Icon name="star" className="w-4 h-4 text-primary" filled />
-        <span className="text-sm font-bold text-gray-900">{rating}</span>
+
+      <h4 className="text-base font-semibold text-gray-900 truncate mb-1" title={name}>
+        {name}
+      </h4>
+
+      <div className="flex items-center gap-1.5 mb-2">
+        <Icon name="star" className="w-3.5 h-3.5 text-primary fill-primary" filled />
+        <span className="text-xs font-bold text-gray-900">{rating}</span>
+        <span className="text-[11px] text-gray-400">| In Stock</span>
       </div>
-      <span className="text-lg font-bold text-gray-900">{price}</span>
+
+      <div className="mt-auto flex items-baseline gap-2">
+        <span className="text-base md:text-lg font-bold text-gray-900">{price}</span>
+        {originalPrice && (
+          <span className="text-xs text-gray-400 line-through">{originalPrice}</span>
+        )}
+      </div>
     </div>
   );
 }

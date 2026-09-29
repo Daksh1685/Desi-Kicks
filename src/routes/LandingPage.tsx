@@ -1,27 +1,25 @@
-import { Navbar } from '../components/Navbar'
-import { MobileSearch } from '../components/MobileSearch'
-import { Recommendations } from '../components/Recommendations'
-import { Hero } from '../components/Hero'
-import { Categories } from '../components/Categories'
-import { PromoBanner } from '../components/PromoBanner'
-import { NewArrivals } from '../components/NewArrivals'
-import { BottomNav } from '../components/BottomNav'
-import { Footer } from '../components/Footer'
+import { MobileSearch } from '../components/MobileSearch';
+import { Recommendations } from '../components/Recommendations';
+import { Hero } from '../components/Hero';
+import { TrustBadges } from '../components/TrustBadges';
+import { Categories } from '../components/Categories';
+import { PromoBanner } from '../components/PromoBanner';
+import { NewArrivals } from '../components/NewArrivals';
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-white pb-16 md:pb-0">
-      <Navbar />
+    <div>
       <MobileSearch />
       <main>
         <Hero />
+        <TrustBadges />
         <Recommendations />
         <Categories />
         <PromoBanner />
         <NewArrivals />
       </main>
-      <BottomNav />
-      <Footer />
     </div>
-  )
+  );
 }
+
+

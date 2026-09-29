@@ -1,40 +1,95 @@
+import { useState } from 'react';
+
 export function Footer() {
+  const [email, setEmail] = useState('');
+  const [subscribed, setSubscribed] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email.trim()) {
+      setSubscribed(true);
+      setEmail('');
+      setTimeout(() => setSubscribed(false), 3000);
+    }
+  };
+
   return (
-    <footer className="hidden md:block bg-gray-900 text-white/80 mt-12">
-      <div className="max-w-7xl mx-auto px-8 py-16 grid grid-cols-4 gap-8">
+    <footer className="bg-gray-950 text-white/80 mt-12 mb-16 md:mb-0 border-t border-gray-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
         <div>
-          <div className="font-anton text-3xl text-white tracking-wide">DESIKICKS<span className="text-primary">.</span></div>
-          <p className="mt-4 text-sm text-white/60 max-w-xs leading-relaxed">Premium athletic footwear, engineered for performance and street culture.</p>
-        </div>
-        <div>
-          <h5 className="font-bold text-white mb-4 uppercase tracking-wide">Shop</h5>
-          <ul className="space-y-3 text-sm text-white/60">
-            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Running</li>
-            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Lifestyle</li>
-            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Basketball</li>
-            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Training</li>
-          </ul>
-        </div>
-        <div>
-          <h5 className="font-bold text-white mb-4 uppercase tracking-wide">Help</h5>
-          <ul className="space-y-3 text-sm text-white/60">
-            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Order Status</li>
-            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Shipping & Delivery</li>
-            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Returns</li>
-            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Contact Us</li>
-          </ul>
-        </div>
-        <div>
-          <h5 className="font-bold text-white mb-4 uppercase tracking-wide">Stay in the loop</h5>
-          <p className="text-sm text-white/60 mb-4">Drops, restocks and members-only deals.</p>
-          <div className="flex h-11">
-            <input className="flex-1 px-4 rounded-l-lg bg-white/10 text-white placeholder-white/40 text-sm focus:outline-none focus:ring-1 focus:ring-primary border border-transparent focus:border-primary transition-all" placeholder="Email address" />
-            <button className="bg-primary hover:bg-[#8A2600] transition-colors px-6 rounded-r-lg font-bold text-xs uppercase tracking-wider text-white">Join</button>
+          <div className="font-anton text-2xl md:text-3xl text-white tracking-wide">
+            DESIKICKS<span className="text-primary">.</span>
+          </div>
+          <p className="mt-3 text-xs md:text-sm text-white/60 max-w-xs leading-relaxed">
+            India's complete footwear destination. Celebrating every walk of life — from grand festive celebrations to daily comfort and active fitness.
+          </p>
+          <div className="mt-4 flex items-center gap-3 text-xs font-semibold text-white/40">
+            <span>🇮🇳 Pan-India Shipping</span>
+            <span>•</span>
+            <span>100% Quality Guaranteed</span>
           </div>
         </div>
+
+        <div>
+          <h5 className="font-bold text-white text-sm uppercase tracking-wider mb-3 md:mb-4">
+            Footwear Collections
+          </h5>
+          <ul className="space-y-2.5 text-xs md:text-sm text-white/60">
+            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Festive Juttis & Mojaris</li>
+            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Men's Formals & Loafers</li>
+            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Women's Heels, Flats & Wedges</li>
+            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Daily Comfort Slip-Ons</li>
+            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Gym, Running & Athletic</li>
+            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Casual Slides & Ortho Chappals</li>
+          </ul>
+        </div>
+
+        <div>
+          <h5 className="font-bold text-white text-sm uppercase tracking-wider mb-3 md:mb-4">
+            Customer Support
+          </h5>
+          <ul className="space-y-2.5 text-xs md:text-sm text-white/60">
+            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Track Your Order</li>
+            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Shipping & Dispatch Policy</li>
+            <li className="hover:text-primary transition-colors cursor-pointer w-fit">7-Day Size Exchanges & Returns</li>
+            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Authenticity Verification</li>
+            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Contact Us: support@desikicks.in</li>
+          </ul>
+        </div>
+
+        <div>
+          <h5 className="font-bold text-white text-sm uppercase tracking-wider mb-3 md:mb-4">
+            Stay In The Loop
+          </h5>
+          <p className="text-xs md:text-sm text-white/60 mb-3">
+            Be the first to hear about secret drops, restocks, and member exclusive pricing.
+          </p>
+          <form onSubmit={handleSubmit} className="flex h-10 md:h-11">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="flex-1 min-w-0 px-3 md:px-4 rounded-l-lg bg-white/10 text-white placeholder-white/40 text-xs md:text-sm focus:outline-none focus:ring-1 focus:ring-primary border border-transparent focus:border-primary transition-all"
+              placeholder="Enter your email"
+              required
+            />
+            <button
+              type="submit"
+              className="bg-primary hover:bg-[#8A2600] active:scale-95 transition-all px-4 md:px-6 rounded-r-lg font-bold text-xs uppercase tracking-wider text-white shrink-0 cursor-pointer"
+            >
+              {subscribed ? 'Joined!' : 'Join'}
+            </button>
+          </form>
+          {subscribed && (
+            <p className="text-green-400 text-xs mt-2 animate-fade-in">
+              ✓ Welcome to the DesiKicks drop alert list!
+            </p>
+          )}
+        </div>
       </div>
-      <div className="border-t border-white/10 py-6 text-center text-sm text-white/40 font-medium">
-        © {new Date().getFullYear()} Desikicks. All rights reserved.
+
+      <div className="border-t border-white/10 py-5 text-center text-xs text-white/40 font-medium px-4">
+        © {new Date().getFullYear()} Desikicks Inc. All rights reserved. Crafted for Indian sneaker culture.
       </div>
     </footer>
   );

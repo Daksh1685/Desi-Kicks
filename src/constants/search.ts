@@ -1,8 +1,12 @@
 export const SEARCH_KEYWORDS = [
-  'sneakers',
-  'Jordans',
-  'Yeezys',
+  'festive juttis',
   'running shoes',
-  'streetwear',
-  'brands'
+  'women heels',
+  'leather loafers',
+  'daily slip-ons',
+  'kolhapuris',
+  'gym sneakers',
+  'formal oxfords',
+  'comfort slides',
 ];
+
