@@ -8,9 +8,9 @@ This document outlines the strategic roadmap, architecture plan, and live implem
 
 | Phase | Focus Area | Completion | Target Milestone | Status |
 |---|---|:---:|---|:---:|
-| **Phase 1** | **Customer Web App (Storefront & Core UX)** | **75%** | M1 2026 | 🟡 In Progress |
-| **Phase 2** | **Backend Services, Database & Payments** | **20%** | M2 2026 | 🟡 In Progress |
-| **Phase 3** | **Admin Dashboard (Sales & Catalog Ops)** | **10%** | M3 2026 | 🔵 Next Focus |
+| **Phase 1** | **Customer Web App (Storefront & Core UX)** | **85%** | M1 2026 | 🟡 In Progress |
+| **Phase 2** | **Backend Services, Database & Payments** | **40%** | M2 2026 | 🟡 In Progress |
+| **Phase 3** | **Admin Dashboard (Sales & Catalog Ops)** | **65%** | M3 2026 | 🟡 In Progress |
 | **Phase 4** | **Fulfillment, Logistics & Logistics API** | **0%** | M4 2026 | ⚪ Planned |
 | **Phase 5** | **Scale, Security, Analytics & Mobile Apps** | **0%** | M5 2026 | ⚪ Planned |
 
@@ -113,17 +113,17 @@ graph TD
 
 **Objective**: Replace mock frontend fixtures with resilient, scalable APIs, relational database models, and payment integrations.
 
-### 2.1 Database & Data Modeling (PostgreSQL + Prisma)
-- [ ] **Schema Definition**:
-  - `users`: ID, phone, email, name, role (`CUSTOMER`, `ADMIN`, `FULFILLMENT`), timestamps.
-  - `addresses`: User reference, street, locality, city, state, pincode, is_default.
-  - `products`: SKU, title, slug, description, artisan_story, base_price, mrp, category, tags, active.
-  - `product_variants`: Product reference, size (UK 6-11), color, sku_code, stock_quantity, price_override.
-  - `product_images`: Variant/product reference, image_url, alt_text, sort_order.
-  - `orders`: User ID, total_amount, discount_amount, shipping_fee, payment_status, order_status, shipping_address.
-  - `order_items`: Order reference, variant reference, quantity, unit_price.
-  - `coupons`: Code, discount_type (`PERCENT` / `FLAT`), value, min_order_value, max_discount, expiry_date, usage_limit.
-- [ ] **Migrations & Seeders**: Automated database seed scripts for initial footwear catalog.
+### 2.1 Database & Data Modeling (PostgreSQL + Prisma / Supabase)
+- [x] **Schema Definition (`supabase-schema.sql`)**:
+  - `products`: ID, slug, name, category, tag, price, original_price, rating, reviews_count, img, additional_images, description, story, materials, is_active, total_sold.
+  - `product_variants`: Product reference, size (UK 6-11), stock, timestamps.
+  - `orders`: Order number, customer info, address JSONB, items JSONB, financial breakdown, order_status, payment_status.
+  - `coupons`: Code, discount_type (`PERCENT` / `FLAT`), value, min_order_value, expiry_date.
+  - RLS Security Policies and `product-images` storage bucket configuration.
+- [x] **Reactive Frontend Mock Layer (`ProductContext` & `OrderContext`)**:
+  - Schema-aligned local storage persistence allowing full storefront and admin features before connecting live Supabase.
+- [ ] **Direct Supabase Client (`@supabase/supabase-js`) Integration**:
+  - Swap mock adapter with live Supabase client once project credentials are added to `.env`.
 
 ### 2.2 Authentication & User Management
 - [ ] **Phone Number OTP Login** (via Twilio / MSG91 / Firebase Auth) – critical for Indian e-commerce conversion.
@@ -147,39 +147,37 @@ graph TD
 **Objective**: Build a unified management portal for store owners and operations teams to monitor real-time sales, fulfill orders, manage inventory, and add/update products.
 
 ### 3.1 Executive Sales & Business Analytics
-- [ ] **Real-Time KPI Metric Cards**:
-  - **Gross Merchandise Value (GMV)** (Today, This Week, This Month, All Time).
-  - **Net Revenue** (after returns, discounts, and cancellations).
-  - **Average Order Value (AOV)** & Units Per Transaction (UPT).
-  - **Total Orders & Conversion Rate** (% of visits converting to checkout).
-- [ ] **Interactive Visual Analytics**:
-  - Revenue timeline charts (interactive day/month views with festive season overlays).
-  - Category revenue distribution (Pie / Donut charts: Mojaris vs. Loafers vs. Heels).
-  - Payment method breakdown (UPI % vs. COD % vs. Cards).
-  - Heatmap of orders by Indian State & Top Metro Pincodes (Mumbai, Delhi-NCR, Bangalore, Jaipur, etc.).
+- [x] **Real-Time KPI Metric Cards**:
+  - **Gross Merchandise Value (GMV)** (live calculation from orders).
+  - **Total Orders & Average Order Value (AOV)**.
+  - **Fulfillment Pipeline Status** (Pending verification vs. In Transit vs. Delivered).
+  - **Storefront Conversion Metrics**.
+- [x] **Interactive Visual Analytics**:
+  - Revenue timeline charts with 7D, 30D, and festive surge comparisons.
+  - Footwear category revenue distribution breakdown.
+  - Top 5 best-selling footwear SKUs with stock remaining and revenue generated.
 - [ ] **Exportable Reports**: Generate CSV / Excel reports for accounting and GST filing.
 
 ### 3.2 Product & Catalog Information Management (PIM)
-- [ ] **Product Catalog Data Table**:
+- [x] **Product Catalog Data Table**:
   - Searchable, filterable list of all footwear items.
-  - Quick inline toggle for Active/Inactive status.
-  - Column indicators for Category, Current Stock, MRP, Selling Price, and Sales Count.
-- [ ] **"Add New Product" Wizard**:
-  - **Basic Info**: Title, URL slug, category selector, festive tag badges.
-  - **Artisan & Heritage Details**: Artisan story narrative, region of craft (e.g., Jaipur, Agra, Kolhapur).
+  - Inline toggle for Storefront Live / Draft status.
+  - Column indicators for Category, Current Stock across UK sizes, MRP, Selling Price, and Sales Count.
+  - Single-click delete action with safety confirmation.
+- [x] **"Add New Product" Wizard**:
+  - **Basic Info**: Title, category selector, festive tag badges, selling price, and original MRP.
+  - **Artisan & Heritage Details**: Artisan story narrative and region of craft (e.g., Jaipur, Agra, Kanpur).
   - **Material & Craft Specs**: Upper material, sole construction, insole cushioning specs, care guide.
-  - **Variant Matrix Generator**: Automatically generate UK 6 to UK 11 SKU rows with independent stock quantities.
-  - **Media Uploader**: Drag-and-drop multi-image uploader with Cloudinary / S3 integration, image cropping, and thumbnail reordering.
+  - **Variant Matrix Generator**: UK 6 to UK 11 stock quantity fields.
+  - **Media Uploader / URL Previewer**: Primary image input with live preview and sample preset footwear images.
 - [ ] **Bulk Product Actions**: Batch price updates, bulk tagging, and CSV product import.
 
 ### 3.3 Order & Fulfillment Management
-- [ ] **Order Management Hub**:
-  - Kanban board or tabbed data table: `All`, `Pending Verification`, `Ready to Pack`, `Dispatched`, `Delivered`, `Cancelled/Returned`.
-  - Color-coded badges for payment status (`Paid via UPI`, `COD Pending`, `Refunded`).
-- [ ] **Order Detail View**:
-  - Customer contact information and verified delivery address.
-  - Ordered footwear sizes, variants, and quantities.
-  - Timeline of status transitions with audit log.
+- [x] **Order Management Hub**:
+  - Live data list of customer orders with status filters (`All`, `Pending`, `Packing`, `Shipped`, `Delivered`).
+  - Color-coded badges for payment method (`UPI`, `Card`, `COD`) and payment status (`PAID`, `PENDING`).
+  - Order details view with customer contact info, delivery address, ordered items, and sizes.
+  - 1-click status transitions (`Mark as Packing`, `Dispatch / Ship`, `Confirm Delivery`).
 - [ ] **Fulfillment Actions**:
   - Single-click invoice generation (GST compliant with tax breakup).
   - Packing slip & thermal shipping label printing.

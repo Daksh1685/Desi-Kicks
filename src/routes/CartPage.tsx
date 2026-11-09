@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useOrders } from '../context/OrderContext';
 import { Icon } from '../components/ui/Icon';
 
 interface CartPageProps {
@@ -34,10 +35,12 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
   const [addCareKit, setAddCareKit] = useState(false);
 
   // Checkout modal states
+  const { createOrder } = useOrders();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<'home' | 'work'>('home');
   const [selectedPayment, setSelectedPayment] = useState<'upi' | 'cod' | 'card'>('upi');
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [placedOrderNumber, setPlacedOrderNumber] = useState<string>('DK-2026-9852');
 
   const availableCoupons = [
     { code: 'FESTIVE500', label: '₹500 OFF on Festive Footwear', discount: 500 },
@@ -73,6 +76,52 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
   const totalSavedWithCoupons = totalSavings + couponDiscount + walletCoinsDiscount + (addCareKit ? 200 : 0);
 
   const handlePlaceOrder = () => {
+    const methodMap = {
+      upi: 'UPI' as const,
+      cod: 'COD' as const,
+      card: 'Card' as const,
+    };
+    const paymentMethod = methodMap[selectedPayment] || 'UPI';
+
+    const orderItems = cartItems.map((item) => ({
+      id: item.id,
+      productId: item.id,
+      productName: item.name,
+      size: item.size,
+      price: item.price,
+      quantity: item.quantity,
+      img: item.img,
+    }));
+
+    const address =
+      selectedAddress === 'home'
+        ? {
+            street: 'Flat 402, Shanti Vihar, HAL 2nd Stage',
+            city: 'Bengaluru',
+            state: 'Karnataka',
+            pincode: '560038',
+          }
+        : {
+            street: '4th Floor, Tech Hub Tower B, Outer Ring Road',
+            city: 'Bengaluru',
+            state: 'Karnataka',
+            pincode: '560103',
+          };
+
+    const newOrder = createOrder({
+      customerName: 'Arjun Sharma',
+      customerEmail: 'arjun.sharma@gmail.com',
+      customerPhone: '+91 98765 43210',
+      shippingAddress: address,
+      items: orderItems,
+      subtotal,
+      discount: couponDiscount + walletCoinsDiscount,
+      shippingFee: 0,
+      totalAmount: finalTotal,
+      paymentMethod,
+    });
+
+    setPlacedOrderNumber(newOrder.orderNumber);
     setOrderPlaced(true);
     clearCart();
   };
@@ -92,7 +141,7 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
             Dhanyavaad, Arjun!
           </h2>
           <p className="text-xs sm:text-sm text-gray-600 mt-2 leading-relaxed">
-            Your footwear order <span className="font-bold text-gray-900">#DK-98520</span> has been placed successfully. Dispatched with live tracking via BlueDart Express.
+            Your footwear order <span className="font-bold text-gray-900">#{placedOrderNumber}</span> has been placed successfully. Dispatched with live tracking via BlueDart Express.
           </p>
 
           <div className="bg-orange-50/80 border border-orange-200/80 rounded-2xl p-4 my-6 text-left text-xs">

@@ -4,10 +4,13 @@ import './App.css';
 import { LandingPage } from './routes/LandingPage';
 import { ProfilePage } from './routes/ProfilePage';
 import { CartPage } from './routes/CartPage';
+import { AdminPage } from './routes/AdminPage';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { BottomNav } from './components/BottomNav';
 import { CartProvider } from './context/CartContext';
+import { ProductProvider } from './context/ProductContext';
+import { OrderProvider } from './context/OrderContext';
 import { ProductModalProvider } from './context/ProductModalContext';
 import { ProductDetailModal } from './components/ProductDetailModal';
 
@@ -36,7 +39,7 @@ function ScrollAndHashRedirectHandler() {
   return null;
 }
 
-function Layout({ children }: { children: React.ReactNode }) {
+function CustomerLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-white flex flex-col justify-between">
       <Navbar />
@@ -52,24 +55,37 @@ function Layout({ children }: { children: React.ReactNode }) {
 function App() {
   return (
     <BrowserRouter>
-      <CartProvider>
-        <ProductModalProvider>
-          <ScrollAndHashRedirectHandler />
-          <Layout>
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/cart" element={<CartPage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Layout>
-          <ProductDetailModal />
-        </ProductModalProvider>
-      </CartProvider>
+      <ProductProvider>
+        <OrderProvider>
+          <CartProvider>
+            <ProductModalProvider>
+              <ScrollAndHashRedirectHandler />
+              <Routes>
+                {/* Admin Operations Portal */}
+                <Route path="/admin" element={<AdminPage />} />
+
+                {/* Customer Storefront Routes */}
+                <Route
+                  path="/*"
+                  element={
+                    <CustomerLayout>
+                      <Routes>
+                        <Route path="/" element={<LandingPage />} />
+                        <Route path="/profile" element={<ProfilePage />} />
+                        <Route path="/cart" element={<CartPage />} />
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                      </Routes>
+                    </CustomerLayout>
+                  }
+                />
+              </Routes>
+              <ProductDetailModal />
+            </ProductModalProvider>
+          </CartProvider>
+        </OrderProvider>
+      </ProductProvider>
     </BrowserRouter>
   );
 }
 
 export default App;
-
-

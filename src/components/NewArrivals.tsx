@@ -1,10 +1,25 @@
 import { useNavigate } from 'react-router-dom';
 import { Icon } from './ui/Icon';
 import { useProductModal } from '../context/ProductModalContext';
+import { useProductCatalog } from '../context/ProductContext';
 
 export function NewArrivals() {
   const { openProductModal } = useProductModal();
+  const { activeProducts } = useProductCatalog();
   const navigate = useNavigate();
+
+  // Dynamically select products or fallback gracefully
+  const featured = activeProducts[0];
+  const second = activeProducts[1] || activeProducts[0];
+  const third = activeProducts[2] || activeProducts[0];
+
+  if (!featured) return null;
+
+  const calculateDiscount = (price: number, mrp: number) => {
+    if (!mrp || mrp <= price) return null;
+    return Math.round(((mrp - price) / mrp) * 100);
+  };
+
   return (
     <section className="bg-gray-50 py-12 border-t border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -24,16 +39,24 @@ export function NewArrivals() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-          {/* Main Hero Card: Festive Edit */}
+          {/* Main Hero Card */}
           <div
             onClick={() =>
               openProductModal({
-                name: 'Maharaja Velvet Zari Mojari',
-                price: '₹3,495',
-                originalPrice: '₹5,995',
-                tag: 'Festive Spotlight',
-                category: 'Festive & Ethnic',
-                img: 'https://images.unsplash.com/photo-1535043934128-cf0b28d52f95?q=80&w=800&auto=format&fit=crop',
+                name: featured.name,
+                price: `₹${featured.price.toLocaleString('en-IN')}`,
+                originalPrice: `₹${featured.originalPrice.toLocaleString('en-IN')}`,
+                tag: featured.tag || 'Festive Spotlight',
+                category: featured.category,
+                img: featured.img,
+                description: featured.description,
+                story: featured.story,
+                upperMaterial: featured.upperMaterial,
+                soleMaterial: featured.soleMaterial,
+                insoleType: featured.insoleType,
+                idealFor: featured.idealFor,
+                sizes: featured.sizes,
+                additionalImages: featured.additionalImages,
               })
             }
             className="col-span-2 row-span-2 bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col group cursor-pointer border border-gray-200/70"
@@ -41,98 +64,134 @@ export function NewArrivals() {
             <div className="relative flex-1 overflow-hidden aspect-[4/3] md:aspect-auto min-h-[220px]">
               <img
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                src="https://images.unsplash.com/photo-1535043934128-cf0b28d52f95?q=80&w=800&auto=format&fit=crop"
-                alt="Maharaja Handcrafted Velvet Mojari"
+                src={featured.img}
+                alt={featured.name}
                 loading="lazy"
               />
               <div className="absolute top-4 left-4">
                 <span className="bg-primary text-white px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider shadow-sm">
-                  Festive Spotlight
+                  {featured.tag || 'New Drop'}
                 </span>
               </div>
             </div>
             <div className="p-5 md:p-6 bg-white">
               <h4 className="font-anton text-xl md:text-2xl text-gray-900 tracking-wide uppercase">
-                Maharaja Velvet Zari Mojari
+                {featured.name}
               </h4>
-              <p className="text-gray-500 mt-1 mb-3 text-xs md:text-sm">
-                Handcrafted pure velvet with double-padded orthopedic cushioning for weddings & festivals.
+              <p className="text-gray-500 mt-1 mb-3 text-xs md:text-sm line-clamp-2">
+                {featured.story || featured.description}
               </p>
               <div className="flex items-baseline gap-2">
-                <span className="font-bold text-primary text-lg md:text-xl">₹3,495</span>
-                <span className="text-xs text-gray-400 line-through">₹5,995</span>
-                <span className="text-xs text-green-600 font-bold">42% OFF</span>
+                <span className="font-bold text-primary text-lg md:text-xl">
+                  ₹{featured.price.toLocaleString('en-IN')}
+                </span>
+                <span className="text-xs text-gray-400 line-through">
+                  ₹{featured.originalPrice.toLocaleString('en-IN')}
+                </span>
+                {calculateDiscount(featured.price, featured.originalPrice) && (
+                  <span className="text-xs text-green-600 font-bold">
+                    {calculateDiscount(featured.price, featured.originalPrice)}% OFF
+                  </span>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Daily Comfort Card */}
-          <div
-            onClick={() =>
-              openProductModal({
-                name: 'BreezeStep Knit Slip-On',
-                price: '₹2,295',
-                originalPrice: '₹3,495',
-                tag: 'Daily Wear',
-                category: 'Daily Comfort',
-                img: 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=600&auto=format&fit=crop',
-              })
-            }
-            className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col group cursor-pointer border border-gray-200/70"
-          >
-            <div className="aspect-[4/3] relative overflow-hidden">
-              <img
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                src="https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=600&auto=format&fit=crop"
-                alt="BreezeStep Slip-On"
-                loading="lazy"
-              />
-              <span className="absolute top-2 left-2 bg-black/70 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">
-                Daily Wear
-              </span>
-            </div>
-            <div className="p-3.5">
-              <h5 className="font-bold text-gray-900 text-sm truncate">BreezeStep Knit Slip-On</h5>
-              <div className="flex items-center gap-1.5 mt-1">
-                <span className="text-primary font-bold text-sm">₹2,295</span>
-                <span className="text-xs text-gray-400 line-through">₹3,495</span>
+          {/* Secondary Card 1 */}
+          {second && (
+            <div
+              onClick={() =>
+                openProductModal({
+                  name: second.name,
+                  price: `₹${second.price.toLocaleString('en-IN')}`,
+                  originalPrice: `₹${second.originalPrice.toLocaleString('en-IN')}`,
+                  tag: second.tag,
+                  category: second.category,
+                  img: second.img,
+                  description: second.description,
+                  story: second.story,
+                  upperMaterial: second.upperMaterial,
+                  soleMaterial: second.soleMaterial,
+                  insoleType: second.insoleType,
+                  idealFor: second.idealFor,
+                  sizes: second.sizes,
+                  additionalImages: second.additionalImages,
+                })
+              }
+              className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col group cursor-pointer border border-gray-200/70"
+            >
+              <div className="aspect-[4/3] relative overflow-hidden">
+                <img
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  src={second.img}
+                  alt={second.name}
+                  loading="lazy"
+                />
+                <span className="absolute top-2 left-2 bg-black/70 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">
+                  {second.tag || second.category}
+                </span>
+              </div>
+              <div className="p-3.5">
+                <h5 className="font-bold text-gray-900 text-sm truncate">{second.name}</h5>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className="text-primary font-bold text-sm">
+                    ₹{second.price.toLocaleString('en-IN')}
+                  </span>
+                  <span className="text-xs text-gray-400 line-through">
+                    ₹{second.originalPrice.toLocaleString('en-IN')}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Women Evening / Party Card */}
-          <div
-            onClick={() =>
-              openProductModal({
-                name: 'Stella Shimmer Block Heel',
-                price: '₹2,995',
-                originalPrice: '₹4,495',
-                tag: "Women's Festive",
-                category: "Women's Festive",
-                img: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=600&auto=format&fit=crop',
-              })
-            }
-            className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col group cursor-pointer border border-gray-200/70"
-          >
-            <div className="aspect-[4/3] relative overflow-hidden">
-              <img
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                src="https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=600&auto=format&fit=crop"
-                alt="Stella Shimmer Block Heel"
-                loading="lazy"
-              />
-              <span className="absolute top-2 left-2 bg-black/70 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">
-                Women
-              </span>
-            </div>
-            <div className="p-3.5">
-              <h5 className="font-bold text-gray-900 text-sm truncate">Stella Shimmer Block Heel</h5>
-              <div className="flex items-center gap-1.5 mt-1">
-                <span className="text-primary font-bold text-sm">₹2,995</span>
-                <span className="text-xs text-gray-400 line-through">₹4,495</span>
+          {/* Secondary Card 2 */}
+          {third && (
+            <div
+              onClick={() =>
+                openProductModal({
+                  name: third.name,
+                  price: `₹${third.price.toLocaleString('en-IN')}`,
+                  originalPrice: `₹${third.originalPrice.toLocaleString('en-IN')}`,
+                  tag: third.tag,
+                  category: third.category,
+                  img: third.img,
+                  description: third.description,
+                  story: third.story,
+                  upperMaterial: third.upperMaterial,
+                  soleMaterial: third.soleMaterial,
+                  insoleType: third.insoleType,
+                  idealFor: third.idealFor,
+                  sizes: third.sizes,
+                  additionalImages: third.additionalImages,
+                })
+              }
+              className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col group cursor-pointer border border-gray-200/70"
+            >
+              <div className="aspect-[4/3] relative overflow-hidden">
+                <img
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  src={third.img}
+                  alt={third.name}
+                  loading="lazy"
+                />
+                <span className="absolute top-2 left-2 bg-black/70 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">
+                  {third.tag || third.category}
+                </span>
+              </div>
+              <div className="p-3.5">
+                <h5 className="font-bold text-gray-900 text-sm truncate">{third.name}</h5>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className="text-primary font-bold text-sm">
+                    ₹{third.price.toLocaleString('en-IN')}
+                  </span>
+                  <span className="text-xs text-gray-400 line-through">
+                    ₹{third.originalPrice.toLocaleString('en-IN')}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Family Club Card */}
           <div

@@ -1,60 +1,11 @@
 import { useRef } from 'react';
 import { ProductCard } from './ProductCard';
 import { Icon } from './ui/Icon';
-
-const RECS = [
-  {
-    name: 'Royal Velvet Embroidered Mojari',
-    rating: 4.9,
-    price: '₹3,495',
-    originalPrice: '₹5,495',
-    tag: 'Festive Edit',
-    img: 'https://images.unsplash.com/photo-1535043934128-cf0b28d52f95?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    name: 'CloudKnit Daily Slip-On Loafer',
-    rating: 4.7,
-    price: '₹2,295',
-    originalPrice: '₹3,495',
-    tag: 'Daily Comfort',
-    img: 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    name: 'Aura Metallic Block Heel Sandal',
-    rating: 4.8,
-    price: '₹2,995',
-    originalPrice: '₹4,495',
-    tag: "Women's Pick",
-    img: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    name: 'Vortex Flex Gym & Pro Runner',
-    rating: 4.8,
-    price: '₹3,995',
-    originalPrice: '₹5,995',
-    tag: 'Gym & Sports',
-    img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    name: 'Handcrafted Heritage Penny Loafer',
-    rating: 4.9,
-    price: '₹4,995',
-    originalPrice: '₹7,495',
-    tag: 'Formal Leather',
-    img: 'https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    name: 'AirSlide Ortho Comfort Chappal',
-    rating: 4.6,
-    price: '₹1,495',
-    originalPrice: '₹2,295',
-    tag: 'Everyday Ease',
-    img: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=600&auto=format&fit=crop',
-  },
-];
+import { useProductCatalog } from '../context/ProductContext';
 
 export function Recommendations() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const { activeProducts } = useProductCatalog();
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -73,9 +24,12 @@ export function Recommendations() {
               BEST FOR YOU
             </h3>
           </div>
-          
+
           <div className="flex items-center gap-3">
-            <span className="text-primary text-xs md:text-sm font-bold cursor-pointer hover:underline tracking-wider uppercase">
+            <span
+              onClick={() => document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' })}
+              className="text-primary text-xs md:text-sm font-bold cursor-pointer hover:underline tracking-wider uppercase"
+            >
               SEE ALL
             </span>
             <div className="hidden sm:flex items-center gap-1.5 ml-2">
@@ -102,15 +56,15 @@ export function Recommendations() {
           ref={scrollContainerRef}
           className="flex gap-4 md:gap-5 overflow-x-auto pb-4 pt-1 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
-          {RECS.map((r) => (
+          {activeProducts.map((p) => (
             <ProductCard
-              key={r.name}
-              name={r.name}
-              rating={r.rating}
-              price={r.price}
-              originalPrice={r.originalPrice}
-              tag={r.tag}
-              img={r.img}
+              key={p.id}
+              name={p.name}
+              rating={p.rating}
+              price={`₹${p.price.toLocaleString('en-IN')}`}
+              originalPrice={`₹${p.originalPrice.toLocaleString('en-IN')}`}
+              tag={p.tag || p.category}
+              img={p.img}
             />
           ))}
         </div>

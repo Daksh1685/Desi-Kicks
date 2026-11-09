@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 export function Footer() {
   const [email, setEmail] = useState('');
@@ -88,8 +89,17 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-white/10 py-5 text-center text-xs text-white/40 font-medium px-4">
-        © {new Date().getFullYear()} Desikicks Inc. All rights reserved. Crafted for Indian sneaker culture.
+      <div className="border-t border-white/10 py-5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-white/50 gap-2">
+          <span>© {new Date().getFullYear()} Desikicks Inc. All rights reserved. Crafted for Indian footwear culture.</span>
+          <Link
+            to="/admin"
+            className="text-emerald-400 hover:text-emerald-300 font-bold transition-colors flex items-center gap-1.5"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Admin Operations Portal →
+          </Link>
+        </div>
       </div>
     </footer>
   );

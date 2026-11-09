@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Icon } from '../components/ui/Icon';
 import type { IconName } from '../components/ui/Icon';
 import { useCart } from '../context/CartContext';
+import { useOrders } from '../context/OrderContext';
 
 interface ProfilePageProps {
   onBackToHome?: () => void;
@@ -102,8 +103,10 @@ export function ProfilePage({ onBackToHome, onNavigateToCart }: ProfilePageProps
     setTimeout(() => setSavedFeedback(false), 2500);
   };
 
+  const { orders } = useOrders();
+
   const tabs: { id: TabType; label: string; icon: IconName; count?: number }[] = [
-    { id: 'orders', label: 'My Orders', icon: 'package', count: 3 },
+    { id: 'orders', label: 'My Orders', icon: 'package', count: orders.length },
     { id: 'wishlist', label: 'Wishlist', icon: 'favorite', count: wishlistItems.length },
     { id: 'addresses', label: 'Saved Addresses', icon: 'map_pin', count: 2 },
     { id: 'sizes', label: 'My Shoe Sizes', icon: 'category' },
@@ -234,157 +237,81 @@ export function ProfilePage({ onBackToHome, onNavigateToCart }: ProfilePageProps
                   <h2 className="font-anton text-xl md:text-2xl text-gray-900 uppercase tracking-wide">
                     Recent Footwear Orders
                   </h2>
-                  <span className="text-xs text-gray-500">Showing 3 orders</span>
+                  <span className="text-xs text-gray-500">Showing {orders.length} orders</span>
                 </div>
 
-                {/* Order 1: Out for delivery */}
-                <div className="bg-white rounded-2xl border border-gray-200/80 p-5 md:p-6 shadow-xs hover:border-primary/40 transition-colors">
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-4 mb-4">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-gray-900 text-sm">Order #DK-84910</span>
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                          <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
-                          Out for Delivery Today
+                {orders.map((ord) => (
+                  <div
+                    key={ord.id}
+                    className="bg-white rounded-2xl border border-gray-200/80 p-5 md:p-6 shadow-xs hover:border-primary/40 transition-colors"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-4 mb-4">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-gray-900 text-sm">Order #{ord.orderNumber}</span>
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                              ord.orderStatus === 'DELIVERED'
+                                ? 'bg-green-50 text-green-700 border border-green-200'
+                                : ord.orderStatus === 'SHIPPED'
+                                ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                : 'bg-amber-50 text-amber-700 border border-amber-200'
+                            }`}
+                          >
+                            {ord.orderStatus === 'SHIPPED' && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+                            )}
+                            {ord.orderStatus === 'DELIVERED' && (
+                              <Icon name="check" className="w-3 h-3 text-green-600" />
+                            )}
+                            {ord.orderStatus}
+                          </span>
+                        </div>
+                        <span className="text-xs text-gray-500 mt-0.5 block">
+                          Payment: {ord.paymentMethod} • {ord.paymentStatus} (₹{ord.totalAmount.toLocaleString('en-IN')})
                         </span>
                       </div>
-                      <span className="text-xs text-gray-500 mt-0.5 block">
-                        Placed on Sep 28, 2026 • Cash on Delivery (₹2,295)
+                      <span className="text-xs font-semibold text-gray-700">
+                        {ord.estimatedDelivery ? `Est. Delivery: ${ord.estimatedDelivery}` : 'Standard Delivery'}
                       </span>
                     </div>
-                    <span className="text-xs font-semibold text-gray-700">
-                      Expected by 6:00 PM
-                    </span>
-                  </div>
 
-                  <div className="flex gap-4 items-center">
-                    <img
-                      src="https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=400&auto=format&fit=crop"
-                      alt="BreezeStep Knit Slip-On Loafer"
-                      className="w-20 h-20 object-cover rounded-xl border border-gray-100 shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <span className="text-[10px] font-bold uppercase text-primary tracking-wider">
-                        Daily Comfort
-                      </span>
-                      <h4 className="font-bold text-gray-900 text-sm md:text-base truncate">
-                        BreezeStep Knit Slip-On Loafer
-                      </h4>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        Size: Men UK 9 • Color: Navy Blue • Qty: 1
-                      </p>
-                      <span className="font-bold text-gray-900 text-sm mt-1 block">₹2,295</span>
+                    <div className="space-y-3">
+                      {ord.items.map((item, idx) => (
+                        <div key={idx} className="flex gap-4 items-center">
+                          <img
+                            src={item.img}
+                            alt={item.productName}
+                            className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl border border-gray-100 shrink-0"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-gray-900 text-sm md:text-base truncate">
+                              {item.productName}
+                            </h4>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              Size: {item.size} • Qty: {item.quantity}
+                            </p>
+                            <span className="font-bold text-gray-900 text-sm mt-1 block">
+                              ₹{item.price.toLocaleString('en-IN')}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2.5 mt-5 pt-4 border-t border-gray-100">
+                      <button className="bg-primary text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-[#8A2600] transition-colors cursor-pointer">
+                        Track Live Delivery
+                      </button>
+                      <button className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer">
+                        Size Exchange or Return
+                      </button>
+                      <button className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer">
+                        Download Invoice
+                      </button>
                     </div>
                   </div>
-
-                  <div className="flex flex-wrap gap-2.5 mt-5 pt-4 border-t border-gray-100">
-                    <button className="bg-primary text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-[#8A2600] transition-colors cursor-pointer">
-                      Track Live Delivery
-                    </button>
-                    <button className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer">
-                      Contact Delivery Executive
-                    </button>
-                  </div>
-                </div>
-
-                {/* Order 2: Delivered */}
-                <div className="bg-white rounded-2xl border border-gray-200/80 p-5 md:p-6 shadow-xs">
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-4 mb-4">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-gray-900 text-sm">Order #DK-82741</span>
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-green-50 text-green-700 border border-green-200">
-                          <Icon name="check" className="w-3 h-3 text-green-600" />
-                          Delivered on Sep 26
-                        </span>
-                      </div>
-                      <span className="text-xs text-gray-500 mt-0.5 block">
-                        Placed on Sep 22, 2026 • Paid via UPI
-                      </span>
-                    </div>
-                    <span className="text-xs text-primary font-bold bg-primary/10 px-2.5 py-0.5 rounded-md">
-                      Exchange Eligible: 5 Days Left
-                    </span>
-                  </div>
-
-                  <div className="flex gap-4 items-center">
-                    <img
-                      src="https://images.unsplash.com/photo-1535043934128-cf0b28d52f95?q=80&w=400&auto=format&fit=crop"
-                      alt="Royal Velvet Embroidered Mojari"
-                      className="w-20 h-20 object-cover rounded-xl border border-gray-100 shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <span className="text-[10px] font-bold uppercase text-amber-700 tracking-wider">
-                        Festive & Wedding
-                      </span>
-                      <h4 className="font-bold text-gray-900 text-sm md:text-base truncate">
-                        Royal Velvet Embroidered Mojari
-                      </h4>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        Size: UK 9 • Color: Royal Maroon • Handcrafted
-                      </p>
-                      <span className="font-bold text-gray-900 text-sm mt-1 block">₹3,495</span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2.5 mt-5 pt-4 border-t border-gray-100">
-                    <button className="bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-white text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer">
-                      Size Exchange or Return
-                    </button>
-                    <button className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer">
-                      Download Invoice
-                    </button>
-                    <button className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer">
-                      Buy Again
-                    </button>
-                  </div>
-                </div>
-
-                {/* Order 3: Past delivery */}
-                <div className="bg-white rounded-2xl border border-gray-200/80 p-5 md:p-6 shadow-xs">
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-4 mb-4">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-gray-900 text-sm">Order #DK-79110</span>
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-gray-100 text-gray-600">
-                          Delivered on Aug 18
-                        </span>
-                      </div>
-                      <span className="text-xs text-gray-500 mt-0.5 block">
-                        Placed on Aug 14, 2026 • Credit Card
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4 items-center">
-                    <img
-                      src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=400&auto=format&fit=crop"
-                      alt="Aero Stride Pro Runner"
-                      className="w-20 h-20 object-cover rounded-xl border border-gray-100 shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <span className="text-[10px] font-bold uppercase text-red-600 tracking-wider">
-                        Gym & Sports
-                      </span>
-                      <h4 className="font-bold text-gray-900 text-sm md:text-base truncate">
-                        Aero Stride Pro Runner
-                      </h4>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        Size: UK 9 • Color: Crimson Red • High Rebound
-                      </p>
-                      <span className="font-bold text-gray-900 text-sm mt-1 block">₹3,995</span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2.5 mt-5 pt-4 border-t border-gray-100">
-                    <button className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer">
-                      ⭐ Write a Review
-                    </button>
-                    <button className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer">
-                      Reorder Pair
-                    </button>
-                  </div>
-                </div>
+                ))}
               </div>
             )}
 
