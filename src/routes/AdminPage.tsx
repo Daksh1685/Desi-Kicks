@@ -4,7 +4,6 @@ import { Icon } from '../components/ui/Icon';
 import { useProductCatalog } from '../context/ProductContext';
 import { useOrders } from '../context/OrderContext';
 import type { NewProductInput } from '../types/product';
-import type { OrderStatus } from '../types/order';
 
 const CATEGORIES = [
   'Festive & Ethnic',
@@ -1147,14 +1146,14 @@ export function AdminPage() {
                   Specify initial inventory for each size variant:
                 </p>
                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                  {[
+                  {([
                     { label: 'UK 6', key: 'stockUK6' },
                     { label: 'UK 7', key: 'stockUK7' },
                     { label: 'UK 8', key: 'stockUK8' },
                     { label: 'UK 9', key: 'stockUK9' },
                     { label: 'UK 10', key: 'stockUK10' },
                     { label: 'UK 11', key: 'stockUK11' },
-                  ].map((s) => (
+                  ] as const).map((s) => (
                     <div key={s.label} className="bg-gray-50 p-2.5 rounded-xl border border-gray-200 text-center">
                       <span className="block text-[11px] font-bold text-gray-700 mb-1">
                         {s.label}
@@ -1162,7 +1161,7 @@ export function AdminPage() {
                       <input
                         type="number"
                         min={0}
-                        value={(formData as any)[s.key]}
+                        value={formData[s.key]}
                         onChange={(e) =>
                           setFormData({ ...formData, [s.key]: Number(e.target.value) })
                         }

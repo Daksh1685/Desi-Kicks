@@ -157,14 +157,6 @@ export function Navbar() {
         </div>
         <div className="flex items-center gap-1 md:gap-3 text-gray-700">
           <button
-            onClick={() => navigate('/admin')}
-            title="Admin Dashboard"
-            className="flex items-center gap-1.5 px-3 py-1 bg-gray-900 text-white rounded-full text-xs font-bold uppercase tracking-wider hover:bg-primary transition-colors cursor-pointer mr-1"
-          >
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Admin</span>
-          </button>
-          <button
             onClick={() => navigate('/profile')}
             title="Wishlist"
             className="p-2 hover:text-primary transition-colors cursor-pointer"
