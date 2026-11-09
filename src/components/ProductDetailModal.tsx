@@ -17,6 +17,10 @@ function ProductDetailModalInner({
   const navigate = useNavigate();
 
   const product = useMemo(() => getEnrichedProductDetails(productDetails), [productDetails]);
+  const productSlug = product.name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string>(
     () => product.sizes?.[2] || product.sizes?.[0] || 'UK 9'
@@ -91,13 +95,24 @@ function ProductDetailModalInner({
             </span>
             <span className="text-xs text-gray-400">• In Stock</span>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
-            aria-label="Close Product View"
-          >
-            <Icon name="close" className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                onClose();
+                navigate(`/products/${productSlug}`);
+              }}
+              className="text-xs font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer mr-2"
+            >
+              <span>Full Page & Reviews ↗</span>
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+              aria-label="Close Product View"
+            >
+              <Icon name="close" className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Scrollable Modal Content */}
@@ -357,6 +372,19 @@ function ProductDetailModalInner({
                   {product.idealFor}
                 </span>
               </div>
+            </div>
+
+            <div className="pt-2">
+              <button
+                onClick={() => {
+                  onClose();
+                  navigate(`/products/${productSlug}`);
+                }}
+                className="w-full py-3 px-4 rounded-xl border border-gray-200 text-gray-800 hover:text-primary hover:border-primary text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer bg-gray-50 hover:bg-white shadow-xs"
+              >
+                <span>Open Dedicated Product Page, Size Guide & Reviews</span>
+                <Icon name="chevron_right" className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>

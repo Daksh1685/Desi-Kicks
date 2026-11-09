@@ -4,6 +4,7 @@ import './App.css';
 import { LandingPage } from './routes/LandingPage';
 import { ProfilePage } from './routes/ProfilePage';
 import { CartPage } from './routes/CartPage';
+import { ProductDetailPage } from './routes/ProductDetailPage';
 import { AdminPage } from './routes/AdminPage';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
@@ -73,6 +74,8 @@ function App() {
                         <Route path="/" element={<LandingPage />} />
                         <Route path="/profile" element={<ProfilePage />} />
                         <Route path="/cart" element={<CartPage />} />
+                        <Route path="/products/:slug" element={<ProductDetailPage />} />
+                        <Route path="/product/:slug" element={<ProductDetailPage />} />
                         <Route path="*" element={<Navigate to="/" replace />} />
                       </Routes>
                     </CustomerLayout>

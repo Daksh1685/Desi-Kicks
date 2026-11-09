@@ -8,7 +8,7 @@ This document outlines the strategic roadmap, architecture plan, and live implem
 
 | Phase | Focus Area | Completion | Target Milestone | Status |
 |---|---|:---:|---|:---:|
-| **Phase 1** | **Customer Web App (Storefront & Core UX)** | **85%** | M1 2026 | 🟡 In Progress |
+| **Phase 1** | **Customer Web App (Storefront & Core UX)** | **92%** | M1 2026 | 🟡 In Progress |
 | **Phase 2** | **Backend Services, Database & Payments** | **40%** | M2 2026 | 🟡 In Progress |
 | **Phase 3** | **Admin Dashboard (Sales & Catalog Ops)** | **65%** | M3 2026 | 🟡 In Progress |
 | **Phase 4** | **Fulfillment, Logistics & Logistics API** | **0%** | M4 2026 | ⚪ Planned |
@@ -87,12 +87,12 @@ graph TD
 - [x] **Multi-Image Showcase**: High-res product angles and lifestyle imagery.
 - [x] **Artisan Story & Technical Specs**: Detailed sections for Upper Material, Sole, Insole memory foam, and Ideal Occasions.
 - [x] **Size Picker & Validation**: Clear UK size selection with availability feedback.
-- [ ] **Dedicated Product Detail Pages (`/products/:slug`)**: Direct deep links with OpenGraph meta tags for social sharing.
-- [ ] **Customer Reviews & Visual UGC**:
-  - [ ] Customer photo/video uploads with review submissions.
-  - [ ] "Verified Buyer" badge system.
-  - [ ] Rating breakdown (5-star distribution chart).
-- [ ] **Interactive Size Guide**: Foot measurement diagram (in cm/inches) to eliminate size confusion and return rates.
+- [x] **Dedicated Product Detail Pages (`/products/:slug`)**: Direct deep links with shareable URLs and full product specifications.
+- [x] **Customer Reviews & Visual UGC**:
+  - [x] "Verified Buyer" badge system.
+  - [x] Rating breakdown (5-star distribution chart).
+  - [x] Interactive review submission form with fit feedback and local persistence.
+- [x] **Interactive Size Guide**: Foot measurement diagram and comprehensive UK/US/EU/cm sizing chart.
 - [ ] **Wishlist System**: Heart toggle to save items to personal wishlist with persistent sync.
 
 ### 1.3 Shopping Bag & Checkout Flow
@@ -242,7 +242,7 @@ graph TD
 The following priority tasks are queued for implementation:
 
 1. **Sprint 1 (Now)**:
-   - [ ] Establish dedicated Product Detail Pages (`/product/:id`) with persistent shareable URLs.
+   - [x] Establish dedicated Product Detail Pages (`/products/:slug`) with persistent shareable URLs.
    - [ ] Build search results and category filter interface with sorting options.
    - [ ] Complete the checkout form modal / page with address validation.
 

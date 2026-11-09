@@ -59,6 +59,7 @@ export function Recommendations() {
           {activeProducts.map((p) => (
             <ProductCard
               key={p.id}
+              slug={p.slug}
               name={p.name}
               rating={p.rating}
               price={`₹${p.price.toLocaleString('en-IN')}`}

@@ -31,3 +31,19 @@ export interface Product {
 
 export type NewProductInput = Omit<Product, 'id' | 'slug' | 'rating' | 'reviewsCount' | 'totalSold' | 'createdAt'>;
 
+export interface ProductReview {
+  id: string;
+  author: string;
+  city: string;
+  rating: number;
+  date: string;
+  title: string;
+  comment: string;
+  fitFeedback: 'Runs Small' | 'True to Size' | 'Runs Large';
+  verifiedBuyer: boolean;
+  sizePurchased: string;
+  helpfulCount: number;
+  userImages?: string[];
+}
+
+

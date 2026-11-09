@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Icon } from './ui/Icon';
 import { useCart } from '../context/CartContext';
 import { useProductModal } from '../context/ProductModalContext';
@@ -10,15 +11,25 @@ export interface ProductCardProps {
   originalPrice?: string;
   tag?: string;
   img: string;
+  slug?: string;
 }
 
-export function ProductCard({ name, rating, price, originalPrice, tag, img }: ProductCardProps) {
+export function ProductCard({ name, rating, price, originalPrice, tag, img, slug }: ProductCardProps) {
+  const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
   const { addToCart } = useCart();
   const { openProductModal } = useProductModal();
 
+  const computedSlug =
+    slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
   const handleCardClick = () => {
+    navigate(`/products/${computedSlug}`);
+  };
+
+  const handleQuickView = (e: React.MouseEvent) => {
+    e.stopPropagation();
     openProductModal({
       name,
       rating,
@@ -90,17 +101,27 @@ export function ProductCard({ name, rating, price, originalPrice, tag, img }: Pr
           loading="lazy"
         />
 
-        {/* Hover Quick Add Overlay */}
-        <button
-          onClick={handleQuickAdd}
-          className={`absolute bottom-2 inset-x-2 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-all duration-300 shadow-md ${
-            isAdded
-              ? 'bg-green-600 text-white opacity-100 translate-y-0'
-              : 'bg-white/95 text-gray-900 opacity-0 group-hover:opacity-100 hover:bg-primary hover:text-white translate-y-2 group-hover:translate-y-0'
-          }`}
-        >
-          {isAdded ? '✓ Added to Cart' : '+ Quick Add'}
-        </button>
+        {/* Hover Action Buttons Overlay */}
+        <div className="absolute bottom-2 inset-x-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+          <button
+            onClick={handleQuickView}
+            title="Quick View Modal"
+            className="flex-1 py-1.5 px-2 bg-white/95 hover:bg-gray-900 hover:text-white text-gray-900 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-md transition-colors cursor-pointer"
+          >
+            Quick View
+          </button>
+          <button
+            onClick={handleQuickAdd}
+            title="Add to Cart"
+            className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-md transition-all cursor-pointer ${
+              isAdded
+                ? 'bg-emerald-600 text-white'
+                : 'bg-primary hover:bg-primary/90 text-white'
+            }`}
+          >
+            {isAdded ? '✓ Added' : '+ Add'}
+          </button>
+        </div>
       </div>
 
       <h4 className="text-base font-semibold text-gray-900 truncate mb-1" title={name}>
