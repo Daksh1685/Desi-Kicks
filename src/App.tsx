@@ -13,6 +13,7 @@ import { CartProvider } from './context/CartContext';
 import { ProductProvider } from './context/ProductContext';
 import { OrderProvider } from './context/OrderContext';
 import { ProductModalProvider } from './context/ProductModalContext';
+import { AuthProvider } from './context/AuthContext';
 import { ProductDetailModal } from './components/ProductDetailModal';
 
 export type PageRoute = 'landing' | 'profile' | 'cart';
@@ -56,37 +57,39 @@ function CustomerLayout({ children }: { children: React.ReactNode }) {
 function App() {
   return (
     <BrowserRouter>
-      <ProductProvider>
-        <OrderProvider>
-          <CartProvider>
-            <ProductModalProvider>
-              <ScrollAndHashRedirectHandler />
-              <Routes>
-                {/* Admin Operations Portal */}
-                <Route path="/admin" element={<AdminPage />} />
+      <AuthProvider>
+        <ProductProvider>
+          <OrderProvider>
+            <CartProvider>
+              <ProductModalProvider>
+                <ScrollAndHashRedirectHandler />
+                <Routes>
+                  {/* Admin Operations Portal */}
+                  <Route path="/admin" element={<AdminPage />} />
 
-                {/* Customer Storefront Routes */}
-                <Route
-                  path="/*"
-                  element={
-                    <CustomerLayout>
-                      <Routes>
-                        <Route path="/" element={<LandingPage />} />
-                        <Route path="/profile" element={<ProfilePage />} />
-                        <Route path="/cart" element={<CartPage />} />
-                        <Route path="/products/:slug" element={<ProductDetailPage />} />
-                        <Route path="/product/:slug" element={<ProductDetailPage />} />
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                      </Routes>
-                    </CustomerLayout>
-                  }
-                />
-              </Routes>
-              <ProductDetailModal />
-            </ProductModalProvider>
-          </CartProvider>
-        </OrderProvider>
-      </ProductProvider>
+                  {/* Customer Storefront Routes */}
+                  <Route
+                    path="/*"
+                    element={
+                      <CustomerLayout>
+                        <Routes>
+                          <Route path="/" element={<LandingPage />} />
+                          <Route path="/profile" element={<ProfilePage />} />
+                          <Route path="/cart" element={<CartPage />} />
+                          <Route path="/products/:slug" element={<ProductDetailPage />} />
+                          <Route path="/product/:slug" element={<ProductDetailPage />} />
+                          <Route path="*" element={<Navigate to="/" replace />} />
+                        </Routes>
+                      </CustomerLayout>
+                    }
+                  />
+                </Routes>
+                <ProductDetailModal />
+              </ProductModalProvider>
+            </CartProvider>
+          </OrderProvider>
+        </ProductProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

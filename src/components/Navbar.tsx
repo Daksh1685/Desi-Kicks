@@ -5,11 +5,13 @@ import { useTypingEffect } from '../hooks/useTypingEffect';
 import { SEARCH_KEYWORDS, ALL_PRODUCTS } from '../constants/search';
 import { useCart } from '../context/CartContext';
 import { useProductModal } from '../context/ProductModalContext';
+import { useAuth } from '../context/AuthContext';
 
 export function Navbar() {
   const typedText = useTypingEffect(SEARCH_KEYWORDS);
   const { totalItemsCount } = useCart();
   const { openProductModal } = useProductModal();
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
@@ -181,14 +183,22 @@ export function Navbar() {
           </button>
           <button
             onClick={() => navigate('/profile')}
-            title="My Account"
-            className={`p-2 transition-colors cursor-pointer rounded-full ${
+            title={currentUser ? (currentUser.displayName || 'My Account') : 'My Account'}
+            className={`p-1.5 transition-colors cursor-pointer rounded-full ${
               pathname === '/profile'
                 ? 'text-primary bg-primary/10'
                 : 'hover:text-primary hover:bg-gray-100'
             }`}
           >
-            <Icon name="person" className="w-6 h-6" filled={pathname === '/profile'} />
+            {currentUser?.photoURL ? (
+              <img
+                src={currentUser.photoURL}
+                alt={currentUser.displayName || 'Profile'}
+                className="w-7 h-7 rounded-full object-cover border border-primary/40 shadow-xs"
+              />
+            ) : (
+              <Icon name="person" className="w-6 h-6" filled={pathname === '/profile'} />
+            )}
           </button>
         </div>
       </div>
