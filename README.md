@@ -223,3 +223,6 @@ Please ensure code passes linting (`npm run lint`) and type checks (`npm run bui
 ## 📄 License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+
+
+### Testing in collaboration
