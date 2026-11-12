@@ -31,7 +31,7 @@ export function NewArrivals() {
             </h3>
           </div>
           <span
-            onClick={() => document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' })}
+            onClick={() => navigate('/collections')}
             className="text-primary text-xs md:text-sm font-bold cursor-pointer hover:underline uppercase tracking-wider"
           >
             View All New In
@@ -199,7 +199,7 @@ export function NewArrivals() {
             className="col-span-2 bg-primary/10 border border-primary/20 rounded-2xl p-5 md:p-6 flex items-center justify-between group cursor-pointer overflow-hidden relative"
           >
             <div className="z-10">
-              <span className="text-primary font-bold text-xs uppercase tracking-wider">DesiKicks Club</span>
+              <span className="text-primary font-bold text-xs uppercase tracking-wider">CraftYourSole Club</span>
               <h4 className="font-anton text-xl md:text-2xl text-primary uppercase tracking-wide mt-0.5">
                 Join the Footwear Family
               </h4>

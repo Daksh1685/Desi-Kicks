@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '../components/ui/Icon';
+import { SeoHead } from '../components/SeoHead';
 import { useProductCatalog } from '../context/ProductContext';
 import { useOrders } from '../context/OrderContext';
 import type { NewProductInput } from '../types/product';
@@ -186,6 +187,12 @@ export function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+      <SeoHead
+        title="Admin Operations | CraftYourSole"
+        description="CraftYourSole internal catalog and order management portal."
+        canonicalPath="/admin"
+        noindex
+      />
       {/* Top Banner & Header */}
       <header className="bg-gray-900 text-white border-b border-gray-800 sticky top-0 z-30 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -203,7 +210,7 @@ export function AdminPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="text-lg md:text-xl font-bold tracking-tight text-white flex items-center gap-2">
-                    <span className="text-primary font-anton tracking-wider text-xl">DESI-KICKS</span>
+                    <span className="text-primary font-anton tracking-wider text-xl">CRAFTYOURSOLE</span>
                     <span>Admin Operations</span>
                   </h1>
                   <span className="bg-emerald-950 text-emerald-400 border border-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">

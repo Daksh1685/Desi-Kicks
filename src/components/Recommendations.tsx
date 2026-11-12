@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { ProductCard } from './ProductCard';
 import { Icon } from './ui/Icon';
 import { useProductCatalog } from '../context/ProductContext';
@@ -26,12 +27,12 @@ export function Recommendations() {
           </div>
 
           <div className="flex items-center gap-3">
-            <span
-              onClick={() => document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' })}
+            <Link
+              to="/collections"
               className="text-primary text-xs md:text-sm font-bold cursor-pointer hover:underline tracking-wider uppercase"
             >
               SEE ALL
-            </span>
+            </Link>
             <div className="hidden sm:flex items-center gap-1.5 ml-2">
               <button
                 onClick={() => scroll('left')}

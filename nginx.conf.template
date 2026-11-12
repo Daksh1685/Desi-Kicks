@@ -28,9 +28,24 @@ server {
         add_header Cache-Control "public, max-age=31536000, immutable";
     }
 
+    # Serve sitemap and robots directly with short cache for Search Console
+    location = /sitemap.xml {
+        add_header Cache-Control "public, max-age=3600";
+        try_files $uri =404;
+    }
+
+    location = /robots.txt {
+        add_header Cache-Control "public, max-age=3600";
+        try_files $uri =404;
+    }
+
     # SPA routing fallback: send all other paths to index.html
     location / {
         try_files $uri $uri/ /index.html;
+    }
+
+    location = /index.html {
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
     }
 
     error_page 500 502 503 504 /50x.html;

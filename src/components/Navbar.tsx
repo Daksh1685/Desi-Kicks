@@ -6,6 +6,7 @@ import { SEARCH_KEYWORDS, ALL_PRODUCTS } from '../constants/search';
 import { useCart } from '../context/CartContext';
 import { useProductModal } from '../context/ProductModalContext';
 import { useAuth } from '../context/AuthContext';
+import craftYourSoleLogo from '../assets/craftyoursole_logo.svg';
 
 export function Navbar() {
   const typedText = useTypingEffect(SEARCH_KEYWORDS);
@@ -41,31 +42,27 @@ export function Navbar() {
     );
   }, [searchQuery]);
 
-  const handleCategoryNav = () => {
-    if (pathname !== '/') {
-      navigate('/');
-    }
-    setTimeout(() => {
-      document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-  };
-
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         <Link
           to="/"
-          className="font-anton text-3xl tracking-wide text-primary cursor-pointer hover:opacity-90 transition-opacity"
+          aria-label="CraftYourSole Home"
+          className="flex items-center shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
         >
-          DESIKICKS.
+          <img
+            src={craftYourSoleLogo}
+            alt="CraftYourSole"
+            className="h-7 sm:h-8 w-auto"
+          />
         </Link>
         <nav className="hidden lg:flex items-center gap-6 xl:gap-8 font-medium text-gray-700 text-sm">
-          <button onClick={handleCategoryNav} className="hover:text-primary transition-colors cursor-pointer">Men</button>
-          <button onClick={handleCategoryNav} className="hover:text-primary transition-colors cursor-pointer">Women</button>
-          <button onClick={handleCategoryNav} className="hover:text-primary transition-colors font-semibold text-primary cursor-pointer">Festive & Ethnic</button>
-          <button onClick={handleCategoryNav} className="hover:text-primary transition-colors cursor-pointer">Daily Comfort</button>
-          <button onClick={handleCategoryNav} className="hover:text-primary transition-colors cursor-pointer">Gym & Sports</button>
-          <button onClick={handleCategoryNav} className="hover:text-primary text-red-600 font-bold transition-colors cursor-pointer">Sale</button>
+          <Link to="/collections/men" className="hover:text-primary transition-colors">Men</Link>
+          <Link to="/collections/women" className="hover:text-primary transition-colors">Women</Link>
+          <Link to="/collections/festive-ethnic" className="hover:text-primary transition-colors font-semibold text-primary">Festive &amp; Ethnic</Link>
+          <Link to="/collections/daily-comfort" className="hover:text-primary transition-colors">Daily Comfort</Link>
+          <Link to="/collections/gym-sports" className="hover:text-primary transition-colors">Gym &amp; Sports</Link>
+          <Link to="/collections/sale" className="hover:text-primary text-red-600 font-bold transition-colors">Sale</Link>
         </nav>
         <div ref={searchContainerRef} className="hidden md:flex relative flex-1 max-w-md">
           <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import craftYourSoleLogo from '../assets/craftyoursole_logo.svg';
+import { SUPPORT_EMAIL } from '../constants/site';
 
 export function Footer() {
   const [email, setEmail] = useState('');
@@ -18,9 +20,13 @@ export function Footer() {
     <footer className="bg-gray-950 text-white/80 mt-12 mb-16 md:mb-0 border-t border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
         <div>
-          <div className="font-anton text-2xl md:text-3xl text-white tracking-wide">
-            DESIKICKS<span className="text-primary">.</span>
-          </div>
+          <Link to="/" aria-label="CraftYourSole Home" className="inline-block">
+            <img
+              src={craftYourSoleLogo}
+              alt="CraftYourSole"
+              className="h-8 w-auto brightness-0 invert"
+            />
+          </Link>
           <p className="mt-3 text-xs md:text-sm text-white/60 max-w-xs leading-relaxed">
             India's complete footwear destination. Celebrating every walk of life — from grand festive celebrations to daily comfort and active fitness.
           </p>
@@ -36,12 +42,36 @@ export function Footer() {
             Footwear Collections
           </h5>
           <ul className="space-y-2.5 text-xs md:text-sm text-white/60">
-            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Festive Juttis & Mojaris</li>
-            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Men's Formals & Loafers</li>
-            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Women's Heels, Flats & Wedges</li>
-            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Daily Comfort Slip-Ons</li>
-            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Gym, Running & Athletic</li>
-            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Casual Slides & Ortho Chappals</li>
+            <li>
+              <Link to="/collections/festive-ethnic" className="hover:text-primary transition-colors">
+                Festive Juttis &amp; Mojaris
+              </Link>
+            </li>
+            <li>
+              <Link to="/collections/work-formal" className="hover:text-primary transition-colors">
+                Men's Formals &amp; Loafers
+              </Link>
+            </li>
+            <li>
+              <Link to="/collections/women" className="hover:text-primary transition-colors">
+                Women's Heels, Flats &amp; Wedges
+              </Link>
+            </li>
+            <li>
+              <Link to="/collections/daily-comfort" className="hover:text-primary transition-colors">
+                Daily Comfort Slip-Ons
+              </Link>
+            </li>
+            <li>
+              <Link to="/collections/gym-sports" className="hover:text-primary transition-colors">
+                Gym, Running &amp; Athletic
+              </Link>
+            </li>
+            <li>
+              <Link to="/collections" className="hover:text-primary transition-colors">
+                Browse All Collections
+              </Link>
+            </li>
           </ul>
         </div>
 
@@ -50,11 +80,41 @@ export function Footer() {
             Customer Support
           </h5>
           <ul className="space-y-2.5 text-xs md:text-sm text-white/60">
-            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Track Your Order</li>
-            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Shipping & Dispatch Policy</li>
-            <li className="hover:text-primary transition-colors cursor-pointer w-fit">7-Day Size Exchanges & Returns</li>
-            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Authenticity Verification</li>
-            <li className="hover:text-primary transition-colors cursor-pointer w-fit">Contact Us: support@desikicks.in</li>
+            <li>
+              <Link to="/track-order" className="hover:text-primary transition-colors">
+                Track Your Order
+              </Link>
+            </li>
+            <li>
+              <Link to="/shipping-policy" className="hover:text-primary transition-colors">
+                Shipping &amp; Dispatch Policy
+              </Link>
+            </li>
+            <li>
+              <Link to="/returns-exchange" className="hover:text-primary transition-colors">
+                7-Day Size Exchanges &amp; Returns
+              </Link>
+            </li>
+            <li>
+              <Link to="/size-guide" className="hover:text-primary transition-colors">
+                Size &amp; Fit Guide
+              </Link>
+            </li>
+            <li>
+              <Link to="/authenticity" className="hover:text-primary transition-colors">
+                Authenticity Verification
+              </Link>
+            </li>
+            <li>
+              <Link to="/about" className="hover:text-primary transition-colors">
+                About CraftYourSole
+              </Link>
+            </li>
+            <li>
+              <Link to="/contact" className="hover:text-primary transition-colors">
+                Contact Us: {SUPPORT_EMAIL}
+              </Link>
+            </li>
           </ul>
         </div>
 
@@ -83,22 +143,33 @@ export function Footer() {
           </form>
           {subscribed && (
             <p className="text-green-400 text-xs mt-2 animate-fade-in">
-              ✓ Welcome to the DesiKicks drop alert list!
+              ✓ Welcome to the CraftYourSole drop alert list!
             </p>
           )}
         </div>
       </div>
 
       <div className="border-t border-white/10 py-5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-white/50 gap-2">
-          <span>© {new Date().getFullYear()} Desikicks Inc. All rights reserved. Crafted for Indian footwear culture.</span>
-          <Link
-            to="/admin"
-            className="text-emerald-400 hover:text-emerald-300 font-bold transition-colors flex items-center gap-1.5"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Admin Operations Portal →
-          </Link>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-white/50 gap-3">
+          <span>© {new Date().getFullYear()} CraftYourSole. All rights reserved. Crafted for Indian footwear culture.</span>
+          <div className="flex items-center gap-4">
+            <Link to="/privacy-policy" className="hover:text-white transition-colors">
+              Privacy Policy
+            </Link>
+            <Link to="/terms" className="hover:text-white transition-colors">
+              Terms
+            </Link>
+            <a href="/sitemap.xml" className="hover:text-white transition-colors">
+              Sitemap
+            </a>
+            <Link
+              to="/admin"
+              className="text-emerald-400 hover:text-emerald-300 font-bold transition-colors flex items-center gap-1.5"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Admin Portal →
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { Icon } from './ui/Icon';
 
 const HERO_SLIDES = [
@@ -7,6 +8,7 @@ const HERO_SLIDES = [
     title: 'THE ROYAL DESI\nETHNIC EDITIONS',
     subtitle: 'Handcrafted Juttis, Embroidered Mojaris & Kolhapuris with double-cushioned comfort for weddings & celebrations.',
     cta: 'Shop Festive & Ethnic',
+    to: '/collections/festive-ethnic',
     img: 'https://images.unsplash.com/photo-1535043934128-cf0b28d52f95?q=80&w=1400&auto=format&fit=crop',
   },
   {
@@ -14,6 +16,7 @@ const HERO_SLIDES = [
     title: 'CLOUD STEPPER\nDAILY WEAR',
     subtitle: 'Featherlight slip-ons, breathable loafers, and walking chappals engineered for effortless 12+ hour daily comfort.',
     cta: 'Shop Daily Comfort',
+    to: '/collections/daily-comfort',
     img: 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=1400&auto=format&fit=crop',
   },
   {
@@ -21,6 +24,7 @@ const HERO_SLIDES = [
     title: 'AERO STRIDE\nPRO RUNNER',
     subtitle: 'High-rebound shock absorption and breathable mesh for gym workouts, morning walks, and sports training.',
     cta: 'Shop Gym & Sports',
+    to: '/collections/gym-sports',
     img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1400&auto=format&fit=crop',
   },
 ];
@@ -72,12 +76,12 @@ export function Hero() {
               <p className="text-xs sm:text-sm md:text-lg max-w-[280px] sm:max-w-sm md:max-w-md mb-4 md:mb-6 text-white/90 leading-snug">
                 {slide.subtitle}
               </p>
-              <button
-                onClick={() => document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' })}
+              <Link
+                to={slide.to}
                 className="bg-primary hover:bg-[#8A2600] active:scale-95 text-white px-5 py-2.5 md:px-8 md:py-3.5 rounded-full font-bold transition-all w-fit uppercase tracking-wider text-xs md:text-sm shadow-lg hover:shadow-primary/30 cursor-pointer"
               >
                 {slide.cta}
-              </button>
+              </Link>
             </div>
           </div>
         ))}

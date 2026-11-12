@@ -1,8 +1,10 @@
+import { Link } from 'react-router-dom';
 import { Icon } from './ui/Icon';
 import type { IconName } from './ui/Icon';
 
 interface CategoryItem {
   name: string;
+  slug: string;
   count: string;
   icon: IconName;
   img: string;
@@ -11,36 +13,42 @@ interface CategoryItem {
 const CATEGORIES: CategoryItem[] = [
   {
     name: 'Men',
+    slug: 'men',
     count: '210+ Styles',
     icon: 'person',
     img: 'https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?q=80&w=600&auto=format&fit=crop',
   },
   {
     name: 'Women',
+    slug: 'women',
     count: '185+ Styles',
     icon: 'lifestyle',
     img: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=600&auto=format&fit=crop',
   },
   {
     name: 'Festive & Ethnic',
+    slug: 'festive-ethnic',
     count: '120+ Styles',
     icon: 'loyalty',
     img: 'https://images.unsplash.com/photo-1535043934128-cf0b28d52f95?q=80&w=600&auto=format&fit=crop',
   },
   {
     name: 'Daily Comfort',
+    slug: 'daily-comfort',
     count: '95+ Styles',
     icon: 'home',
     img: 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=600&auto=format&fit=crop',
   },
   {
     name: 'Gym & Sports',
+    slug: 'gym-sports',
     count: '80+ Styles',
     icon: 'running',
     img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop',
   },
   {
     name: 'Work & Formal',
+    slug: 'work-formal',
     count: '70+ Styles',
     icon: 'briefcase',
     img: 'https://images.unsplash.com/photo-1533867617858-e7b97e060509?q=80&w=600&auto=format&fit=crop',
@@ -66,10 +74,10 @@ export function Categories() {
         {/* Compact, 6-Segment Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
           {CATEGORIES.map((cat) => (
-            <div
+            <Link
               key={cat.name}
-              onClick={() => document.getElementById('recommendations')?.scrollIntoView({ behavior: 'smooth' })}
-              className="group relative h-36 sm:h-40 md:h-44 rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100"
+              to={`/collections/${cat.slug}`}
+              className="group relative block h-36 sm:h-40 md:h-44 rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100"
             >
               {/* Background Image with Hover Zoom */}
               <img
@@ -102,7 +110,7 @@ export function Categories() {
                   </span>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '../components/ui/Icon';
 import type { IconName } from '../components/ui/Icon';
+import { SeoHead } from '../components/SeoHead';
+import { SUPPORT_EMAIL } from '../constants/site';
 import { useCart } from '../context/CartContext';
 import { useOrders } from '../context/OrderContext';
 import { useAuth } from '../context/AuthContext';
@@ -73,7 +75,7 @@ export function ProfilePage({ onBackToHome, onNavigateToCart }: ProfilePageProps
   });
 
   const handleCopyReferral = () => {
-    navigator.clipboard?.writeText('DESIARJUN');
+    navigator.clipboard?.writeText('SOLEARJUN');
     setCopiedReferral(true);
     setTimeout(() => setCopiedReferral(false), 2000);
   };
@@ -133,6 +135,12 @@ export function ProfilePage({ onBackToHome, onNavigateToCart }: ProfilePageProps
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-12">
+      <SeoHead
+        title="My Account & Orders | CraftYourSole"
+        description="Manage your CraftYourSole orders, wishlist, saved footwear sizes, and delivery addresses."
+        canonicalPath="/profile"
+        noindex
+      />
       {/* Top Banner Navigation */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
@@ -317,7 +325,7 @@ export function ProfilePage({ onBackToHome, onNavigateToCart }: ProfilePageProps
                 Have questions regarding size exchanges or festive deliveries?
               </p>
               <a
-                href="mailto:support@desikicks.in"
+                href={`mailto:${SUPPORT_EMAIL}`}
                 className="text-primary font-bold hover:underline inline-flex items-center gap-1"
               >
                 Contact Footwear Support →
@@ -633,7 +641,7 @@ export function ProfilePage({ onBackToHome, onNavigateToCart }: ProfilePageProps
 
                 <div className="bg-orange-50/80 border border-orange-200 rounded-2xl p-5">
                   <h4 className="font-bold text-gray-900 text-sm mb-1">
-                    🛡️ DesiKicks 100% Fit Guarantee
+                    🛡️ CraftYourSole 100% Fit Guarantee
                   </h4>
                   <p className="text-xs text-gray-600 leading-relaxed">
                     Worried about ethnic Jutti or formal sizing? If your pair doesn't fit like a glove, our delivery executive will bring you the adjacent size right to your doorstep for free within 7 days.
@@ -647,7 +655,7 @@ export function ProfilePage({ onBackToHome, onNavigateToCart }: ProfilePageProps
               <div>
                 <div className="mb-4">
                   <h2 className="font-anton text-xl md:text-2xl text-gray-900 uppercase tracking-wide">
-                    DesiClub Wallet & Referral
+                    CraftYourSole Club Wallet &amp; Referral
                   </h2>
                   <p className="text-xs text-gray-500 mt-0.5">
                     Earn coins on every festive, daily, and sports purchase.
@@ -663,7 +671,7 @@ export function ProfilePage({ onBackToHome, onNavigateToCart }: ProfilePageProps
                       </span>
                       <div className="font-anton text-4xl text-white mt-1">₹1,250.00</div>
                       <p className="text-xs text-white/80 mt-2">
-                        Equivalent to 1,250 DesiCoins. Auto-applied at checkout.
+                        Equivalent to 1,250 SoleCoins. Auto-applied at checkout.
                       </p>
                       <button className="mt-4 bg-white text-gray-900 text-xs font-bold px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors">
                         Use Coins On Next Order
@@ -687,7 +695,7 @@ export function ProfilePage({ onBackToHome, onNavigateToCart }: ProfilePageProps
 
                     <div className="mt-4 flex items-center gap-2">
                       <div className="flex-1 bg-gray-100 rounded-xl px-3 py-2 text-center font-mono font-bold text-gray-900 text-sm tracking-wider">
-                        DESIARJUN
+                        SOLEARJUN
                       </div>
                       <button
                         onClick={handleCopyReferral}
@@ -719,7 +727,7 @@ export function ProfilePage({ onBackToHome, onNavigateToCart }: ProfilePageProps
                     </div>
                     <div className="flex justify-between items-center py-2">
                       <div>
-                        <span className="font-bold text-gray-900 block">DesiClub Gold Welcome</span>
+                        <span className="font-bold text-gray-900 block">CraftYourSole Club Gold Welcome</span>
                         <span className="text-gray-400">Unlocked Gold tier status</span>
                       </div>
                       <span className="text-green-600 font-bold text-sm">+500 Coins</span>

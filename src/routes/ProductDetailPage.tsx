@@ -1,9 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Icon } from '../components/ui/Icon';
+import { SeoHead } from '../components/SeoHead';
 import { useProductCatalog } from '../context/ProductContext';
 import { useCart } from '../context/CartContext';
 import { SAMPLE_PRODUCT_REVIEWS, SIZING_CHART_DATA } from '../constants/productReviews';
+import { SITE_NAME, SITE_URL } from '../constants/site';
 import type { Product, ProductReview } from '../types/product';
 
 type TabType = 'story' | 'specs' | 'styling' | 'care';
@@ -173,8 +175,60 @@ function ProductDetailContent({ product }: { product: Product }) {
     .filter((p) => p.id !== product.id)
     .slice(0, 4);
 
+  const totalStock = (product.variants || []).reduce((sum, v) => sum + v.stock, 0);
+  const productUrl = `${SITE_URL}/products/${product.slug}`;
+  const productJsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Product',
+        name: product.name,
+        image: images,
+        description: product.description,
+        sku: product.id,
+        brand: {
+          '@type': 'Brand',
+          name: SITE_NAME,
+        },
+        category: product.category,
+        offers: {
+          '@type': 'Offer',
+          url: productUrl,
+          priceCurrency: 'INR',
+          price: product.price,
+          availability:
+            totalStock > 0 || product.isActive
+              ? 'https://schema.org/InStock'
+              : 'https://schema.org/OutOfStock',
+          itemCondition: 'https://schema.org/NewCondition',
+        },
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: product.rating || 4.8,
+          reviewCount: product.reviewsCount || reviews.length || 1,
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+          { '@type': 'ListItem', position: 2, name: 'Collections', item: `${SITE_URL}/collections` },
+          { '@type': 'ListItem', position: 3, name: product.name, item: productUrl },
+        ],
+      },
+    ],
+  };
+
   return (
     <div className="bg-white text-gray-900 pb-20">
+      <SeoHead
+        title={`${product.name} | ${SITE_NAME}`}
+        description={product.story || product.description}
+        canonicalPath={`/products/${product.slug}`}
+        ogType="product"
+        image={product.img}
+        jsonLd={productJsonLd}
+      />
       {/* Toast Notifications */}
       {shareToast && (
         <div className="fixed top-20 right-4 z-50 bg-gray-900 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-xl flex items-center gap-2 animate-fade-in">
@@ -515,8 +569,8 @@ function ProductDetailContent({ product }: { product: Product }) {
                     Heritage Authenticity Guarantee
                   </h4>
                   <p className="text-xs text-amber-800">
-                    Every pair of Desi-Kicks footwear is stitched by skilled generational cobblers and artisans
-                    located in traditional leather craft hubs across India. By choosing Desi-Kicks, you directly
+                    Every pair of {SITE_NAME} footwear is stitched by skilled generational cobblers and artisans
+                    located in traditional leather craft hubs across India. By choosing {SITE_NAME}, you directly
                     support fair artisan wages and preserve India’s timeless shoe-making legacy.
                   </p>
                 </div>
@@ -973,6 +1027,12 @@ export function ProductDetailPage() {
   if (!product) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 text-center">
+        <SeoHead
+          title={`Product Not Found | ${SITE_NAME}`}
+          description="The footwear model you requested is no longer available or has moved."
+          canonicalPath={`/products/${slug || 'not-found'}`}
+          noindex
+        />
         <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 mb-4">
           <Icon name="search" className="w-10 h-10" />
         </div>

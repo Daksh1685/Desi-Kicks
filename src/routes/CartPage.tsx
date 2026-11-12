@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useOrders } from '../context/OrderContext';
 import { Icon } from '../components/ui/Icon';
+import { SeoHead } from '../components/SeoHead';
 
 interface CartPageProps {
   onContinueShopping?: () => void;
@@ -44,7 +45,7 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
 
   const availableCoupons = [
     { code: 'FESTIVE500', label: '₹500 OFF on Festive Footwear', discount: 500 },
-    { code: 'DESIFIRST', label: '10% OFF on First Footwear Order', discount: Math.round(subtotal * 0.1) },
+    { code: 'SOLEFIRST', label: '10% OFF on First Footwear Order', discount: Math.round(subtotal * 0.1) },
   ];
 
   const handleApplyCoupon = (codeToApply?: string) => {
@@ -55,12 +56,12 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
       setAppliedCoupon({ code: 'FESTIVE500', discount: 500 });
       setCouponError('');
       setCouponCode('');
-    } else if (code === 'DESIFIRST') {
-      setAppliedCoupon({ code: 'DESIFIRST', discount: Math.round(subtotal * 0.1) });
+    } else if (code === 'SOLEFIRST' || code === 'DESIFIRST') {
+      setAppliedCoupon({ code, discount: Math.round(subtotal * 0.1) });
       setCouponError('');
       setCouponCode('');
     } else {
-      setCouponError('Invalid coupon code. Try FESTIVE500 or DESIFIRST.');
+      setCouponError('Invalid coupon code. Try FESTIVE500 or SOLEFIRST.');
     }
   };
 
@@ -126,22 +127,32 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
     clearCart();
   };
 
+  const seo = (
+    <SeoHead
+      title="Shopping Bag | CraftYourSole"
+      description="Review your CraftYourSole footwear shopping bag and proceed to checkout."
+      canonicalPath="/cart"
+      noindex
+    />
+  );
+
   if (orderPlaced) {
     return (
       <div className="min-h-[70vh] bg-gray-50 flex items-center justify-center px-4 py-16">
+        {seo}
         <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-gray-200/80 shadow-lg text-center animate-fade-in">
           <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner">
             <Icon name="check" className="w-10 h-10 stroke-[3]" />
           </div>
 
           <span className="text-primary font-bold text-xs uppercase tracking-widest">
-            Order Confirmed
+            Pre-Launch Order Preview
           </span>
           <h2 className="font-anton text-2xl md:text-3xl text-gray-900 mt-1 uppercase">
-            Dhanyavaad, Arjun!
+            Preview Recorded
           </h2>
           <p className="text-xs sm:text-sm text-gray-600 mt-2 leading-relaxed">
-            Your footwear order <span className="font-bold text-gray-900">#{placedOrderNumber}</span> has been placed successfully. Dispatched with live tracking via BlueDart Express.
+            Simulated order <span className="font-bold text-gray-900">#{placedOrderNumber}</span> has been saved to your local preview session. Live payment processing and courier dispatch are under final development and will open at public launch.
           </p>
 
           <div className="bg-orange-50/80 border border-orange-200/80 rounded-2xl p-4 my-6 text-left text-xs">
@@ -183,6 +194,7 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
   if (cartItems.length === 0) {
     return (
       <div className="min-h-[65vh] bg-gray-50 flex items-center justify-center px-4 py-16">
+        {seo}
         <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-gray-200 text-center shadow-xs">
           <div className="w-16 h-16 bg-orange-100 text-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Icon name="shopping_bag" className="w-8 h-8" />
@@ -204,6 +216,7 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-12">
+      {seo}
       {/* Top Breadcrumb Bar */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
@@ -223,6 +236,15 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+        <div className="mb-5 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+          <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse mt-1.5 shrink-0" />
+          <p className="text-xs text-amber-950 leading-relaxed">
+            <strong className="font-bold">Pre-Launch Checkout Preview:</strong> CraftYourSole is
+            completing payment gateway and courier integrations ahead of public launch. Bag and
+            checkout actions below run in simulated preview mode — no real payment is charged.
+          </p>
+        </div>
+
         <div className="flex items-baseline justify-between mb-6">
           <h1 className="font-anton text-2xl md:text-3xl text-gray-900 uppercase tracking-wide">
             Shopping Cart ({totalItemsCount} {totalItemsCount === 1 ? 'Pair' : 'Pairs'})
@@ -364,7 +386,7 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
                 </div>
                 <div>
                   <h4 className="text-xs md:text-sm font-bold text-gray-900">
-                    DesiKicks Water & Stain Protect Spray
+                    CraftYourSole Water &amp; Stain Protect Spray
                   </h4>
                   <p className="text-[11px] text-gray-500">
                     Keeps festive velvet & everyday shoes spotless • ₹299{' '}
@@ -449,7 +471,7 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
                 </div>
               )}
 
-              {/* DesiClub Wallet Checkbox */}
+              {/* CraftYourSole Club Wallet Checkbox */}
               <div className="mt-4 pt-3.5 border-t border-gray-100">
                 <label className="flex items-start gap-2.5 cursor-pointer">
                   <input
@@ -460,7 +482,7 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
                   />
                   <div className="text-xs">
                     <span className="font-bold text-gray-900 block">
-                      Redeem 250 DesiCoins (Save ₹250)
+                      Redeem 250 SoleCoins (Save ₹250)
                     </span>
                     <span className="text-gray-500 text-[11px]">
                       Available Balance: 1,250 Coins
@@ -498,7 +520,7 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
 
                 {useWalletCoins && (
                   <div className="flex justify-between text-green-600">
-                    <span>DesiCoins Redeemed</span>
+                    <span>SoleCoins Redeemed</span>
                     <span>-₹250</span>
                   </div>
                 )}
@@ -563,11 +585,14 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
             </button>
 
             <span className="text-primary font-bold text-xs uppercase tracking-wider">
-              Step 2 of 2 • Fast Checkout
+              Pre-Launch Preview • Simulated Checkout
             </span>
             <h2 className="font-anton text-2xl text-gray-900 mt-1 uppercase">
-              Confirm Delivery & Payment
+              Confirm Delivery &amp; Payment
             </h2>
+            <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mt-2">
+              Demo addresses &amp; payment options for pre-launch verification — no real charge or shipment is triggered.
+            </p>
 
             {/* Delivery Address Choice */}
             <div className="mt-5">

@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /cart
+Disallow: /profile
+Disallow: /track-order
+
+Sitemap: https://craftyoursole.in/sitemap.xml
+
