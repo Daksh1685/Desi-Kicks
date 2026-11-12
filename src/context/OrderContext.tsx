@@ -5,7 +5,7 @@ import type { Order, OrderStatus, OrderItem } from '../types/order';
 const INITIAL_ORDERS: Order[] = [
   {
     id: 'ord-1001',
-    orderNumber: 'DK-2026-9812',
+    orderNumber: 'CYS-2026-9812',
     customerName: 'Aarav Sharma',
     customerEmail: 'aarav.sharma@example.com',
     customerPhone: '+91 98765 43210',
@@ -38,7 +38,7 @@ const INITIAL_ORDERS: Order[] = [
   },
   {
     id: 'ord-1002',
-    orderNumber: 'DK-2026-9813',
+    orderNumber: 'CYS-2026-9813',
     customerName: 'Priya Iyer',
     customerEmail: 'priya.iyer@example.com',
     customerPhone: '+91 98220 12345',
@@ -80,7 +80,7 @@ const INITIAL_ORDERS: Order[] = [
   },
   {
     id: 'ord-1003',
-    orderNumber: 'DK-2026-9814',
+    orderNumber: 'CYS-2026-9814',
     customerName: 'Rohan Verma',
     customerEmail: 'rohan.v@example.com',
     customerPhone: '+91 97111 88990',
@@ -113,7 +113,7 @@ const INITIAL_ORDERS: Order[] = [
   },
   {
     id: 'ord-1004',
-    orderNumber: 'DK-2026-9815',
+    orderNumber: 'CYS-2026-9815',
     customerName: 'Ananya Mehra',
     customerEmail: 'ananya.m@example.com',
     customerPhone: '+91 98450 77123',
@@ -211,7 +211,7 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
     const newOrder: Order = {
       ...input,
       id: `ord-${Date.now()}`,
-      orderNumber: `DK-2026-${randomSuffix}`,
+      orderNumber: `CYS-2026-${randomSuffix}`,
       paymentStatus: input.paymentMethod === 'COD' ? 'PENDING' : 'PAID',
       orderStatus: 'PENDING',
       createdAt: new Date().toISOString(),

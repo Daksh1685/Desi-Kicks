@@ -41,7 +41,7 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
   const [selectedAddress, setSelectedAddress] = useState<'home' | 'work'>('home');
   const [selectedPayment, setSelectedPayment] = useState<'upi' | 'cod' | 'card'>('upi');
   const [orderPlaced, setOrderPlaced] = useState(false);
-  const [placedOrderNumber, setPlacedOrderNumber] = useState<string>('DK-2026-9852');
+  const [placedOrderNumber, setPlacedOrderNumber] = useState<string>('CYS-2026-9852');
 
   const availableCoupons = [
     { code: 'FESTIVE500', label: '₹500 OFF on Festive Footwear', discount: 500 },

@@ -206,7 +206,7 @@ export function ProfilePage({ onBackToHome, onNavigateToCart }: ProfilePageProps
                     </p>
                     <div className="flex items-center gap-3 mt-2">
                       <span className="text-[11px] text-gray-400">
-                        GCP: <span className="font-mono text-gray-600">lohithkumarshoemart</span>
+                        GCP: <span className="font-mono text-gray-600">craftyoursole</span>
                       </span>
                       <button
                         onClick={() => logOut()}
@@ -714,7 +714,7 @@ export function ProfilePage({ onBackToHome, onNavigateToCart }: ProfilePageProps
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                       <div>
                         <span className="font-bold text-gray-900 block">Festive Drop Bonus</span>
-                        <span className="text-gray-400">Order #DK-82741 (Royal Mojari)</span>
+                        <span className="text-gray-400">Order #CYS-82741 (Royal Mojari)</span>
                       </div>
                       <span className="text-green-600 font-bold text-sm">+500 Coins</span>
                     </div>
