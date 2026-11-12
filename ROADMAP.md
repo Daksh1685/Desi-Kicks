@@ -1,6 +1,6 @@
-# 🗺 Desi-Kicks: Production-Grade Roadmap & Progress Tracker
+# 🗺 CraftYourSole: Production Roadmap & Functional Verification Tracker
 
-This document outlines the strategic roadmap, architecture plan, and live implementation progress for evolving **Desi-Kicks** from a high-fidelity frontend prototype into a production-grade, enterprise-ready D2C e-commerce platform and operational back-office.
+This document tracks the architecture, implementation status, and **verifiable functional requirements** for evolving **CraftYourSole** (`https://craftyoursole.in`) from a pre-launch GCP Cloud Run preview into a full production D2C footwear platform.
 
 ---
 
@@ -8,255 +8,194 @@ This document outlines the strategic roadmap, architecture plan, and live implem
 
 | Phase | Focus Area | Completion | Target Milestone | Status |
 |---|---|:---:|---|:---:|
-| **Phase 1** | **Customer Web App (Storefront & Core UX)** | **92%** | M1 2026 | 🟡 In Progress |
-| **Phase 2** | **Backend Services, Database & Payments** | **40%** | M2 2026 | 🟡 In Progress |
-| **Phase 3** | **Admin Dashboard (Sales & Catalog Ops)** | **65%** | M3 2026 | 🟡 In Progress |
-| **Phase 4** | **Fulfillment, Logistics & Logistics API** | **0%** | M4 2026 | ⚪ Planned |
-| **Phase 5** | **Scale, Security, Analytics & Mobile Apps** | **0%** | M5 2026 | ⚪ Planned |
+| **Phase 1** | **Storefront, Rebrand, Routes & SEO Foundation** | **95%** | Pre-Launch | 🟢 Live Preview |
+| **Phase 2** | **Backend Persistence, Auth Security & Payments** | **35%** | Launch Blocker | 🟡 In Progress |
+| **Phase 3** | **Admin Dashboard & Inventory/Order Security** | **60%** | Launch Blocker | 🟡 In Progress |
+| **Phase 4** | **Fulfillment, Logistics API & Customer Notifications** | **0%** | Post-Launch M1 | ⚪ Planned |
+| **Phase 5** | **Scale, Automated Testing, CI/CD & Performance** | **25%** | Ongoing | 🟡 In Progress |
 
 ---
 
-## 🏗 High-Level Architecture Target
+## 🏗 Current & Target Architecture
 
 ```mermaid
 graph TD
     subgraph Client Applications
-        C1["Customer Web App (React 19 + Vite)"]
-        C2["Admin Dashboard Portal (Vite / Next.js)"]
-        C3["Mobile Apps (React Native / Flutter - Future)"]
+        C1["CraftYourSole Web App (React 19 + Vite SPA)"]
+        C2["Admin Portal (/admin - Needs RBAC Guard)"]
     end
 
-    subgraph API Gateway & Edge Layer
-        GW["API Gateway / Reverse Proxy (Cloudflare / Netlify)"]
-        AUTH["Auth Service (OAuth / Phone OTP / JWT)"]
+    subgraph Edge & Hosting Layer
+        CF["Cloudflare DNS (craftyoursole.in)"]
+        CR["Google Cloud Run (us-central1: desi-kicks)"]
+        NG["Nginx Alpine (nginx.conf.template)"]
     end
 
-    subgraph Core Services Backend
-        S_PROD["Catalog & Inventory Service"]
-        S_ORDER["Order & Checkout Engine"]
-        S_PAY["Payment Processing (Razorpay / Cashfree)"]
-        S_SHIP["Logistics Integration (Shiprocket / Delhivery)"]
-        S_ANALYTICS["Analytics & Reporting Service"]
+    subgraph Auth & Data Services
+        FA["Firebase Auth (Google OAuth Wired)"]
+        DB["Firestore / PostgreSQL (supabase-schema.sql)"]
+        REC["Recommendation Engine (Behavioral + Co-Purchase Scoring)"]
+        PAY["Payment Gateway (Razorpay / Cashfree - Planned)"]
+        SHIP["Logistics API (Shiprocket / Delhivery - Planned)"]
     end
 
-    subgraph Data & Storage
-        DB[("PostgreSQL / Supabase (Primary Relational DB)")]
-        CACHE[("Redis (Session & Fast Product Cache)")]
-        S3["Object Storage (Cloudinary / AWS S3 for Assets)"]
-    end
-
-    C1 --> GW
-    C2 --> GW
-    C3 --> GW
-    GW --> AUTH
-    GW --> S_PROD
-    GW --> S_ORDER
-    GW --> S_PAY
-    GW --> S_SHIP
-    GW --> S_ANALYTICS
-    S_PROD --> DB
-    S_ORDER --> DB
-    S_PAY --> DB
-    S_SHIP --> DB
-    S_ANALYTICS --> DB
-    S_PROD --> CACHE
-    S_PROD --> S3
+    C1 --> CF --> CR --> NG
+    C2 --> CF
+    C1 --> FA
+    C1 --> DB
+    C1 --> REC
+    C1 --> PAY
+    REC --> DB
+    C2 --> DB
+    C2 --> REC
+    C2 --> SHIP
 ```
 
 ---
 
-## 🎯 Phase 1: Customer Web App — Storefront & Experience
+## ✅ Functional Requirements & Verification Matrix
 
-**Objective**: Deliver a blisteringly fast, responsive, mobile-first shopping experience tailored for Indian footwear shoppers.
+Work through each `FR-*` item below in order before switching off `PreLaunchBanner` and opening public checkout. An item is **Pass** only when its verification steps succeed on the deployed `https://craftyoursole.in` environment.
 
-### 1.1 Storefront & Browsing
-- [x] **Responsive Layout & Navigation**: Sticky desktop header, bottom mobile tab bar (`BottomNav`), search overlay.
-- [x] **Hero Carousel**: Promotional banners with auto-play, pause on hover, and CTA links.
-- [x] **Curated Category Grid**: Quick access to Mojaris, Slip-ons, Heels, Sneakers, and Kolhapuris.
-- [x] **Product Recommendations**: Curated shelves with smart contextual badges (*Festive Edit*, *Daily Comfort*, *Women's Pick*).
-- [x] **New Arrivals Section**: Grid view displaying pricing, original MRP, and savings percentage.
-- [x] **Trust & Assurance Badges**: Free delivery thresholds, return guarantees, artisan quality assurance.
-- [/] **Search & Faceted Filters**:
-  - [x] Static keyword suggestions & trending terms in mobile/desktop search.
-  - [ ] Debounced real-time search with instant dropdown results.
-  - [ ] Facet filters on collection pages (Filter by Price range, Size UK 6-11, Occasion, Material, Color).
-  - [ ] Sorting mechanisms (Price: Low to High, High to Low, Most Popular, Newest First).
+### A. Storefront, Discovery & Content (`FR-01` – `FR-05`)
 
-### 1.2 Product Details & Engagement
-- [x] **Interactive Product Modal**: Instant quick-view modal without page reloads.
-- [x] **Multi-Image Showcase**: High-res product angles and lifestyle imagery.
-- [x] **Artisan Story & Technical Specs**: Detailed sections for Upper Material, Sole, Insole memory foam, and Ideal Occasions.
-- [x] **Size Picker & Validation**: Clear UK size selection with availability feedback.
-- [x] **Dedicated Product Detail Pages (`/products/:slug`)**: Direct deep links with shareable URLs and full product specifications.
-- [x] **Customer Reviews & Visual UGC**:
-  - [x] "Verified Buyer" badge system.
-  - [x] Rating breakdown (5-star distribution chart).
-  - [x] Interactive review submission form with fit feedback and local persistence.
-- [x] **Interactive Size Guide**: Foot measurement diagram and comprehensive UK/US/EU/cm sizing chart.
-- [ ] **Wishlist System**: Heart toggle to save items to personal wishlist with persistent sync.
+| ID | Requirement | Current State | Gaps / Work Required | How to Verify |
+|---|---|---|---|---|
+| **FR-01** | **Brand Identity & Visual Assets** | 🟡 Partial | `craftyoursole_logo.svg` & `favicon.svg` wired in `Navbar`/`Footer`/`index.html`; verify dark-footer CSS invert visually; confirm `src/assets/hero.png` / unused starter assets are cleaned up | Load `/` and `/collections` on desktop & mobile; confirm CraftYourSole logo, favicon, and zero `DESIKICKS` brand text in UI |
+| **FR-02** | **Navigation & All Storefront Routes** | 🟢 Implemented | All 7 collection slugs (`/collections/*`), `/products/:slug`, `/about`, `/size-guide`, `/authenticity`, `/shipping-policy`, `/returns-exchange`, `/contact`, `/privacy-policy`, `/terms`, `/track-order`, and `*` 404 exist | Click every header nav item, category card, and footer link; verify zero dead links and unknown URLs render `NotFoundPage` |
+| **FR-03** | **Search Bar & Collection Filtering** | 🟡 Gap | `Navbar` & `MobileSearch` filter static `ALL_PRODUCTS` (`src/constants/search.ts`) instead of live `ProductContext`; `CollectionsPage` needs attribute filters (size, price, sort) | Add a product in `/admin`, then search for it in header search and filter/sort on `/collections` |
+| **FR-04** | **Product Detail, Size Selection & Reviews** | 🟡 Partial | Deep links, tabs, size guide, and reviews work via `localStorage`; pincode checker (`ProductDetailPage.tsx`) uses mock date math instead of real serviceability | Open `/products/royal-velvet-embroidered-mojari`, switch images, select UK size, check pincode, submit review, reload and verify persistence |
+| **FR-05** | **Persistent Wishlist Across Views** | 🔴 Gap | `ProductCard` and `ProductDetailPage` store `isWishlisted` in ephemeral local component state; `ProfilePage` shows hardcoded wishlist items | Click heart on any product card, navigate to `/profile` Wishlist tab, reload page, and verify synced item appears |
 
-### 1.3 Shopping Bag & Checkout Flow
-- [x] **Persistent Shopping Cart (`CartContext`)**: Automatic sync with `localStorage`.
-- [x] **Dynamic Pricing & Bill Breakdown**: Live calculations of MRP, discounts, free shipping eligibility, and final total.
-- [x] **Promotional Coupon Engine**: Instant validation for coupon codes (`FESTIVE20`, `DIWALI500`, `WELCOME10`).
-- [x] **In-Cart Size & Quantity Adjustments**: Change sizes or quantities directly inside the cart summary.
-- [ ] **Multi-Step Checkout Flow**:
-  1. Delivery Address (Pincode auto-lookup for Indian postal codes, city/state auto-fill).
-  2. Shipping Method (Standard Free vs. Express Priority).
-  3. Payment Options (UPI QR / Intent, Cards, NetBanking, Cash on Delivery).
-  4. Order Confirmation page with confetti, order ID, and printable receipt.
-- [ ] **Abandoned Cart Recovery**: Local state reminder banner for returned shoppers.
+### B. Authentication, Security & Access Control (`FR-06` – `FR-08`)
 
----
+| ID | Requirement | Current State | Gaps / Work Required | How to Verify |
+|---|---|---|---|---|
+| **FR-06** | **Firebase Google Sign-In on Live Domain** | 🟡 Needs Live Check | `AuthContext.tsx` & `firebase.ts` wired; add `craftyoursole.in` and `www.craftyoursole.in` to Firebase Console → Authentication → Authorized Domains | Click Sign In on `https://craftyoursole.in/profile`, complete Google OAuth popup, reload and confirm session persists |
+| **FR-07** | **Admin Portal Authentication & RBAC** | 🔴 **Launch Blocker** | `/admin` (`AdminPage.tsx`) is completely open to any visitor with zero login or admin role check | Open `https://craftyoursole.in/admin` in Incognito: must require authenticated admin user; non-admin users must be denied |
+| **FR-08** | **Phone OTP Login (Optional for India COD)** | ⚪ Planned | Only Google Sign-In exists in `firebase.ts`; Phone OTP helps reduce COD fraud and friction for non-Google shoppers | Sign in with Indian mobile `+91` OTP and confirm session creation |
 
-## 🔐 Phase 2: Backend Services, Database & Payments
+### C. Cart, Checkout & Payments (`FR-09` – `FR-12`)
 
-**Objective**: Replace mock frontend fixtures with resilient, scalable APIs, relational database models, and payment integrations.
+| ID | Requirement | Current State | Gaps / Work Required | How to Verify |
+|---|---|---|---|---|
+| **FR-09** | **Cart Operations & Coupon Validation** | 🟢 Preview Ready | Add/remove items, update quantity/size, `FESTIVE500` & `SOLEFIRST` coupons, and `CartContext` `localStorage` sync work | Add product, change size/qty in `/cart`, apply `FESTIVE500`, reload page, verify totals match |
+| **FR-10** | **Customer Address Form (Replace Demo Data)** | 🔴 **Launch Blocker** | `CartPage.tsx` has hardcoded Bengaluru demo addresses (`Indiranagar` / `Bellandur`) and `ProfilePage` has hardcoded demo profile data | Enter/save a real shipping address (name, phone, 6-digit pincode, street, city, state), validate required fields, and persist to user profile |
+| **FR-11** | **Live Payment Gateway & Webhook Verification** | 🔴 **Launch Blocker** | Checkout is simulated pre-launch preview; integrate Razorpay / Cashfree order creation + signature/webhook verification + COD confirmation | Complete a Razorpay/Cashfree test transaction (`UPI` / `Card`) and verify order transitions to `PAID` only after verified callback |
+| **FR-12** | **Stock Validation & Variant Deduction** | 🔴 **Launch Blocker** | Placing an order in `CartPage.tsx` does not check or decrement `product.variants[].stock` | Order `qty: 2` of `UK 8`; confirm `UK 8` stock decreases by 2 and out-of-stock sizes cannot be added to bag |
 
-### 2.1 Database & Data Modeling (PostgreSQL + Prisma / Supabase)
-- [x] **Schema Definition (`supabase-schema.sql`)**:
-  - `products`: ID, slug, name, category, tag, price, original_price, rating, reviews_count, img, additional_images, description, story, materials, is_active, total_sold.
-  - `product_variants`: Product reference, size (UK 6-11), stock, timestamps.
-  - `orders`: Order number, customer info, address JSONB, items JSONB, financial breakdown, order_status, payment_status.
-  - `coupons`: Code, discount_type (`PERCENT` / `FLAT`), value, min_order_value, expiry_date.
-  - RLS Security Policies and `product-images` storage bucket configuration.
-- [x] **Reactive Frontend Mock Layer (`ProductContext` & `OrderContext`)**:
-  - Schema-aligned local storage persistence allowing full storefront and admin features before connecting live Supabase.
-- [ ] **Direct Supabase Client (`@supabase/supabase-js`) Integration**:
-  - Swap mock adapter with live Supabase client once project credentials are added to `.env`.
+### D. Backend Persistence & Operational Workflows (`FR-13` – `FR-15`)
 
-### 2.2 Authentication & User Management
-- [ ] **Phone Number OTP Login** (via Twilio / MSG91 / Firebase Auth) – critical for Indian e-commerce conversion.
-- [ ] **Social Authentication**: Google One-Tap & Sign in with Apple.
-- [ ] **JWT Session Handling & Refresh Tokens**: Secure, HttpOnly cookie storage.
-- [ ] **Role-Based Access Control (RBAC)**: Enforced middleware separating customer endpoints from admin endpoints.
+| ID | Requirement | Current State | Gaps / Work Required | How to Verify |
+|---|---|---|---|---|
+| **FR-13** | **Real Database Persistence (Firestore or Supabase)** | 🔴 **Launch Blocker** | `ProductContext` and `OrderContext` currently persist only in browser `localStorage`; wire Firestore (`db` in `firebase.ts`) or Supabase (`supabase-schema.sql`) | Create an order in Browser A (customer) and confirm it immediately appears in Browser B (`/admin` Orders tab) |
+| **FR-14** | **Contact & Newsletter Form Delivery** | 🔴 Gap | `Footer.tsx` newsletter form and `ContactPage` form only show local UI confirmation without saving or sending email | Submit inquiry on `/contact` and email in footer; confirm record lands in Firestore/DB or sends notification to `support@craftyoursole.in` |
+| **FR-15** | **Order Tracking & Fulfillment Updates** | 🟡 Partial | `/admin` updates order status in `localStorage`; `/track-order` is currently a placeholder lookup; wire order ID + phone/email lookup against real DB | Update order status to `Shipped` in `/admin`, then look up order ID on `/track-order` and `/profile` |
 
-### 2.3 Payment Gateway Integration (India-First)
-- [ ] **Razorpay / Cashfree Gateway**:
-  - Instant UPI Intent (Google Pay, PhonePe, Paytm, CRED).
-  - Credit & Debit Cards (RuPay, Visa, Mastercard) with tokenization compliance.
-  - NetBanking across top Indian banks.
-  - Cash on Delivery (COD) with optional OTP verification to prevent fake orders.
-- [ ] **Webhook Handlers**: Idempotent webhook listener for `payment.captured`, `payment.failed`, and `refund.processed`.
-- [ ] **Refund Automation**: Instant or standard refund processing for cancelled or returned orders.
+### E. SEO, Search Console & Cloud Deployment (`FR-16` – `FR-19`)
 
----
+| ID | Requirement | Current State | Gaps / Work Required | How to Verify |
+|---|---|---|---|---|
+| **FR-16** | **Sitemap, Robots & Per-Route Metadata** | 🟢 Live Verified | `sitemap.xml` (23 URLs), `robots.txt`, `SeoHead.tsx` canonicals/JSON-LD, and `noindex` on `/cart`, `/profile`, `/admin`, `/track-order`, `*` are live | Check `https://craftyoursole.in/sitemap.xml` (`200 text/xml`), `robots.txt`, and run Google Search Console URL Inspection on `/`, `/collections/festive-ethnic`, `/products/royal-velvet-embroidered-mojari` |
+| **FR-17** | **Rich Results & Social Previews** | 🟡 Needs Check | `Organization`, `WebSite`, `Product`, `CollectionPage`, and `BreadcrumbList` JSON-LD are injected | Validate live product URL in Google Rich Results Test and confirm `Product`, `Offer` (`INR`), and `BreadcrumbList` parse with zero errors |
+| **FR-18** | **Cloud Build & Cloud Run Region Parity** | 🔴 **DevOps Gap** | `cloudbuild.yaml` line 20 deploys to `asia-south1`, while domain `craftyoursole.in` maps to `desi-kicks` in `us-central1`; also map `www.craftyoursole.in` | Align `cloudbuild.yaml` `--region` to `us-central1` (or move mapping), run build, and confirm `www.craftyoursole.in` resolves & loads cleanly |
+| **FR-19** | **Code Quality, Lint & Pre-Launch Removal** | 🟡 Partial | `npm run lint` fails on 2 pre-existing errors in `src/context/AuthContext.tsx`; remove `PreLaunchBanner` (`src/App.tsx`) and demo banners (`CartPage.tsx`) on launch day | `npm run build` and `npm run lint` both exit `0`; `PreLaunchBanner` and simulated checkout notices removed for public launch |
 
-## 🖥 Phase 3: Admin Dashboard (Sales Monitoring & Operations)
+### F. Personalized Recommendation System (`FR-20` – `FR-22`)
 
-**Objective**: Build a unified management portal for store owners and operations teams to monitor real-time sales, fulfill orders, manage inventory, and add/update products.
+| ID | Requirement | Current State | Gaps / Work Required | How to Verify |
+|---|---|---|---|---|
+| **FR-20** | **Context-Aware "Best For You" & Recently Viewed (`Recommendations.tsx`)** | 🔴 Gap | `Recommendations.tsx` currently displays all `activeProducts` unranked; track recently viewed slugs, browsed categories, and preferred UK shoe size; rank in-stock matches first with best-seller (`totalSold`, `rating`) cold-start fallback | Browse 2 `Festive & Ethnic` products and select `UK 8`; return to `/` and verify `Recommendations` prioritizes in-stock `UK 8` Festive styles while an Incognito cold-start session shows top sellers |
+| **FR-21** | **Smart Similar Styles & Cart Cross-Sell (`ProductDetailPage.tsx` & `CartPage.tsx`)** | 🔴 Gap | `relatedProducts` uses plain `.slice(0, 4)` without similarity scoring; `CartPage.tsx` only has one static spray upsell; score by category/occasion, price band, material/artisan hub, and co-purchased accessories | Open `/products/handcrafted-heritage-penny-loafer` and confirm similar formal/daily leather styles rank above running shoes; add footwear to `/cart` and verify relevant cross-sell add-ons appear |
+| **FR-22** | **Interaction Telemetry, Co-Purchase Scoring & Admin Boosting (`AdminPage.tsx`)** | ⚪ Planned | Log `product_view`, `add_to_cart`, `wishlist_add`, and `purchase` events to Firestore/Analytics; compute "Customers also bought" pairs and add Admin pin/boost controls + CTR metrics | Complete a view → cart → order test flow; verify event logs update co-purchase weights and an Admin-pinned SKU moves to slot 1 on `/` |
 
-### 3.1 Executive Sales & Business Analytics
-- [x] **Real-Time KPI Metric Cards**:
-  - **Gross Merchandise Value (GMV)** (live calculation from orders).
-  - **Total Orders & Average Order Value (AOV)**.
-  - **Fulfillment Pipeline Status** (Pending verification vs. In Transit vs. Delivered).
-  - **Storefront Conversion Metrics**.
-- [x] **Interactive Visual Analytics**:
-  - Revenue timeline charts with 7D, 30D, and festive surge comparisons.
-  - Footwear category revenue distribution breakdown.
-  - Top 5 best-selling footwear SKUs with stock remaining and revenue generated.
-- [ ] **Exportable Reports**: Generate CSV / Excel reports for accounting and GST filing.
+### G. Admin Catalog CRUD, Inventory, Model Analytics & Maintenance Mode (`FR-23` – `FR-26`)
 
-### 3.2 Product & Catalog Information Management (PIM)
-- [x] **Product Catalog Data Table**:
-  - Searchable, filterable list of all footwear items.
-  - Inline toggle for Storefront Live / Draft status.
-  - Column indicators for Category, Current Stock across UK sizes, MRP, Selling Price, and Sales Count.
-  - Single-click delete action with safety confirmation.
-- [x] **"Add New Product" Wizard**:
-  - **Basic Info**: Title, category selector, festive tag badges, selling price, and original MRP.
-  - **Artisan & Heritage Details**: Artisan story narrative and region of craft (e.g., Jaipur, Agra, Kanpur).
-  - **Material & Craft Specs**: Upper material, sole construction, insole cushioning specs, care guide.
-  - **Variant Matrix Generator**: UK 6 to UK 11 stock quantity fields.
-  - **Media Uploader / URL Previewer**: Primary image input with live preview and sample preset footwear images.
-- [ ] **Bulk Product Actions**: Batch price updates, bulk tagging, and CSV product import.
+| ID | Requirement | Current State | Gaps / Work Required | How to Verify |
+|---|---|---|---|---|
+| **FR-23** | **Full Product CRUD: Add, Update & Delete (`AdminPage.tsx`)** | 🟡 Partial | `addProduct`, `deleteProduct`, and `toggleProductStatus` work, but `updateProduct` from `ProductContext.tsx` has **no Edit Product UI** in `AdminPage.tsx`; add pre-filled Edit modal/drawer for title, price, MRP, category, tags, images, materials, story, artisan region, and UK size variants | Add a new shoe in `/admin`, edit its price, title, and description, confirm changes appear live on `/products/:slug`, then delete it and confirm removal |
+| **FR-24** | **Per-Size Inventory Management & Stock Alerts (`AdminPage.tsx`)** | 🔴 Gap | Catalog only displays summed total stock (`variants.reduce(...)`) and Analytics falls back to `\|\| 50`; add expandable per-UK-size (`UK 4`–`UK 11`) inline stock editor, low-stock threshold alerts (`<= 5` pairs), out-of-stock auto-disable/badge, and restock audit log | Set `UK 8` stock to `2` in Inventory view; verify low-stock alert badge highlights `UK 8`, place a 2-pair order (`FR-12`), and confirm `UK 8` shows `0` / Out of Stock on `/products/:slug` |
+| **FR-25** | **Shoe Model-Wise Analysis (`AdminPage.tsx`)** | 🟡 Partial | Analytics only shows an unsorted `products.slice(0, 5)` summary table; add full sortable Shoe Model Analysis across all models with per-model units sold, gross/net revenue, average rating, view-to-cart conversion rate, return/exchange rate, size-wise (`UK 4`–`UK 11`) demand breakdown, date-range filter, and CSV export | Open `/admin` → Model Analysis, sort by revenue/units/conversion, click a shoe model to inspect its UK size demand distribution, and export CSV |
+| **FR-26** | **Storefront Maintenance Mode (`App.tsx` & `AdminPage.tsx`)** | 🔴 Gap | No maintenance mode toggle or screen exists; add backend-persisted `maintenanceMode` config (enabled toggle, custom message, ETA) controllable from `/admin`; block customer routes (`/` , `/collections/*`, `/products/*`, `/cart`, `/profile`) while keeping `/admin` accessible and emitting `noindex, nofollow` (and `503` + `Retry-After` at edge/Nginx when planned) so Google Search Console does not drop indexed URLs | Toggle Maintenance Mode ON in `/admin`; open `https://craftyoursole.in` in Incognito and verify maintenance screen renders with `noindex`, while `/admin` remains accessible to turn it back OFF |
 
-### 3.3 Order & Fulfillment Management
-- [x] **Order Management Hub**:
-  - Live data list of customer orders with status filters (`All`, `Pending`, `Packing`, `Shipped`, `Delivered`).
-  - Color-coded badges for payment method (`UPI`, `Card`, `COD`) and payment status (`PAID`, `PENDING`).
-  - Order details view with customer contact info, delivery address, ordered items, and sizes.
-  - 1-click status transitions (`Mark as Packing`, `Dispatch / Ship`, `Confirm Delivery`).
-- [ ] **Fulfillment Actions**:
-  - Single-click invoice generation (GST compliant with tax breakup).
-  - Packing slip & thermal shipping label printing.
+### H. Media Storage, Order Lifecycle, Merchandising & Observability (`FR-27` – `FR-30`)
 
-### 3.4 Inventory & Stock Control
-- [ ] **Live Inventory Tracking**: Unified stock count across all sizes and colorways.
-- [ ] **Low Stock Alerts**: Configurable alerts when an SKU drops below threshold (e.g. fewer than 5 pairs left).
-- [ ] **Backorder / Pre-Order Toggle**: Option to accept festive pre-orders when handcrafting is in progress.
+| ID | Requirement | Current State | Gaps / Work Required | How to Verify |
+|---|---|---|---|---|
+| **FR-27** | **Product Media Upload & Self-Hosted Imagery (`AdminPage.tsx` & `firebase.ts`)** | 🔴 Gap | `AdminPage.tsx` only accepts image URL text and storefront uses external Unsplash / `lh3.googleusercontent.com` links (`images.ts`, `ProductContext.tsx`); wire multi-image upload to Firebase Storage (`storage`) / Cloud Storage with WebP/AVIF optimization | Upload primary + gallery images via `/admin`, create/edit product, and confirm images load from your own CDN/Storage bucket |
+| **FR-28** | **Order Cancellation, Returns & GST Tax Invoicing (`ProfilePage.tsx` & `OrderContext.tsx`)** | 🔴 Gap | No customer cancel button before `SHIPPED`, no self-serve 7-day size exchange form, no downloadable GST invoice (HSN `6403`/`6404`/`6405`, 5%/18% footwear GST split), and `OrderContext.tsx` uses `INITIAL_ORDERS` + `DK-` prefix instead of `CYS-` | Cancel a `PENDING` order in `/profile`, request a size exchange on a `DELIVERED` order, download its GST invoice PDF, and verify `CYS-` order numbering |
+| **FR-29** | **Coupon CMS & Unwired UI Cleanup (`AdminPage.tsx`, `Navbar.tsx`, `CartPage.tsx`)** | 🔴 Gap | Coupons (`FESTIVE500`, `SOLEFIRST`) are hardcoded in `CartPage.tsx`; `photo_camera` icon in `Navbar.tsx` / `MobileSearch.tsx` has no click handler; `search.ts` contains 3 items missing from `ProductContext.tsx` | Create/disable a coupon in `/admin` and verify it in `/cart`; confirm no unwired buttons exist in desktop or mobile search |
+| **FR-30** | **Secrets Hygiene & Production Analytics (`Dockerfile`, `.env.example`, `firebase.ts`)** | 🔴 **Security/Ops Gap** | `Dockerfile` hardcodes `lohithkumarshoemart` Firebase `ARG` defaults and `.env.example` still references `Desi-Kicks`; move build config to Cloud Build/Secret Manager and track GA4 e-commerce events (`view_item`, `add_to_cart`, `begin_checkout`, `purchase`) + error logging | Verify production container builds with CraftYourSole env vars (zero hardcoded fallback secrets in `Dockerfile`) and GA4/Cloud Logging receives test funnel events |
 
-### 3.5 Marketing, Discounts & Banner Management
-- [ ] **Coupon Manager**: Create and deactivate coupon codes with constraints (e.g., valid until Diwali, minimum cart value ₹2,499).
-- [ ] **Site Announcement Bar CMS**: Update the top promotional announcement banner directly from the dashboard without redeploying code.
+### I. Nike-Benchmark Storefront, Fit Confidence & Custom Craft Features (`FR-31` – `FR-35`)
+
+| ID | Requirement | Current State | Gaps / Work Required | How to Verify |
+|---|---|---|---|---|
+| **FR-31** | **Colorway Swatches & Hover Image Swap (`ProductContext.tsx`, `ProductCard.tsx`)** | 🔴 Gap | Each `Product` currently stores a single image/colorway and `variants` only tracks `{ size, stock }`; extend product model with `colorways` (`name`, `hex`, `img`, `additionalImages`, per-color `variants`), render swatch selectors on `ProductCard.tsx` and `ProductDetailPage.tsx`, and swap to secondary/on-foot angle on card hover | Hover over a card on `/collections` to verify secondary angle preview; click a colorway swatch on card & PDP and confirm image and per-color UK size stock update |
+| **FR-32** | **Aggregated Fit Meter Above Size Picker (`ProductDetailPage.tsx`)** | 🔴 Gap | Reviews already capture `fitFeedback` (`Runs Small`, `True to Size`, `Runs Large`), but no summary meter appears near the UK size grid; compute aggregate fit score from `reviews` and display a visual fit slider bar right above size selection | Open `/products/royal-velvet-embroidered-mojari`, submit a `Runs Small` review, and confirm the fit meter above the UK size buttons shifts accordingly |
+| **FR-33** | **"Craft Your Sole" Customizations (`ProductDetailPage.tsx`, `CartPage.tsx`)** | ⚪ Planned | No shoe personalization options exist yet; add selectable craft options per model (e.g., *Standard vs. Wide Indian Fit*, *Extra 6mm Ortho Arch Insole*, *Custom Wedding Dust-Bag Monogram*) carried into `CartItem` and order line items | Select Wide Fit + Ortho Insole + Monogram on PDP, add to bag, confirm selections & surcharge show in `/cart` and saved order details |
+| **FR-34** | **Out-of-Stock "Notify Me" & Drop Waitlist (`ProductDetailPage.tsx`)** | ⚪ Planned | Out-of-stock sizes lack demand capture; allow shoppers to click an out-of-stock UK size (or upcoming drop) and submit email/WhatsApp for instant restock notification persisted to Firestore/DB | Select an out-of-stock UK size (`stock === 0`), enter email in "Notify Me", and confirm waitlist entry persists in DB & appears in `/admin` demand report |
+| **FR-35** | **Fast Guest Checkout & In-Stock UK Size Filter (`CartPage.tsx`, `CollectionsPage.tsx`)** | 🔴 Gap | `CartPage.tsx` relies on logged-in/hardcoded demo addresses, and `CollectionsPage.tsx` only has category pills; support frictionless Guest Checkout (name, phone, email, address) alongside Google Sign-In, plus multi-select filters on `/collections` for in-stock UK size, color, price range, and sort | Open `/collections` in Incognito, filter by `UK 8` + `Price: Low to High`, add an item, and complete Guest Checkout without signing in |
 
 ---
 
-## 📦 Phase 4: Fulfillment, Logistics & Logistics API
+## 🎯 Phase Breakdown
 
-**Objective**: Connect Desi-Kicks directly with top Indian e-commerce logistics aggregators.
+### Phase 1: Customer Web App — Storefront, Routes & SEO
+- [x] **Responsive Layout & Navigation**: Sticky header with `craftyoursole_logo.svg`, bottom mobile tab bar (`BottomNav`), and mobile search bar.
+- [x] **Pre-Launch Preview Banner**: `PreLaunchBanner` in `src/App.tsx` communicating active pre-launch status.
+- [x] **Hero Carousel, Categories, Recommendations & New Arrivals**: All wired to `/collections` and `/collections/:slug`.
+- [x] **Dedicated Storefront & Policy Routes**: `/collections`, `/collections/:slug`, `/products/:slug`, `/about`, `/size-guide`, `/authenticity`, `/shipping-policy`, `/returns-exchange`, `/contact`, `/track-order`, `/privacy-policy`, `/terms`, and `*` 404.
+- [x] **SEO Metadata & Sitemap Pipeline**: `SeoHead.tsx`, `scripts/generate-sitemap.mjs` (`prebuild`), `public/sitemap.xml` (23 URLs), `public/robots.txt`, and `nginx.conf.template` cache rules.
+- [ ] **Unified Live Search & Collection Filters (`FR-03`, `FR-35`)**: Connect `Navbar` / `MobileSearch` to `ProductContext` instead of static `ALL_PRODUCTS`, and add in-stock UK size, colorway, price range, and sort filters on `CollectionsPage`.
+- [ ] **Colorway Swatches, Hover Angles & Fit Meter (`FR-31`, `FR-32`)**: Group colorways per product model with swatch selectors on `ProductCard` / `ProductDetailPage`, secondary-image hover swap, and aggregated `Runs Small / True to Size / Runs Large` bar above the UK size picker.
+- [ ] **"Craft Your Sole" Personalization & Waitlist (`FR-33`, `FR-34`)**: Support Wide/Standard fit, Ortho Arch Insole, and monogram options, plus per-size "Notify Me" restock capture.
+- [ ] **Synced Wishlist Context (`FR-05`)**: Replace ephemeral heart toggles in `ProductCard` / `ProductDetailPage` with persistent `WishlistContext` synced to `ProfilePage`.
+- [ ] **Client-Side Recommendation Scoring (`FR-20`, `FR-21`)**: Add recently-viewed history, preferred UK size weighting, multi-attribute similarity scoring on `/products/:slug`, and dynamic cross-sell recommendations in `/cart`.
 
-- [ ] **Logistics Aggregator Integration**:
-  - Direct integration with **Shiprocket** / **Delhivery** / **Bluedart** APIs.
-  - Automated Air Waybill (AWB) number assignment on order confirmation.
-- [ ] **Automated Serviceability & COD Verification**:
-  - Check courier serviceability by pincode during checkout.
-  - Real-time estimated delivery date calculation (e.g., "Arriving by Thursday, Oct 24").
-- [ ] **Customer Notifications**:
-  - Automated WhatsApp Business notifications for order confirmation, dispatch, and out-for-delivery.
-  - SMS tracking links with live courier milestone tracking.
-- [ ] **Return & Exchange Portal**:
-  - Self-service customer return request page (e.g., "Size too small, exchange for UK 10").
-  - Automated reverse-pickup generation upon admin approval.
+### Phase 2: Backend Services, Auth Security & Payments
+- [x] **Firebase SDK & Google Sign-In (`src/lib/firebase.ts`, `AuthContext.tsx`)**: Google OAuth popup and auth listener implemented.
+- [x] **Schema Reference (`supabase-schema.sql`)**: Relational schema drafted for PostgreSQL/Supabase option.
+- [ ] **Production Data Store Wiring**: Connect `ProductContext`, `OrderContext`, `CartContext`, user addresses, and `ContactPage` / newsletter submissions to Firestore (or Supabase).
+- [ ] **Recommendation Event Pipeline (`FR-22`)**: Persist `product_view`, `add_to_cart`, and `purchase` co-occurrence weights in Firestore/DB for collaborative ("Customers also bought") ranking.
+- [ ] **Admin RBAC Protection**: Gate `/admin` behind Firebase Auth custom claims or admin allowlist + Firestore/backend security rules.
+- [ ] **Customer Address Book & Guest Checkout (`FR-10`, `FR-35`)**: Replace hardcoded sample Bengaluru addresses in `CartPage.tsx` and `ProfilePage.tsx`, and support both Guest Checkout and signed-in saved addresses.
+- [ ] **Razorpay / Cashfree Payment Integration**: Live UPI/Card/NetBanking checkout + idempotent webhook verification + stock deduction.
+- [ ] **Live Pincode Serviceability**: Replace simulated delivery date calculation in `ProductDetailPage.tsx` with courier pincode API.
 
----
+### Phase 3: Admin Dashboard (Sales Monitoring & Operations)
+- [x] **KPI Metric Cards & Visual Analytics**: GMV, orders, AOV, pipeline counts, category breakdown, and top 5 preview (`AdminPage.tsx`).
+- [/] **Product Catalog Table & CRUD (`FR-23`)**: Add (`addProduct`), delete (`deleteProduct`), and live/draft toggle (`toggleProductStatus`) work; **missing Edit/Update modal** wired to `updateProduct`.
+- [x] **Order Management Hub**: Filter orders by status and advance fulfillment states (`Pending` → `Packing` → `Shipped` → `Delivered`).
+- [ ] **Per-Size Inventory Management (`FR-24`)**: Expandable `UK 4`–`UK 11` variant stock editor, low-stock threshold alerts, out-of-stock guards, and automatic deduction on checkout.
+- [ ] **Shoe Model-Wise Analysis (`FR-25`)**: Full-catalog sortable model performance table, per-model drill-down (size demand distribution, conversion rate, return rate, ratings), date filters, and CSV export.
+- [ ] **Storefront Maintenance Mode (`FR-26`)**: Admin toggle + scheduled window + SEO-safe (`noindex` / `503 Retry-After`) maintenance page while keeping `/admin` reachable.
+- [ ] **Real-Time Multi-User Sync**: Back admin reads/writes with live Firestore/Supabase queries instead of browser `localStorage`.
+- [ ] **Bulk Actions & GST Invoices**: Bulk price/tag updates and printable GST-compliant invoices/packing slips.
+- [ ] **Merchandising & Recommendation Boost Controls (`FR-22`)**: Pin featured drops in `AdminPage.tsx` and monitor recommendation click-through & add-to-cart conversion rates.
 
-## ⚡ Phase 5: Scale, Security, Performance & Mobile
+### Phase 4: Fulfillment, Logistics & Customer Notifications
+- [ ] **Shiprocket / Delhivery Integration**: Automated AWB generation and tracking webhook updates.
+- [ ] **Live `/track-order` Lookup**: Query real order & courier tracking milestones by Order ID + phone/email.
+- [ ] **WhatsApp / Email Transactional Alerts**: Automated confirmations via `support@craftyoursole.in` / WhatsApp Business API.
+- [ ] **Self-Serve 7-Day Size Exchange Portal**: Automated reverse pickup scheduling from `/returns-exchange` and `/profile`.
 
-**Objective**: Guarantee high reliability during festive traffic spikes (Diwali, Wedding Season, Eid) and expand to native mobile.
-
-- [ ] **Performance & Web Vitals**:
-  - Next-gen image optimization (AVIF/WebP formats with responsive `srcset`).
-  - Code splitting and lazy loading of modals and route chunks.
-  - Sub-second Core Web Vitals (LCP < 1.8s, CLS < 0.05).
-- [ ] **SEO & Discoverability**:
-  - Server-Side Rendering (SSR) / Static Site Generation (SSG).
-  - Structured Data (`schema.org/Product`, `AggregateRating`, `Offer`) for Google rich search results.
-  - XML sitemap generation and canonical link headers.
-- [ ] **Security & Compliance**:
-  - Rate limiting on checkout, OTP, and search endpoints.
-  - PCI-DSS compliant checkout flow (no card data touches internal servers).
-  - Indian DPDP Act (Digital Personal Data Protection) compliance for user data privacy.
-- [ ] **Automated Testing Suite**:
-  - Unit & Integration tests for cart calculations, coupon logic, and stock deduction (Vitest).
-  - End-to-end (E2E) checkout and order journey tests (Playwright).
-  - Continuous Integration (CI) GitHub Actions pipeline.
-- [ ] **Native Mobile Apps**:
-  - Cross-platform React Native or Flutter mobile app reusing the backend REST/GraphQL API.
-
----
-
-## 📋 Immediate Action Items (Sprint Board)
-
-The following priority tasks are queued for implementation:
-
-1. **Sprint 1 (Now)**:
-   - [x] Establish dedicated Product Detail Pages (`/products/:slug`) with persistent shareable URLs.
-   - [ ] Build search results and category filter interface with sorting options.
-   - [ ] Complete the checkout form modal / page with address validation.
-
-2. **Sprint 2 (Next)**:
-   - [ ] Scaffold the Admin Dashboard layout with responsive sidebar and navigation.
-   - [ ] Implement the Analytics Overview page with mock & real metrics (GMV, AOV, Orders).
-   - [ ] Implement the Product Catalog Management screen with "Add Product" modal and SKU generator.
-
-3. **Sprint 3**:
-   - [ ] Connect PostgreSQL database with Prisma ORM.
-   - [ ] Implement Razorpay sandbox payment gateway with UPI support.
-   - [ ] Link order creation flow between Customer Web App and Admin Dashboard.
+### Phase 5: Scale, Verification, CI/CD & Testing
+- [x] **Docker + Nginx Cloud Run Container**: `Dockerfile` + `nginx.conf.template` deployed on GCP Cloud Run (`craftyoursole.in`).
+- [ ] **Fix `cloudbuild.yaml` Region & Automated CI**: Align `--region` (`us-central1` vs `asia-south1`) and run `npm run build` + `npm run lint` on every push.
+- [ ] **Resolve Existing Lint Errors**: Clean up the 2 `eslint` errors in `src/context/AuthContext.tsx` (`set-state-in-effect` and `only-export-components`).
+- [ ] **Automated Test Suite**: Add Vitest unit tests (cart/coupon/stock calculations) and Playwright E2E smoke tests covering every `FR-*` requirement above.
+- [ ] **Core Web Vitals & Bundle Splitting**: Split vendor chunks (`vite.config.ts`) and lazy-load `/admin` so initial customer bundle stays under 500 kB.
 
 ---
 
-*This roadmap is actively maintained and updated with every release sprint. To propose new features or adjust priorities, create an issue or pull request.*
+## 📋 Launch-Readiness Order of Execution
 
+1. **DevOps, Secrets & Domain Parity (`FR-18`, `FR-06`, `FR-30`)**:
+   - Align `cloudbuild.yaml` `--region` with your mapped Cloud Run service (`us-central1`), map `www.craftyoursole.in` in Cloud Run + Cloudflare, remove hardcoded Firebase `ARG` defaults from `Dockerfile`, update `.env.example`, and add `craftyoursole.in` / `www.craftyoursole.in` to Firebase Authorized Domains.
+2. **Backend, Admin CRUD & Inventory Blockers (`FR-07`, `FR-10`, `FR-12`, `FR-13`, `FR-14`, `FR-23`, `FR-24`, `FR-26`, `FR-27`)**:
+   - Guard `/admin`, wire `updateProduct` Edit UI, per-size Inventory Management, colorway data schema (`FR-31`), and media upload (`storage`), add Storefront Maintenance Mode, replace `localStorage` mocks, `INITIAL_ORDERS`, and hardcoded addresses with Firestore/Supabase, implement stock deduction, and persist contact/newsletter/restock-waitlist (`FR-34`) submissions.
+3. **Live Payments, Model Analytics, Conversion UX & Recommendations (`FR-03`, `FR-05`, `FR-11`, `FR-15`, `FR-20`–`FR-22`, `FR-25`, `FR-28`, `FR-29`, `FR-31`–`FR-35`)**:
+   - Integrate Razorpay/Cashfree sandbox → production keys with Guest Checkout (`FR-35`), unify search + in-stock UK size filters on `/collections`, add colorway swatches + hover swap + fit meter + CraftYourSole customizations, sync wishlists, wire `/track-order` + customer cancellations/exchanges + GST invoices, add Coupon CMS, build Shoe Model-Wise Analysis, and implement behavioral + co-purchase recommendations.
+4. **Final Verification & Public Go-Live (`FR-16`, `FR-17`, `FR-19`, `FR-30`)**:
+   - Pass all `FR-01`–`FR-35` checks, verify GA4 funnel + error telemetry, fix `AuthContext.tsx` lint errors, verify Rich Results + Google Search Console coverage, and remove `PreLaunchBanner` and demo-checkout notices.
