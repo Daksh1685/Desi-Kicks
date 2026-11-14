@@ -68,6 +68,7 @@ export function Recommendations() {
               originalPrice={`₹${p.originalPrice.toLocaleString('en-IN')}`}
               tag={p.tag || p.category}
               img={p.img}
+              stock={p.variants?.reduce((sum, v) => sum + v.stock, 0)}
             />
           ))}
         </div>

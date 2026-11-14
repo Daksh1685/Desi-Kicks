@@ -84,10 +84,11 @@ function ProductDetailContent({ product }: { product: Product }) {
 
   // Variant stock
   const currentVariant = product.variants?.find((v) => v.size === selectedSize);
-  const currentStock = currentVariant ? currentVariant.stock : 12;
+  const currentStock = currentVariant ? currentVariant.stock : 0;
 
   // Handle Add To Cart
   const handleAddToCart = () => {
+    if (currentStock === 0) return;
     const productId = product.id || product.slug || product.name;
     for (let i = 0; i < quantity; i++) {
       addToCart({
@@ -349,9 +350,29 @@ function ProductDetailContent({ product }: { product: Product }) {
                 <span className="text-xs font-bold uppercase tracking-widest text-primary">
                   {product.category}
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  In Stock & Ready to Ship
+                <span
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                    currentStock > 5
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : currentStock > 0
+                      ? 'bg-amber-50 text-amber-700 border-amber-200'
+                      : 'bg-red-50 text-red-700 border-red-200'
+                  }`}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      currentStock > 5
+                        ? 'bg-emerald-500 animate-pulse'
+                        : currentStock > 0
+                        ? 'bg-amber-500'
+                        : 'bg-red-500'
+                    }`}
+                  />
+                  {currentStock > 5
+                    ? 'In Stock & Ready to Ship'
+                    : currentStock > 0
+                    ? `Only ${currentStock} left in ${selectedSize}`
+                    : `Sold Out in ${selectedSize}`}
                 </span>
               </div>
 
@@ -418,17 +439,26 @@ function ProductDetailContent({ product }: { product: Product }) {
                 <div className="grid grid-cols-6 gap-2">
                   {(product.sizes || ['UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11']).map((s) => {
                     const isSelected = selectedSize === s;
+                    const variantForSize = product.variants?.find((v) => v.size === s);
+                    const isSizeOutOfStock = variantForSize ? variantForSize.stock <= 0 : false;
                     return (
                       <button
                         key={s}
                         onClick={() => setSelectedSize(s)}
-                        className={`py-2.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+                        className={`py-2 px-1 rounded-xl text-xs font-bold transition-all border flex flex-col items-center justify-center cursor-pointer ${
                           isSelected
                             ? 'bg-gray-900 text-white border-gray-900 shadow-md scale-102'
+                            : isSizeOutOfStock
+                            ? 'bg-gray-100 text-gray-400 border-gray-200 hover:bg-gray-150'
                             : 'bg-white text-gray-700 border-gray-200 hover:border-gray-400 hover:bg-gray-50'
                         }`}
                       >
-                        {s}
+                        <span className={isSizeOutOfStock ? 'line-through opacity-70' : ''}>{s}</span>
+                        {isSizeOutOfStock && (
+                          <span className="text-[9px] text-red-500 font-semibold leading-tight mt-0.5">
+                            Out
+                          </span>
+                        )}
                       </button>
                     );
                   })}
@@ -436,12 +466,16 @@ function ProductDetailContent({ product }: { product: Product }) {
 
                 <div className="flex items-center justify-between mt-2.5 text-[11px] text-gray-500">
                   <span>
-                    Fit status:{' '}
+                    Availability:{' '}
                     <strong className="text-gray-800">
-                      {currentStock <= 5 ? `🔥 Only ${currentStock} pairs left in ${selectedSize}` : 'In Stock'}
+                      {currentStock > 5
+                        ? `In Stock (${currentStock} pairs available)`
+                        : currentStock > 0
+                        ? `🔥 Only ${currentStock} pair(s) remaining in ${selectedSize}`
+                        : `❌ Sold out in size ${selectedSize} — choose another size`}
                     </strong>
                   </span>
-                  <span>Fits true to standard Indian sizing</span>
+                  <span>Standard Indian Sizing</span>
                 </div>
               </div>
 
@@ -452,15 +486,17 @@ function ProductDetailContent({ product }: { product: Product }) {
                   <div className="flex items-center border border-gray-200 rounded-xl bg-gray-50 p-1">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      disabled={quantity <= 1}
+                      disabled={quantity <= 1 || currentStock === 0}
                       className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-600 hover:bg-white transition-colors disabled:opacity-40 cursor-pointer"
                     >
                       <Icon name="minus" className="w-3.5 h-3.5" />
                     </button>
-                    <span className="w-10 text-center font-bold text-sm text-gray-900">{quantity}</span>
+                    <span className="w-10 text-center font-bold text-sm text-gray-900">
+                      {currentStock === 0 ? 0 : quantity}
+                    </span>
                     <button
-                      onClick={() => setQuantity(Math.min(currentStock || 10, quantity + 1))}
-                      disabled={quantity >= (currentStock || 10)}
+                      onClick={() => setQuantity(Math.min(currentStock || 1, quantity + 1))}
+                      disabled={quantity >= currentStock || currentStock === 0}
                       className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-600 hover:bg-white transition-colors disabled:opacity-40 cursor-pointer"
                     >
                       <Icon name="plus" className="w-3.5 h-3.5" />
@@ -470,19 +506,21 @@ function ProductDetailContent({ product }: { product: Product }) {
                   {/* Add to Bag */}
                   <button
                     onClick={handleAddToCart}
-                    className="flex-1 py-3.5 px-6 rounded-xl bg-primary text-white font-black text-sm uppercase tracking-wider hover:bg-primary/95 shadow-lg shadow-primary/20 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    disabled={currentStock === 0}
+                    className="flex-1 py-3.5 px-6 rounded-xl bg-primary text-white font-black text-sm uppercase tracking-wider hover:bg-primary/95 shadow-lg shadow-primary/20 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:shadow-none"
                   >
                     <Icon name="shopping_bag" className="w-4 h-4" />
-                    <span>Add to Bag</span>
+                    <span>{currentStock === 0 ? 'Out of Stock' : 'Add to Bag'}</span>
                   </button>
                 </div>
 
                 {/* Buy Now Instant */}
                 <button
                   onClick={handleBuyNow}
-                  className="w-full py-3.5 px-6 rounded-xl bg-gray-900 text-white font-black text-sm uppercase tracking-wider hover:bg-black shadow-md active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  disabled={currentStock === 0}
+                  className="w-full py-3.5 px-6 rounded-xl bg-gray-900 text-white font-black text-sm uppercase tracking-wider hover:bg-black shadow-md active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:shadow-none"
                 >
-                  <span>Buy Now • Express Checkout</span>
+                  <span>{currentStock === 0 ? 'Select In-Stock Size' : 'Buy Now • Express Checkout'}</span>
                 </button>
               </div>
 

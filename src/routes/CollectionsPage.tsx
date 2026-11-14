@@ -196,6 +196,7 @@ export function CollectionsPage() {
                 originalPrice={`₹${p.originalPrice.toLocaleString('en-IN')}`}
                 tag={p.tag}
                 img={p.img}
+                stock={p.variants?.reduce((sum, v) => sum + v.stock, 0)}
               />
             ))}
           </div>

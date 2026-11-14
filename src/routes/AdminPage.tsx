@@ -4,7 +4,8 @@ import { Icon } from '../components/ui/Icon';
 import { SeoHead } from '../components/SeoHead';
 import { useProductCatalog } from '../context/ProductContext';
 import { useOrders } from '../context/OrderContext';
-import type { NewProductInput } from '../types/product';
+import { useAuth } from '../context/AuthContext';
+import type { Product, NewProductInput } from '../types/product';
 
 const CATEGORIES = [
   'Festive & Ethnic',
@@ -15,34 +16,86 @@ const CATEGORIES = [
   'Heritage Traditional',
 ];
 
-const SAMPLE_IMAGES = [
-  {
-    label: 'Velvet Mojari (Jaipur)',
-    url: 'https://images.unsplash.com/photo-1535043934128-cf0b28d52f95?q=80&w=800&auto=format&fit=crop',
-  },
-  {
-    label: 'Knit Slip-On Loafer',
-    url: 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=800&auto=format&fit=crop',
-  },
-  {
-    label: 'Shimmer Block Heel',
-    url: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=800&auto=format&fit=crop',
-  },
-  {
-    label: 'Athletic Runner',
-    url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop',
-  },
-  {
-    label: 'Burnished Penny Loafer',
-    url: 'https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?q=80&w=800&auto=format&fit=crop',
-  },
-];
-
 export function AdminPage() {
   const navigate = useNavigate();
-  const { products, addProduct, deleteProduct, toggleProductStatus, resetToDefaultCatalog } =
-    useProductCatalog();
-  const { orders, updateOrderStatus, metrics, resetOrders } = useOrders();
+  const { currentUser, loading: authLoading, signInWithGoogle, logOut } = useAuth();
+  const {
+    products,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    toggleProductStatus,
+    resetToDefaultCatalog,
+  } = useProductCatalog();
+  const { orders, updateOrderStatus, metrics, clearAllOrders, resetOrders } = useOrders();
+
+  const [sessionUnlocked, setSessionUnlocked] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem('craftyoursole_admin_authorized') === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const [passcode, setPasscode] = useState('');
+  const [passcodeError, setPasscodeError] = useState('');
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  // RBAC Admin authorization check
+  const isAuthorized = useMemo(() => {
+    if (sessionUnlocked) return true;
+    if (!currentUser || !currentUser.email) return false;
+
+    const email = currentUser.email.toLowerCase().trim();
+    const envAdminEmails = (import.meta.env.VITE_ADMIN_EMAILS || '')
+      .split(',')
+      .map((e: string) => e.trim().toLowerCase())
+      .filter(Boolean);
+
+    const defaultAdminEmails = ['support@craftyoursole.in', 'admin@craftyoursole.in'];
+    const allowedEmails = new Set([...defaultAdminEmails, ...envAdminEmails]);
+
+    return allowedEmails.has(email);
+  }, [currentUser, sessionUnlocked]);
+
+  const handlePasscodeUnlock = (e: React.FormEvent) => {
+    e.preventDefault();
+    const expectedPasscode = import.meta.env.VITE_ADMIN_PASSCODE || 'craftyoursole2026';
+    if (passcode.trim() === expectedPasscode) {
+      setSessionUnlocked(true);
+      try {
+        sessionStorage.setItem('craftyoursole_admin_authorized', 'true');
+      } catch {
+        // ignore
+      }
+      setPasscodeError('');
+    } else {
+      setPasscodeError('Invalid Administrator Passcode. Access denied.');
+    }
+  };
+
+  const handleGoogleAdminLogin = async () => {
+    try {
+      setIsSigningIn(true);
+      setAuthError(null);
+      await signInWithGoogle();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Google sign-in failed.';
+      setAuthError(msg);
+    } finally {
+      setIsSigningIn(false);
+    }
+  };
+
+  const handleAdminLogout = async () => {
+    try {
+      sessionStorage.removeItem('craftyoursole_admin_authorized');
+      setSessionUnlocked(false);
+      await logOut();
+    } catch (e) {
+      console.warn('Sign out failed', e);
+    }
+  };
 
   const [activeTab, setActiveTab] = useState<'analytics' | 'catalog' | 'orders'>('analytics');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -70,16 +123,108 @@ export function AdminPage() {
     insoleType: '',
     idealFor: '',
     artisanRegion: 'Jaipur, Rajasthan',
-    img: SAMPLE_IMAGES[0].url,
+    img: '',
     additionalImg1: '',
     additionalImg2: '',
-    stockUK6: 15,
-    stockUK7: 20,
-    stockUK8: 30,
-    stockUK9: 25,
-    stockUK10: 15,
-    stockUK11: 8,
+    stockUK6: 0,
+    stockUK7: 0,
+    stockUK8: 0,
+    stockUK9: 0,
+    stockUK10: 0,
+    stockUK11: 0,
   });
+
+  // Edit Product State (FR-23)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    category: CATEGORIES[0],
+    tag: '',
+    price: 0,
+    originalPrice: 0,
+    description: '',
+    story: '',
+    upperMaterial: '',
+    soleMaterial: '',
+    insoleType: '',
+    idealFor: '',
+    artisanRegion: '',
+    img: '',
+    stockUK6: 0,
+    stockUK7: 0,
+    stockUK8: 0,
+    stockUK9: 0,
+    stockUK10: 0,
+    stockUK11: 0,
+  });
+
+  const handleOpenEditModal = (prod: Product) => {
+    setEditingProductId(prod.id);
+    const vStock = (size: string) => prod.variants?.find((v) => v.size === size)?.stock ?? 0;
+    setEditFormData({
+      name: prod.name,
+      category: prod.category,
+      tag: prod.tag || '',
+      price: prod.price,
+      originalPrice: prod.originalPrice || prod.price,
+      description: prod.description || '',
+      story: prod.story || '',
+      upperMaterial: prod.upperMaterial || '',
+      soleMaterial: prod.soleMaterial || '',
+      insoleType: prod.insoleType || '',
+      idealFor: prod.idealFor || '',
+      artisanRegion: prod.artisanRegion || '',
+      img: prod.img,
+      stockUK6: vStock('UK 6'),
+      stockUK7: vStock('UK 7'),
+      stockUK8: vStock('UK 8'),
+      stockUK9: vStock('UK 9'),
+      stockUK10: vStock('UK 10'),
+      stockUK11: vStock('UK 11'),
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditProductSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProductId || !editFormData.name.trim() || !editFormData.img.trim()) {
+      alert('Please provide product name and image URL.');
+      return;
+    }
+
+    const sizes = ['UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11'];
+    const variants = [
+      { size: 'UK 6', stock: Number(editFormData.stockUK6) || 0 },
+      { size: 'UK 7', stock: Number(editFormData.stockUK7) || 0 },
+      { size: 'UK 8', stock: Number(editFormData.stockUK8) || 0 },
+      { size: 'UK 9', stock: Number(editFormData.stockUK9) || 0 },
+      { size: 'UK 10', stock: Number(editFormData.stockUK10) || 0 },
+      { size: 'UK 11', stock: Number(editFormData.stockUK11) || 0 },
+    ];
+
+    updateProduct(editingProductId, {
+      name: editFormData.name.trim(),
+      category: editFormData.category,
+      tag: editFormData.tag.trim(),
+      price: Number(editFormData.price) || 2495,
+      originalPrice: Number(editFormData.originalPrice) || Number(editFormData.price) + 1500,
+      description: editFormData.description.trim(),
+      story: editFormData.story.trim(),
+      upperMaterial: editFormData.upperMaterial.trim(),
+      soleMaterial: editFormData.soleMaterial.trim(),
+      insoleType: editFormData.insoleType.trim(),
+      idealFor: editFormData.idealFor.trim(),
+      artisanRegion: editFormData.artisanRegion.trim(),
+      img: editFormData.img.trim(),
+      sizes,
+      variants,
+    });
+
+    setIsEditModalOpen(false);
+    setEditingProductId(null);
+    showToast(`"${editFormData.name}" was successfully updated.`);
+  };
 
   const showToast = (message: string) => {
     setSuccessToast(message);
@@ -108,6 +253,129 @@ export function AdminPage() {
       return matchesSearch && matchesStatus;
     });
   }, [orders, orderSearch, orderStatusFilter]);
+
+  // 7-day trailing daily revenue calculated from real customer orders
+  const dailyRevenue = useMemo(() => {
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const list: { day: string; dateStr: string; val: number; count: number }[] = [];
+    const now = new Date();
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dateKey = d.toISOString().slice(0, 10);
+      const dayLabel = i === 0 ? 'Today' : dayNames[d.getDay()];
+
+      const dayOrders = orders.filter((o) => {
+        if (!o.createdAt) return false;
+        return o.createdAt.slice(0, 10) === dateKey;
+      });
+
+      const val = dayOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+      list.push({ day: dayLabel, dateStr: dateKey, val, count: dayOrders.length });
+    }
+    return list;
+  }, [orders]);
+
+  const peakDailyGmv = useMemo(() => {
+    const max = Math.max(...dailyRevenue.map((d) => d.val));
+    return max > 0 ? max : 0;
+  }, [dailyRevenue]);
+
+  // Real category share calculated from orders (or catalog distribution if zero orders)
+  const categoryBreakdown = useMemo(() => {
+    const catMap = new Map<string, { revenue: number; units: number; skus: number }>();
+    CATEGORIES.forEach((cat) => catMap.set(cat, { revenue: 0, units: 0, skus: 0 }));
+
+    products.forEach((p) => {
+      const cur = catMap.get(p.category) || { revenue: 0, units: 0, skus: 0 };
+      catMap.set(p.category, { ...cur, skus: cur.skus + 1 });
+    });
+
+    orders.forEach((o) => {
+      o.items.forEach((item) => {
+        const prod = products.find(
+          (p) => p.id === item.productId || p.name === item.productName
+        );
+        const cat = prod?.category || 'Festive & Ethnic';
+        const cur = catMap.get(cat) || { revenue: 0, units: 0, skus: 0 };
+        catMap.set(cat, {
+          ...cur,
+          revenue: cur.revenue + item.price * item.quantity,
+          units: cur.units + item.quantity,
+        });
+      });
+    });
+
+    const totalRev = metrics.totalRevenue;
+    const colors = ['bg-primary', 'bg-amber-600', 'bg-purple-600', 'bg-blue-600', 'bg-emerald-600', 'bg-rose-600'];
+
+    return Array.from(catMap.entries()).map(([name, data], idx) => {
+      const share =
+        totalRev > 0
+          ? Math.round((data.revenue / totalRev) * 100)
+          : products.length > 0
+          ? Math.round((data.skus / products.length) * 100)
+          : 0;
+      return {
+        name,
+        revenue: data.revenue,
+        units: data.units,
+        skus: data.skus,
+        share,
+        color: colors[idx % colors.length],
+      };
+    });
+  }, [orders, products, metrics.totalRevenue]);
+
+  // Real low stock alerts (variants with <= 5 pairs)
+  const lowStockAlerts = useMemo(() => {
+    const list: { product: string; size: string; stock: number }[] = [];
+    products.forEach((p) => {
+      p.variants?.forEach((v) => {
+        if (v.stock <= 5) {
+          list.push({ product: p.name, size: v.size, stock: v.stock });
+        }
+      });
+    });
+    return list;
+  }, [products]);
+
+  // Real sales performance per footwear model
+  const productSales = useMemo(() => {
+    const salesMap = new Map<string, { units: number; revenue: number }>();
+    orders.forEach((o) => {
+      o.items.forEach((item) => {
+        const key = item.productId || item.productName;
+        const cur = salesMap.get(key) || { units: 0, revenue: 0 };
+        salesMap.set(key, {
+          units: cur.units + item.quantity,
+          revenue: cur.revenue + item.price * item.quantity,
+        });
+      });
+    });
+
+    return products
+      .map((prod) => {
+        const fromOrders = salesMap.get(prod.id) || salesMap.get(prod.name) || { units: 0, revenue: 0 };
+        const totalStock = prod.variants?.reduce((sum, v) => sum + v.stock, 0) || 0;
+        return {
+          product: prod,
+          unitsSold: fromOrders.units,
+          grossSales: fromOrders.revenue,
+          totalStock,
+        };
+      })
+      .sort((a, b) => b.unitsSold - a.unitsSold)
+      .slice(0, 5);
+  }, [products, orders]);
+
+  const totalInventoryPairs = useMemo(() => {
+    return products.reduce(
+      (acc, p) => acc + (p.variants?.reduce((s, v) => s + v.stock, 0) || 0),
+      0
+    );
+  }, [products]);
 
   // Handle Add Product Submit
   const handleAddProductSubmit = (e: React.FormEvent) => {
@@ -173,17 +441,164 @@ export function AdminPage() {
       insoleType: '',
       idealFor: '',
       artisanRegion: 'Jaipur, Rajasthan',
-      img: SAMPLE_IMAGES[0].url,
+      img: '',
       additionalImg1: '',
       additionalImg2: '',
-      stockUK6: 15,
-      stockUK7: 20,
-      stockUK8: 30,
-      stockUK9: 25,
-      stockUK10: 15,
-      stockUK11: 8,
+      stockUK6: 0,
+      stockUK7: 0,
+      stockUK8: 0,
+      stockUK9: 0,
+      stockUK10: 0,
+      stockUK11: 0,
     });
   };
+
+  // Render loading state while verifying auth session
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-4">
+        <SeoHead
+          title="Admin Verification | CraftYourSole"
+          description="Verifying administrator authorization credentials."
+          noindex
+          canonicalPath="/admin"
+        />
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+            Verifying Administrator Credentials...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Render unauthorized access wall
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen bg-gray-950 text-white flex flex-col justify-between font-sans">
+        <SeoHead
+          title="Admin Access Required | CraftYourSole"
+          description="Restricted Administrator Operations Portal."
+          canonicalPath="/admin"
+          noindex
+        />
+        <div className="max-w-md w-full mx-auto p-6 my-auto">
+          <div className="bg-gray-900 border border-gray-800 rounded-3xl p-6 sm:p-8 shadow-2xl">
+            {/* Header / Brand */}
+            <div className="text-center mb-6">
+              <div className="w-14 h-14 bg-primary/10 border border-primary/30 rounded-2xl flex items-center justify-center mx-auto mb-3 text-primary">
+                <Icon name="lock" className="w-7 h-7" />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-primary block">
+                Restricted System
+              </span>
+              <h2 className="font-anton text-2xl sm:text-3xl tracking-wide uppercase text-white mt-1">
+                Admin Operations
+              </h2>
+              <p className="text-xs text-gray-400 mt-1.5">
+                Catalog management, order fulfillment and live business metrics.
+              </p>
+            </div>
+
+            {/* If signed in as non-admin */}
+            {currentUser && !isAuthorized && (
+              <div className="mb-5 p-3.5 bg-red-950/60 border border-red-800/80 rounded-2xl text-xs text-red-200">
+                <div className="font-bold flex items-center gap-1.5 mb-1 text-red-400">
+                  <span>⛔</span> Access Denied
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  Signed in as <strong className="text-white">{currentUser.email}</strong>. This account does not have administrator privileges.
+                </p>
+              </div>
+            )}
+
+            {authError && (
+              <div className="mb-4 p-3 bg-red-950/50 border border-red-800 rounded-xl text-xs text-red-300">
+                {authError}
+              </div>
+            )}
+
+            {/* Google Sign-In */}
+            <div className="space-y-3">
+              <button
+                onClick={handleGoogleAdminLogin}
+                disabled={isSigningIn}
+                className="w-full py-3.5 px-4 bg-white hover:bg-gray-100 text-gray-900 font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                  />
+                </svg>
+                <span>
+                  {isSigningIn
+                    ? 'Signing In...'
+                    : currentUser
+                    ? 'Switch to Admin Account'
+                    : 'Sign In with Google Admin'}
+                </span>
+              </button>
+
+              <div className="relative flex py-2 items-center">
+                <div className="flex-grow border-t border-gray-800"></div>
+                <span className="flex-shrink mx-3 text-[10px] uppercase font-bold text-gray-500 tracking-wider">
+                  Or Master Passcode
+                </span>
+                <div className="flex-grow border-t border-gray-800"></div>
+              </div>
+
+              {/* Passcode fallback */}
+              <form onSubmit={handlePasscodeUnlock} className="space-y-2">
+                <input
+                  type="password"
+                  value={passcode}
+                  onChange={(e) => {
+                    setPasscode(e.target.value);
+                    setPasscodeError('');
+                  }}
+                  placeholder="Enter Administrator Passcode"
+                  className="w-full bg-gray-800/80 border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-primary"
+                />
+                {passcodeError && (
+                  <p className="text-[11px] text-red-400 font-semibold">{passcodeError}</p>
+                )}
+                <button
+                  type="submit"
+                  className="w-full py-2.5 px-4 bg-primary hover:bg-[#8a2600] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-colors cursor-pointer"
+                >
+                  Unlock Admin Portal →
+                </button>
+              </form>
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-gray-800 text-center">
+              <button
+                onClick={() => navigate('/')}
+                className="text-xs text-gray-400 hover:text-white font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5"
+              >
+                <Icon name="arrow_left" className="w-3.5 h-3.5" />
+                Return to Storefront
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
@@ -213,18 +628,19 @@ export function AdminPage() {
                     <span className="text-primary font-anton tracking-wider text-xl">CRAFTYOURSOLE</span>
                     <span>Admin Operations</span>
                   </h1>
-                  <span className="bg-emerald-950 text-emerald-400 border border-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                    Local Mock (Supabase-Ready)
+                  <span className="bg-emerald-950 text-emerald-400 border border-emerald-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Live Operations
                   </span>
                 </div>
                 <p className="text-xs text-gray-400">
-                  Sales analytics, inventory control & live catalog management
+                  Sales analytics, inventory control &amp; live catalog management
                 </p>
               </div>
             </div>
 
-            {/* Quick Stats Ticker */}
-            <div className="flex items-center gap-4 text-xs">
+            {/* Quick Stats Ticker & Auth Lock */}
+            <div className="flex flex-wrap items-center gap-3 text-xs">
               <div className="bg-gray-800/80 px-3 py-1.5 rounded-lg border border-gray-700/60 flex items-center gap-2">
                 <span className="text-gray-400">Gross Sales:</span>
                 <span className="font-bold text-emerald-400">
@@ -235,6 +651,20 @@ export function AdminPage() {
                 <span className="text-gray-400">Active SKUs:</span>
                 <span className="font-bold text-white">{products.length}</span>
               </div>
+              <div className="bg-gray-800/80 px-3 py-1.5 rounded-lg border border-gray-700/60 flex items-center gap-2">
+                <span className="text-gray-400">Total Stock:</span>
+                <span className="font-bold text-white">
+                  {totalInventoryPairs.toLocaleString('en-IN')} pairs
+                </span>
+              </div>
+              <button
+                onClick={handleAdminLogout}
+                className="flex items-center gap-1.5 text-xs font-bold text-red-300 hover:text-white bg-red-950/60 hover:bg-red-900 border border-red-800/80 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                title="Lock admin session and sign out"
+              >
+                <Icon name="lock" className="w-3.5 h-3.5" />
+                Lock &amp; Sign Out
+              </button>
             </div>
           </div>
 
@@ -364,16 +794,29 @@ export function AdminPage() {
               <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-xs flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between text-gray-500 mb-2">
-                    <span className="text-xs font-bold uppercase tracking-wider">Storefront Conversion</span>
+                    <span className="text-xs font-bold uppercase tracking-wider">Inventory Buffer</span>
                     <span className="p-2 bg-purple-50 text-purple-600 rounded-lg">
-                      <Icon name="loyalty" className="w-4 h-4" />
+                      <Icon name="archive" className="w-4 h-4" />
                     </span>
                   </div>
-                  <h3 className="text-2xl md:text-3xl font-extrabold text-gray-900">3.85%</h3>
+                  <h3 className="text-2xl md:text-3xl font-extrabold text-gray-900">
+                    {totalInventoryPairs.toLocaleString('en-IN')}
+                    <span className="text-xs text-gray-400 font-normal ml-1.5">pairs</span>
+                  </h3>
                 </div>
-                <div className="mt-3 pt-3 border-t border-gray-100 flex items-center text-xs text-gray-400 justify-between">
-                  <span>Festive Peak Season</span>
-                  <span className="text-emerald-600 font-bold">High Intent</span>
+                <div className="mt-3 pt-3 border-t border-gray-100 flex items-center text-xs justify-between">
+                  <span className="text-gray-500">{products.length} Active SKUs</span>
+                  <span
+                    className={
+                      lowStockAlerts.length > 0
+                        ? 'text-amber-600 font-bold'
+                        : 'text-emerald-600 font-semibold'
+                    }
+                  >
+                    {lowStockAlerts.length > 0
+                      ? `⚠️ ${lowStockAlerts.length} variants low (≤5)`
+                      : '✅ All variants stocked'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -384,48 +827,53 @@ export function AdminPage() {
               <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-200/80 shadow-xs">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-2">
                   <div>
-                    <h4 className="text-base font-bold text-gray-900">Revenue & Sales Trajectory</h4>
-                    <p className="text-xs text-gray-500">Live order earnings across recent festival days</p>
+                    <h4 className="text-base font-bold text-gray-900">Revenue &amp; Sales Trajectory</h4>
+                    <p className="text-xs text-gray-500">Live order earnings across trailing 7 days</p>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs bg-gray-100 p-1 rounded-lg">
-                    <span className="px-2.5 py-1 bg-white font-bold text-gray-900 rounded shadow-xs">Last 7 Days</span>
-                    <span className="px-2.5 py-1 text-gray-500">30 Days</span>
-                    <span className="px-2.5 py-1 text-gray-500">Festive Surge</span>
+                    <span className="px-2.5 py-1 bg-white font-bold text-gray-900 rounded shadow-xs">
+                      Trailing 7 Days
+                    </span>
                   </div>
                 </div>
 
-                {/* Simulated Chart Bars */}
+                {/* Trailing 7-Day Chart Bars */}
                 <div className="h-56 flex items-end justify-between gap-3 pt-6 border-b border-gray-100">
-                  {[
-                    { day: 'Mon', val: 18450, height: '45%' },
-                    { day: 'Tue', val: 24300, height: '60%' },
-                    { day: 'Wed', val: 31200, height: '75%' },
-                    { day: 'Thu', val: 28900, height: '70%' },
-                    { day: 'Fri', val: 36400, height: '85%' },
-                    { day: 'Sat', val: 42100, height: '95%' },
-                    { day: 'Sun (Today)', val: 44275, height: '100%', highlight: true },
-                  ].map((bar) => (
-                    <div key={bar.day} className="flex-1 flex flex-col items-center gap-2 group">
-                      <div className="text-[10px] font-bold text-gray-400 group-hover:text-primary transition-colors">
-                        ₹{(bar.val / 1000).toFixed(1)}k
+                  {dailyRevenue.map((bar, idx) => {
+                    const isToday = idx === dailyRevenue.length - 1;
+                    const heightPercent =
+                      peakDailyGmv > 0
+                        ? Math.max(8, Math.round((bar.val / peakDailyGmv) * 100))
+                        : 6;
+                    return (
+                      <div key={bar.dateStr} className="flex-1 flex flex-col items-center gap-2 group">
+                        <div className="text-[10px] font-bold text-gray-400 group-hover:text-primary transition-colors">
+                          {bar.val > 0 ? `₹${(bar.val / 1000).toFixed(1)}k` : '₹0'}
+                        </div>
+                        <div className="w-full bg-gray-100 rounded-t-lg relative flex items-end h-40 overflow-hidden">
+                          <div
+                            style={{ height: `${heightPercent}%` }}
+                            className={`w-full rounded-t-lg transition-all duration-500 ${
+                              isToday
+                                ? 'bg-gradient-to-t from-primary to-[#ff5722]'
+                                : bar.val > 0
+                                ? 'bg-gray-800 hover:bg-gray-700'
+                                : 'bg-gray-300'
+                            }`}
+                            title={`${bar.day} (${bar.dateStr}): ₹${bar.val.toLocaleString('en-IN')} (${bar.count} orders)`}
+                          />
+                        </div>
+                        <span className="text-[11px] font-semibold text-gray-600 truncate">{bar.day}</span>
                       </div>
-                      <div className="w-full bg-gray-100 rounded-t-lg relative flex items-end h-40 overflow-hidden">
-                        <div
-                          style={{ height: bar.height }}
-                          className={`w-full rounded-t-lg transition-all duration-500 ${
-                            bar.highlight
-                              ? 'bg-gradient-to-t from-primary to-[#ff5722]'
-                              : 'bg-gray-800 hover:bg-gray-700'
-                          }`}
-                        />
-                      </div>
-                      <span className="text-[11px] font-semibold text-gray-600 truncate">{bar.day}</span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 <div className="flex items-center justify-between text-xs text-gray-400 mt-4">
                   <span>₹0 Base</span>
-                  <span className="font-medium text-gray-600">Peak Daily GMV: ₹44,275</span>
+                  <span className="font-medium text-gray-600">
+                    Peak Daily GMV: ₹{peakDailyGmv.toLocaleString('en-IN')} •{' '}
+                    {dailyRevenue.reduce((acc, d) => acc + d.count, 0)} orders placed
+                  </span>
                 </div>
               </div>
 
@@ -433,18 +881,13 @@ export function AdminPage() {
               <div className="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-xs flex flex-col justify-between">
                 <div>
                   <h4 className="text-base font-bold text-gray-900 mb-1">Sales by Footwear Category</h4>
-                  <p className="text-xs text-gray-500 mb-6">Percentage share of revenue</p>
+                  <p className="text-xs text-gray-500 mb-6">Percentage share of revenue or catalog SKUs</p>
 
                   <div className="space-y-4">
-                    {[
-                      { name: 'Festive & Ethnic (Mojaris)', share: 42, color: 'bg-primary' },
-                      { name: 'Daily Comfort (Slip-ons)', share: 28, color: 'bg-amber-600' },
-                      { name: "Women's Festive (Heels)", share: 18, color: 'bg-purple-600' },
-                      { name: 'Gym & Sports Runners', share: 12, color: 'bg-blue-600' },
-                    ].map((cat) => (
+                    {categoryBreakdown.map((cat) => (
                       <div key={cat.name}>
                         <div className="flex justify-between text-xs font-semibold text-gray-800 mb-1">
-                          <span className="truncate">{cat.name}</span>
+                          <span className="truncate">{cat.name} ({cat.skus} SKUs)</span>
                           <span>{cat.share}%</span>
                         </div>
                         <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -459,8 +902,22 @@ export function AdminPage() {
                 </div>
 
                 <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200/60 mt-6 text-xs text-gray-600">
-                  <span className="font-bold text-gray-900 block mb-0.5">💡 Inventory Recommendation</span>
-                  Mojaris in sizes UK 8 & UK 9 have a 92% sell-through rate. Restock recommended before wedding dates.
+                  <span className="font-bold text-gray-900 block mb-0.5">💡 Inventory Health Alert</span>
+                  {lowStockAlerts.length > 0 ? (
+                    <span>
+                      Low stock in {lowStockAlerts.length} variant(s):{' '}
+                      <strong>
+                        {lowStockAlerts
+                          .slice(0, 3)
+                          .map((a) => `${a.product} (${a.size}: ${a.stock} left)`)
+                          .join(', ')}
+                        {lowStockAlerts.length > 3 ? ` + ${lowStockAlerts.length - 3} more` : ''}
+                      </strong>
+                      . Restock recommended.
+                    </span>
+                  ) : (
+                    <span>All footwear size variants have healthy buffer inventory (&gt;5 pairs).</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -493,48 +950,53 @@ export function AdminPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {products.slice(0, 5).map((prod) => {
-                      const totalStock =
-                        prod.variants?.reduce((sum, v) => sum + v.stock, 0) || 50;
-                      return (
-                        <tr key={prod.id} className="hover:bg-gray-50/60 transition-colors">
-                          <td className="py-3 px-4">
-                            <div className="flex items-center gap-3">
-                              <img
-                                src={prod.img}
-                                alt={prod.name}
-                                className="w-10 h-10 rounded-lg object-cover border border-gray-200"
-                              />
-                              <div>
-                                <div className="font-bold text-gray-900 text-sm">{prod.name}</div>
-                                <div className="text-[11px] text-gray-400">SKU: {prod.slug}</div>
-                              </div>
+                    {productSales.map(({ product: prod, unitsSold, grossSales, totalStock }) => (
+                      <tr key={prod.id} className="hover:bg-gray-50/60 transition-colors">
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={prod.img}
+                              alt={prod.name}
+                              className="w-10 h-10 rounded-lg object-cover border border-gray-200"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                            <div>
+                              <div className="font-bold text-gray-900 text-sm">{prod.name}</div>
+                              <div className="text-[11px] text-gray-400">SKU: {prod.slug}</div>
                             </div>
-                          </td>
-                          <td className="py-3 px-4 font-medium text-gray-700">{prod.category}</td>
-                          <td className="py-3 px-4 font-bold text-gray-900">
-                            ₹{prod.price.toLocaleString('en-IN')}
-                          </td>
-                          <td className="py-3 px-4 font-semibold text-gray-800">
-                            {prod.totalSold.toLocaleString('en-IN')} pairs
-                          </td>
-                          <td className="py-3 px-4">
-                            <span
-                              className={`px-2 py-0.5 rounded-full font-bold text-[10px] uppercase ${
-                                totalStock > 20
-                                  ? 'bg-emerald-50 text-emerald-700'
-                                  : 'bg-amber-50 text-amber-700'
-                              }`}
-                            >
-                              {totalStock} in stock
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 font-extrabold text-emerald-600 text-sm">
-                            ₹{(prod.price * prod.totalSold).toLocaleString('en-IN')}
-                          </td>
-                        </tr>
-                      );
-                    })}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 font-medium text-gray-700">{prod.category}</td>
+                        <td className="py-3 px-4 font-bold text-gray-900">
+                          ₹{prod.price.toLocaleString('en-IN')}
+                        </td>
+                        <td className="py-3 px-4 font-semibold text-gray-800">
+                          {unitsSold > 0 ? `${unitsSold} pairs` : `${prod.totalSold || 0} pairs`}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span
+                            className={`px-2 py-0.5 rounded-full font-bold text-[10px] uppercase ${
+                              totalStock > 20
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : totalStock > 0
+                                ? 'bg-amber-50 text-amber-700'
+                                : 'bg-red-50 text-red-700'
+                            }`}
+                          >
+                            {totalStock > 0 ? `${totalStock} in stock` : 'Out of Stock'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 font-extrabold text-emerald-600 text-sm">
+                          ₹
+                          {(grossSales > 0
+                            ? grossSales
+                            : prod.price * (prod.totalSold || 0)
+                          ).toLocaleString('en-IN')}
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -592,15 +1054,19 @@ export function AdminPage() {
 
                 <button
                   onClick={() => {
-                    if (confirm('Reset catalog to default seed products?')) {
+                    if (
+                      confirm(
+                        'Restore catalog to factory default seed products? Any custom products will be reset.'
+                      )
+                    ) {
                       resetToDefaultCatalog();
                       showToast('Catalog restored to default seed products.');
                     }
                   }}
                   className="border border-gray-200 hover:bg-gray-100 text-gray-600 px-3 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
-                  title="Reset catalog"
+                  title="Restore default catalog"
                 >
-                  Reset Demo Data
+                  Restore Default Catalog
                 </button>
               </div>
             </div>
@@ -689,18 +1155,27 @@ export function AdminPage() {
                           </td>
 
                           <td className="py-3.5 px-4 text-right">
-                            <button
-                              onClick={() => {
-                                if (confirm(`Delete "${prod.name}" from catalog?`)) {
-                                  deleteProduct(prod.id);
-                                  showToast(`Removed "${prod.name}" from catalog.`);
-                                }
-                              }}
-                              className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                              title="Delete Product"
-                            >
-                              <Icon name="trash" className="w-4 h-4" />
-                            </button>
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => handleOpenEditModal(prod)}
+                                className="p-1.5 rounded-lg text-gray-500 hover:text-primary hover:bg-orange-50 transition-colors cursor-pointer"
+                                title="Edit Product Details & Stock"
+                              >
+                                <Icon name="edit" className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (confirm(`Delete "${prod.name}" from catalog?`)) {
+                                    deleteProduct(prod.id);
+                                    showToast(`Removed "${prod.name}" from catalog.`);
+                                  }
+                                }}
+                                className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                                title="Delete Product"
+                              >
+                                <Icon name="trash" className="w-4 h-4" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -755,17 +1230,36 @@ export function AdminPage() {
                 </select>
               </div>
 
-              <button
-                onClick={() => {
-                  if (confirm('Reset orders to sample data?')) {
-                    resetOrders();
-                    showToast('Orders reset to demo records.');
-                  }
-                }}
-                className="border border-gray-200 hover:bg-gray-100 text-gray-600 px-3 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
-              >
-                Reset Demo Orders
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    if (
+                      confirm(
+                        'Clear all orders? This resets the order history for clean live operations.'
+                      )
+                    ) {
+                      clearAllOrders();
+                      showToast('All order history cleared.');
+                    }
+                  }}
+                  className="border border-red-200 hover:bg-red-50 text-red-600 px-3 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                  title="Clear all orders"
+                >
+                  Clear All Orders
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm('Load demo test orders into order history?')) {
+                      resetOrders();
+                      showToast('Demo orders loaded.');
+                    }
+                  }}
+                  className="border border-gray-200 hover:bg-gray-100 text-gray-600 px-3 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                  title="Load demo orders"
+                >
+                  Load Demo Orders
+                </button>
+              </div>
             </div>
 
             {/* Orders List */}
@@ -896,8 +1390,18 @@ export function AdminPage() {
               ))}
 
               {filteredOrders.length === 0 && (
-                <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center text-gray-400">
-                  No orders found for the selected filter.
+                <div className="bg-white rounded-2xl border border-gray-200/80 p-12 text-center shadow-xs">
+                  <div className="w-16 h-16 bg-gray-100 text-gray-400 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <Icon name="package" className="w-8 h-8" />
+                  </div>
+                  <h4 className="font-anton text-lg uppercase text-gray-800 tracking-wide">
+                    No Orders Recorded
+                  </h4>
+                  <p className="text-xs text-gray-500 mt-1 max-w-sm mx-auto">
+                    {orderSearch || orderStatusFilter !== 'All'
+                      ? 'No orders match your filter criteria. Try resetting the search query.'
+                      : 'Orders placed by customers on your storefront will appear here with live tracking, packing, and dispatch controls.'}
+                  </p>
                 </div>
               )}
             </div>
@@ -1092,34 +1596,11 @@ export function AdminPage() {
                     <input
                       type="url"
                       required
-                      placeholder="https://..."
+                      placeholder="https://images.unsplash.com/..."
                       value={formData.img}
                       onChange={(e) => setFormData({ ...formData, img: e.target.value })}
                       className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-primary"
                     />
-                  </div>
-
-                  {/* Sample Quick Pick Buttons */}
-                  <div>
-                    <span className="text-[11px] text-gray-500 block mb-1.5 font-semibold">
-                      Or pick a sample footwear image for testing:
-                    </span>
-                    <div className="flex flex-wrap gap-2">
-                      {SAMPLE_IMAGES.map((sample) => (
-                        <button
-                          key={sample.label}
-                          type="button"
-                          onClick={() => setFormData({ ...formData, img: sample.url })}
-                          className={`text-[10px] px-2.5 py-1 rounded-lg border font-semibold transition-colors cursor-pointer ${
-                            formData.img === sample.url
-                              ? 'bg-primary text-white border-primary'
-                              : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'
-                          }`}
-                        >
-                          {sample.label}
-                        </button>
-                      ))}
-                    </div>
                   </div>
 
                   {/* Live Preview */}
@@ -1130,13 +1611,13 @@ export function AdminPage() {
                         alt="Preview"
                         className="w-16 h-16 rounded-lg object-cover border border-gray-200"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = SAMPLE_IMAGES[0].url;
+                          (e.target as HTMLImageElement).style.display = 'none';
                         }}
                       />
                       <div className="text-xs">
                         <span className="font-bold text-gray-900 block">Image Preview</span>
                         <span className="text-gray-400 text-[11px]">
-                          This thumbnail will be used on cards & catalog shelves.
+                          This thumbnail will be displayed on customer product cards &amp; catalog shelves.
                         </span>
                       </div>
                     </div>
@@ -1193,6 +1674,301 @@ export function AdminPage() {
                   className="px-6 py-2.5 rounded-xl bg-primary hover:bg-[#8a2600] text-white text-xs font-bold uppercase tracking-wider shadow-sm transition-colors cursor-pointer"
                 >
                   Publish Footwear →
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          "EDIT PRODUCT" MODAL (FR-23)
+         ========================================================================= */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-100 flex flex-col animate-scale-up">
+            {/* Modal Header */}
+            <div className="p-5 md:p-6 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+              <div>
+                <h3 className="font-anton text-xl md:text-2xl text-gray-900 tracking-wide uppercase">
+                  EDIT FOOTWEAR &amp; STOCK
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Update footwear details, pricing, materials, and size inventory.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 cursor-pointer font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleEditProductSubmit} className="p-5 md:p-6 space-y-6">
+              {/* Section 1: Basic Info */}
+              <div>
+                <h4 className="text-xs font-bold text-primary uppercase tracking-wider mb-3">
+                  1. Basic Details &amp; Pricing
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Product Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editFormData.name}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, name: e.target.value })
+                      }
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-primary"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Category</label>
+                    <select
+                      value={editFormData.category}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, category: e.target.value })
+                      }
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-primary cursor-pointer"
+                    >
+                      {CATEGORIES.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Tag / Badge</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Festive Spotlight, Bestseller"
+                      value={editFormData.tag}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, tag: e.target.value })
+                      }
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-primary"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Selling Price (₹) *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min={100}
+                      value={editFormData.price}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, price: Number(e.target.value) })
+                      }
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-primary font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Original MRP (₹)
+                    </label>
+                    <input
+                      type="number"
+                      min={100}
+                      value={editFormData.originalPrice}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          originalPrice: Number(e.target.value),
+                        })
+                      }
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 2: Craftsmanship & Specs */}
+              <div className="pt-4 border-t border-gray-100">
+                <h4 className="text-xs font-bold text-primary uppercase tracking-wider mb-3">
+                  2. Artisan Heritage &amp; Materials
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Artisan Origin / City
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Jaipur, Rajasthan"
+                      value={editFormData.artisanRegion}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, artisanRegion: e.target.value })
+                      }
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-primary"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Upper Material
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Pure Velvet with Hand-Embroidered Zari"
+                      value={editFormData.upperMaterial}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, upperMaterial: e.target.value })
+                      }
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-primary"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Sole Material</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Buff-Tanned Leather"
+                      value={editFormData.soleMaterial}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, soleMaterial: e.target.value })
+                      }
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-primary"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Insole Ergonomics
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 6mm Ortho-Cushion Double Memory Foam"
+                      value={editFormData.insoleType}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, insoleType: e.target.value })
+                      }
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-primary"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Story &amp; Backstory
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={editFormData.story}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, story: e.target.value })
+                      }
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs text-gray-900 focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 3: Media */}
+              <div className="pt-4 border-t border-gray-100">
+                <h4 className="text-xs font-bold text-primary uppercase tracking-wider mb-3">
+                  3. Image Media
+                </h4>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    Primary Image URL *
+                  </label>
+                  <input
+                    type="url"
+                    required
+                    value={editFormData.img}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, img: e.target.value })
+                    }
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-primary"
+                  />
+                </div>
+
+                {editFormData.img && (
+                  <div className="mt-3 flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200/80">
+                    <img
+                      src={editFormData.img}
+                      alt="Preview"
+                      className="w-16 h-16 rounded-lg object-cover border border-gray-200"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                    <div className="text-xs">
+                      <span className="font-bold text-gray-900 block">Thumbnail Preview</span>
+                      <span className="text-gray-400 text-[11px]">
+                        Appears on cards and checkout.
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Section 4: Size Inventory Matrix */}
+              <div className="pt-4 border-t border-gray-100">
+                <h4 className="text-xs font-bold text-primary uppercase tracking-wider mb-2">
+                  4. Stock per UK Size
+                </h4>
+                <p className="text-xs text-gray-500 mb-3">
+                  Adjust current inventory counts for each size variant:
+                </p>
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                  {([
+                    { label: 'UK 6', key: 'stockUK6' },
+                    { label: 'UK 7', key: 'stockUK7' },
+                    { label: 'UK 8', key: 'stockUK8' },
+                    { label: 'UK 9', key: 'stockUK9' },
+                    { label: 'UK 10', key: 'stockUK10' },
+                    { label: 'UK 11', key: 'stockUK11' },
+                  ] as const).map((s) => (
+                    <div
+                      key={s.label}
+                      className="bg-gray-50 p-2.5 rounded-xl border border-gray-200 text-center"
+                    >
+                      <span className="block text-[11px] font-bold text-gray-700 mb-1">
+                        {s.label}
+                      </span>
+                      <input
+                        type="number"
+                        min={0}
+                        value={editFormData[s.key]}
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            [s.key]: Number(e.target.value),
+                          })
+                        }
+                        className="w-full text-center bg-white border border-gray-200 rounded-lg py-1 text-xs font-bold text-gray-900 focus:outline-none focus:border-primary"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3 sticky bottom-0 bg-white py-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-700 text-xs font-bold hover:bg-gray-100 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-xl bg-primary hover:bg-[#8a2600] text-white text-xs font-bold uppercase tracking-wider shadow-sm transition-colors cursor-pointer"
+                >
+                  Save Changes ✓
                 </button>
               </div>
             </form>

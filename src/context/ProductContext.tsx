@@ -240,16 +240,22 @@ interface ProductContextType {
   getProductById: (id: string) => Product | undefined;
   getProductBySlug: (slug: string) => Product | undefined;
   resetToDefaultCatalog: () => void;
+  deductVariantStock: (items: { productId: string; size: string; quantity: number }[]) => boolean;
+  checkStockAvailability: (items: { productId: string; size: string; quantity: number }[]) => {
+    available: boolean;
+    errorItem?: string;
+  };
 }
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'desikicks_products_catalog';
+const STORAGE_KEY = 'craftyoursole_products_catalog';
+const LEGACY_STORAGE_KEY = 'desikicks_products_catalog';
 
 export function ProductProvider({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = useState<Product[]>(() => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const stored = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -326,7 +332,74 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   const resetToDefaultCatalog = useCallback(() => {
     setProducts(INITIAL_PRODUCTS);
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
   }, []);
+
+  const checkStockAvailability = useCallback(
+    (items: { productId: string; size: string; quantity: number }[]) => {
+      for (const item of items) {
+        const cleanId = item.productId.split('-')[0];
+        const product = products.find(
+          (p) =>
+            p.id === item.productId ||
+            p.id === cleanId ||
+            p.slug === item.productId ||
+            p.name === item.productId
+        );
+        if (!product) continue;
+        const variant = product.variants?.find((v) => v.size === item.size);
+        const availableStock = variant ? variant.stock : 0;
+        if (availableStock < item.quantity) {
+          return {
+            available: false,
+            errorItem: `"${product.name}" (${item.size}) has only ${availableStock} pair(s) in stock (requested ${item.quantity}).`,
+          };
+        }
+      }
+      return { available: true };
+    },
+    [products]
+  );
+
+  const deductVariantStock = useCallback(
+    (items: { productId: string; size: string; quantity: number }[]) => {
+      setProducts((prev) =>
+        prev.map((prod) => {
+          const matchingItems = items.filter((item) => {
+            const cleanId = item.productId.split('-')[0];
+            return (
+              prod.id === item.productId ||
+              prod.id === cleanId ||
+              prod.slug === item.productId ||
+              prod.name === item.productId
+            );
+          });
+
+          if (matchingItems.length === 0) return prod;
+
+          const newVariants = (prod.variants || []).map((v) => {
+            const deduction = matchingItems
+              .filter((item) => item.size === v.size)
+              .reduce((sum, item) => sum + item.quantity, 0);
+            return {
+              ...v,
+              stock: Math.max(0, v.stock - deduction),
+            };
+          });
+
+          const totalDeducted = matchingItems.reduce((sum, item) => sum + item.quantity, 0);
+
+          return {
+            ...prod,
+            variants: newVariants,
+            totalSold: (prod.totalSold || 0) + totalDeducted,
+          };
+        })
+      );
+      return true;
+    },
+    []
+  );
 
   const value = useMemo(
     () => ({
@@ -339,6 +412,8 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       getProductById,
       getProductBySlug,
       resetToDefaultCatalog,
+      deductVariantStock,
+      checkStockAvailability,
     }),
     [
       products,
@@ -350,6 +425,8 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       getProductById,
       getProductBySlug,
       resetToDefaultCatalog,
+      deductVariantStock,
+      checkStockAvailability,
     ]
   );
 

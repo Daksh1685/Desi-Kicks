@@ -32,7 +32,10 @@ export type IconName =
   | 'tag'
   | 'share'
   | 'thumbs_up'
-  | 'close';
+  | 'close'
+  | 'lock'
+  | 'edit'
+  | 'archive';
 
 interface IconProps extends React.SVGProps<SVGSVGElement> {
   name: IconName;
@@ -281,6 +284,28 @@ export function Icon({ name, className = '', filled = false, ...props }: IconPro
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`lucide lucide-x ${className}`} {...props}>
           <path d="M18 6 6 18" />
           <path d="m6 6 12 12" />
+        </svg>
+      );
+    case 'lock':
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`lucide lucide-lock ${className}`} {...props}>
+          <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+      );
+    case 'edit':
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`lucide lucide-edit-3 ${className}`} {...props}>
+          <path d="M12 20h9" />
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+        </svg>
+      );
+    case 'archive':
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`lucide lucide-archive ${className}`} {...props}>
+          <rect width="20" height="5" x="2" y="3" rx="1" />
+          <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8" />
+          <path d="M10 12h4" />
         </svg>
       );
     default:

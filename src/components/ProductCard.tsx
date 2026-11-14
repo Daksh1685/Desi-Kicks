@@ -13,9 +13,20 @@ export interface ProductCardProps {
   tag?: string;
   img: string;
   slug?: string;
+  stock?: number;
 }
 
-export function ProductCard({ id, name, rating, price, originalPrice, tag, img, slug }: ProductCardProps) {
+export function ProductCard({
+  id,
+  name,
+  rating,
+  price,
+  originalPrice,
+  tag,
+  img,
+  slug,
+  stock,
+}: ProductCardProps) {
   const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
@@ -44,8 +55,11 @@ export function ProductCard({ id, name, rating, price, originalPrice, tag, img, 
     });
   };
 
+  const isOutOfStock = stock !== undefined && stock <= 0;
+
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isOutOfStock) return;
     const cleanPrice = parseInt(price.replace(/[^0-9]/g, ''), 10) || 2995;
     const cleanOriginalPrice = originalPrice
       ? parseInt(originalPrice.replace(/[^0-9]/g, ''), 10)
@@ -117,14 +131,17 @@ export function ProductCard({ id, name, rating, price, originalPrice, tag, img, 
           </button>
           <button
             onClick={handleQuickAdd}
-            title="Add to Cart"
+            disabled={isOutOfStock}
+            title={isOutOfStock ? 'Sold Out' : 'Add to Cart'}
             className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-md transition-all cursor-pointer ${
-              isAdded
+              isOutOfStock
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                : isAdded
                 ? 'bg-emerald-600 text-white'
                 : 'bg-primary hover:bg-primary/90 text-white'
             }`}
           >
-            {isAdded ? '✓ Added' : '+ Add'}
+            {isOutOfStock ? 'Sold Out' : isAdded ? '✓ Added' : '+ Add'}
           </button>
         </div>
       </div>
@@ -136,7 +153,17 @@ export function ProductCard({ id, name, rating, price, originalPrice, tag, img, 
       <div className="flex items-center gap-1.5 mb-2">
         <Icon name="star" className="w-3.5 h-3.5 text-primary fill-primary" filled />
         <span className="text-xs font-bold text-gray-900">{rating}</span>
-        <span className="text-[11px] text-gray-400">| In Stock</span>
+        {stock !== undefined ? (
+          stock <= 0 ? (
+            <span className="text-[11px] text-red-500 font-semibold">| Sold Out</span>
+          ) : stock <= 5 ? (
+            <span className="text-[11px] text-amber-600 font-semibold">| Only {stock} left</span>
+          ) : (
+            <span className="text-[11px] text-emerald-600 font-semibold">| In Stock</span>
+          )
+        ) : (
+          <span className="text-[11px] text-gray-400">| In Stock</span>
+        )}
       </div>
 
       <div className="mt-auto flex items-baseline gap-2">

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useOrders } from '../context/OrderContext';
+import { useProductCatalog } from '../context/ProductContext';
+import { useAuth } from '../context/AuthContext';
 import { Icon } from '../components/ui/Icon';
 import { SeoHead } from '../components/SeoHead';
 
@@ -10,10 +12,24 @@ interface CartPageProps {
   onViewOrders?: () => void;
 }
 
+interface ShippingAddressForm {
+  fullName: string;
+  phone: string;
+  email: string;
+  street: string;
+  city: string;
+  state: string;
+  pincode: string;
+}
+
+const SAVED_ADDRESS_KEY = 'craftyoursole_saved_address';
+
 export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {}) {
   const navigate = useNavigate();
   const handleContinueShopping = onContinueShopping || (() => navigate('/'));
   const handleViewOrders = onViewOrders || (() => navigate('/profile'));
+  const { currentUser } = useAuth();
+  const { checkStockAvailability, deductVariantStock } = useProductCatalog();
   const {
     cartItems,
     updateQuantity,
@@ -35,10 +51,34 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
   // Checkout modal states
   const { createOrder } = useOrders();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [selectedAddress, setSelectedAddress] = useState<'home' | 'work'>('home');
   const [selectedPayment, setSelectedPayment] = useState<'upi' | 'cod' | 'card'>('upi');
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [placedOrderNumber, setPlacedOrderNumber] = useState<string>('CYS-2026-9852');
+  const [stockError, setStockError] = useState<string>('');
+  const [addressErrors, setAddressErrors] = useState<Record<string, string>>({});
+
+  // Shipping Address Form state pre-filled from storage or auth
+  const [addressForm, setAddressForm] = useState<ShippingAddressForm>(() => {
+    let savedData: Partial<ShippingAddressForm> = {};
+    try {
+      const saved = localStorage.getItem(SAVED_ADDRESS_KEY);
+      if (saved) {
+        savedData = JSON.parse(saved) || {};
+      }
+    } catch {
+      // ignore
+    }
+    return {
+      fullName: savedData.fullName || currentUser?.displayName || '',
+      phone: savedData.phone || '',
+      email: savedData.email || currentUser?.email || '',
+      street: savedData.street || '',
+      city: savedData.city || '',
+      state: savedData.state || '',
+      pincode: savedData.pincode || '',
+    };
+  });
+
   const [estimatedDeliveryDate] = useState<string>(() => {
     const d = new Date();
     d.setDate(d.getDate() + 3);
@@ -87,6 +127,62 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
   const totalSavedWithCoupons = totalSavings + couponDiscount + walletCoinsDiscount + (addCareKit ? 200 : 0);
 
   const handlePlaceOrder = () => {
+    setStockError('');
+    const errors: Record<string, string> = {};
+
+    if (!addressForm.fullName.trim() || addressForm.fullName.trim().length < 2) {
+      errors.fullName = 'Please enter customer full name';
+    }
+
+    const cleanPhone = addressForm.phone.replace(/[^0-9]/g, '');
+    const phoneValid = cleanPhone.length === 10 && /^[6-9]/.test(cleanPhone);
+    if (!phoneValid) {
+      errors.phone = 'Please enter a valid 10-digit Indian mobile number (e.g. 9876543210)';
+    }
+
+    if (!addressForm.email.trim() || !addressForm.email.includes('@')) {
+      errors.email = 'Please enter a valid email for order updates';
+    }
+
+    if (!addressForm.street.trim() || addressForm.street.trim().length < 5) {
+      errors.street = 'Please provide complete flat/house/street address';
+    }
+
+    if (!addressForm.city.trim()) {
+      errors.city = 'Please enter city name';
+    }
+
+    if (!addressForm.state.trim()) {
+      errors.state = 'Please enter state';
+    }
+
+    const pincodeValid = /^\d{6}$/.test(addressForm.pincode.trim());
+    if (!pincodeValid) {
+      errors.pincode = 'Please enter a valid 6-digit Indian PIN code';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setAddressErrors(errors);
+      return;
+    }
+    setAddressErrors({});
+
+    // Validate inventory stock across items
+    const itemsToCheck = cartItems.map((item) => ({
+      productId: item.productId || item.id.split('-')[0],
+      size: item.size,
+      quantity: item.quantity,
+    }));
+
+    const stockCheck = checkStockAvailability(itemsToCheck);
+    if (!stockCheck.available) {
+      setStockError(stockCheck.errorItem || 'One or more items in your cart are currently out of stock.');
+      return;
+    }
+
+    // Deduct stock from variant inventory
+    deductVariantStock(itemsToCheck);
+
     const methodMap = {
       upi: 'UPI' as const,
       cod: 'COD' as const,
@@ -96,7 +192,7 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
 
     const orderItems = cartItems.map((item) => ({
       id: item.id,
-      productId: item.id,
+      productId: item.productId || item.id.split('-')[0],
       productName: item.name,
       size: item.size,
       price: item.price,
@@ -104,26 +200,18 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
       img: item.img,
     }));
 
-    const address =
-      selectedAddress === 'home'
-        ? {
-            street: 'Flat 402, Shanti Vihar, HAL 2nd Stage',
-            city: 'Bengaluru',
-            state: 'Karnataka',
-            pincode: '560038',
-          }
-        : {
-            street: '4th Floor, Tech Hub Tower B, Outer Ring Road',
-            city: 'Bengaluru',
-            state: 'Karnataka',
-            pincode: '560103',
-          };
+    const shippingAddress = {
+      street: addressForm.street.trim(),
+      city: addressForm.city.trim(),
+      state: addressForm.state.trim(),
+      pincode: addressForm.pincode.trim(),
+    };
 
     const newOrder = createOrder({
-      customerName: 'Arjun Sharma',
-      customerEmail: 'arjun.sharma@gmail.com',
-      customerPhone: '+91 98765 43210',
-      shippingAddress: address,
+      customerName: addressForm.fullName.trim(),
+      customerEmail: addressForm.email.trim(),
+      customerPhone: cleanPhone.startsWith('+91') ? cleanPhone : `+91 ${cleanPhone}`,
+      shippingAddress,
       items: orderItems,
       subtotal,
       discount: couponDiscount + walletCoinsDiscount,
@@ -131,6 +219,13 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
       totalAmount: finalTotal,
       paymentMethod,
     });
+
+    // Save address for future orders
+    try {
+      localStorage.setItem(SAVED_ADDRESS_KEY, JSON.stringify(addressForm));
+    } catch {
+      // ignore
+    }
 
     setPlacedOrderNumber(newOrder.orderNumber);
     setOrderPlaced(true);
@@ -151,37 +246,44 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
       <div className="min-h-[70vh] bg-gray-50 flex items-center justify-center px-4 py-16">
         {seo}
         <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-gray-200/80 shadow-lg text-center animate-fade-in">
-          <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner">
+          <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner">
             <Icon name="check" className="w-10 h-10 stroke-[3]" />
           </div>
 
           <span className="text-primary font-bold text-xs uppercase tracking-widest">
-            Pre-Launch Order Preview
+            CraftYourSole Official Order
           </span>
           <h2 className="font-anton text-2xl md:text-3xl text-gray-900 mt-1 uppercase">
-            Preview Recorded
+            Order Confirmed!
           </h2>
           <p className="text-xs sm:text-sm text-gray-600 mt-2 leading-relaxed">
-            Simulated order <span className="font-bold text-gray-900">#{placedOrderNumber}</span> has been saved to your local preview session. Live payment processing and courier dispatch are under final development and will open at public launch.
+            Thank you, <strong className="text-gray-900">{addressForm.fullName}</strong>! Order{' '}
+            <span className="font-bold text-gray-900">#{placedOrderNumber}</span> is placed and
+            assigned to fulfillment.
           </p>
 
-          <div className="bg-orange-50/80 border border-orange-200/80 rounded-2xl p-4 my-6 text-left text-xs">
-            <div className="flex justify-between items-center mb-1.5">
+          <div className="bg-orange-50/80 border border-orange-200/80 rounded-2xl p-4 my-6 text-left text-xs space-y-2">
+            <div className="flex justify-between items-center">
               <span className="text-gray-500 font-medium">Estimated Delivery:</span>
               <span className="font-bold text-gray-900">{estimatedDeliveryDate}</span>
             </div>
-            <div className="flex justify-between items-center mb-1.5">
-              <span className="text-gray-500 font-medium">Delivery Address:</span>
-              <span className="font-bold text-gray-900">
-                {selectedAddress === 'home'
-                  ? 'Home (Indiranagar, Bengaluru - 560038)'
-                  : 'Work (Bellandur, Bengaluru - 560103)'}
+            <div>
+              <span className="text-gray-500 font-medium block">Shipping Destination:</span>
+              <span className="font-bold text-gray-900 block mt-0.5 leading-snug">
+                {addressForm.street}, {addressForm.city}, {addressForm.state} - {addressForm.pincode}
+              </span>
+              <span className="text-gray-500 text-[11px] block mt-0.5">
+                Contact: {addressForm.phone} • {addressForm.email}
               </span>
             </div>
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center pt-1 border-t border-orange-200/60">
               <span className="text-gray-500 font-medium">Payment Mode:</span>
-              <span className="font-bold text-green-700 uppercase">
-                {selectedPayment === 'upi' ? 'UPI (Google Pay/PhonePe)' : selectedPayment === 'cod' ? 'Cash on Delivery' : 'Credit Card'}
+              <span className="font-bold text-emerald-700 uppercase">
+                {selectedPayment === 'upi'
+                  ? 'UPI (Google Pay/PhonePe)'
+                  : selectedPayment === 'cod'
+                  ? 'Cash on Delivery (COD)'
+                  : 'Credit / Debit Card'}
               </span>
             </div>
           </div>
@@ -590,7 +692,7 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
       {/* CHECKOUT MODAL OVERLAY */}
       {isCheckingOut && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="max-w-lg w-full bg-white rounded-3xl p-6 md:p-8 shadow-2xl relative my-8 animate-fade-in">
+          <div className="max-w-lg w-full bg-white rounded-3xl p-6 md:p-8 shadow-2xl relative my-8 animate-fade-in max-h-[92vh] overflow-y-auto">
             <button
               onClick={() => setIsCheckingOut(false)}
               className="absolute top-5 right-5 text-gray-400 hover:text-gray-900 p-1 text-sm font-bold cursor-pointer"
@@ -599,67 +701,216 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
             </button>
 
             <span className="text-primary font-bold text-xs uppercase tracking-wider">
-              Pre-Launch Preview • Simulated Checkout
+              CraftYourSole Express Checkout
             </span>
             <h2 className="font-anton text-2xl text-gray-900 mt-1 uppercase">
-              Confirm Delivery &amp; Payment
+              Shipping Address &amp; Payment
             </h2>
-            <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mt-2">
-              Demo addresses &amp; payment options for pre-launch verification — no real charge or shipment is triggered.
+            <p className="text-[11px] text-gray-500 mt-1">
+              Enter your destination details for fast insured delivery across India.
             </p>
 
-            {/* Delivery Address Choice */}
-            <div className="mt-5">
-              <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">
-                1. Select Delivery Address
-              </h4>
-              <div className="space-y-2">
-                <label
-                  onClick={() => setSelectedAddress('home')}
-                  className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                    selectedAddress === 'home'
-                      ? 'border-primary bg-primary/5'
-                      : 'border-gray-200 hover:bg-gray-50'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="address"
-                    checked={selectedAddress === 'home'}
-                    onChange={() => setSelectedAddress('home')}
-                    className="mt-1 text-primary accent-primary"
-                  />
-                  <div className="text-xs">
-                    <span className="font-bold text-gray-900 block">Home (Indiranagar)</span>
-                    <span className="text-gray-600 block">
-                      Flat 402, Shanti Vihar, HAL 2nd Stage, Bengaluru - 560038
-                    </span>
-                    <span className="text-gray-400 text-[11px]">Phone: +91 98765 43210</span>
-                  </div>
-                </label>
+            {/* Stock Error Notification */}
+            {stockError && (
+              <div className="mt-4 p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-semibold flex items-center gap-2">
+                <span>⚠️</span>
+                <span>{stockError}</span>
+              </div>
+            )}
 
-                <label
-                  onClick={() => setSelectedAddress('work')}
-                  className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                    selectedAddress === 'work'
-                      ? 'border-primary bg-primary/5'
-                      : 'border-gray-200 hover:bg-gray-50'
-                  }`}
-                >
+            {/* Delivery Address Form */}
+            <div className="mt-5 space-y-3">
+              <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
+                1. Customer &amp; Shipping Details
+              </h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                    Full Name *
+                  </label>
                   <input
-                    type="radio"
-                    name="address"
-                    checked={selectedAddress === 'work'}
-                    onChange={() => setSelectedAddress('work')}
-                    className="mt-1 text-primary accent-primary"
+                    type="text"
+                    required
+                    placeholder="e.g. Arjun Sharma"
+                    value={addressForm.fullName}
+                    onChange={(e) => {
+                      setAddressForm({ ...addressForm, fullName: e.target.value });
+                      if (addressErrors.fullName) {
+                        setAddressErrors({ ...addressErrors, fullName: '' });
+                      }
+                    }}
+                    className={`w-full bg-gray-50 border rounded-xl px-3.5 py-2 text-xs text-gray-900 focus:outline-none focus:border-primary ${
+                      addressErrors.fullName ? 'border-red-400 bg-red-50/30' : 'border-gray-200'
+                    }`}
                   />
-                  <div className="text-xs">
-                    <span className="font-bold text-gray-900 block">Office (Bellandur)</span>
-                    <span className="text-gray-600 block">
-                      4th Floor, Tech Hub Tower B, Outer Ring Road, Bengaluru - 560103
+                  {addressErrors.fullName && (
+                    <span className="text-[10px] text-red-500 mt-0.5 block font-semibold">
+                      {addressErrors.fullName}
                     </span>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                    Mobile Number *
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">
+                      +91
+                    </span>
+                    <input
+                      type="tel"
+                      required
+                      maxLength={10}
+                      placeholder="9876543210"
+                      value={addressForm.phone}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9]/g, '');
+                        setAddressForm({ ...addressForm, phone: val });
+                        if (addressErrors.phone) {
+                          setAddressErrors({ ...addressErrors, phone: '' });
+                        }
+                      }}
+                      className={`w-full bg-gray-50 border rounded-xl pl-11 pr-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-primary ${
+                        addressErrors.phone ? 'border-red-400 bg-red-50/30' : 'border-gray-200'
+                      }`}
+                    />
                   </div>
-                </label>
+                  {addressErrors.phone && (
+                    <span className="text-[10px] text-red-500 mt-0.5 block font-semibold">
+                      {addressErrors.phone}
+                    </span>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                    Email Address *
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="arjun@example.com"
+                    value={addressForm.email}
+                    onChange={(e) => {
+                      setAddressForm({ ...addressForm, email: e.target.value });
+                      if (addressErrors.email) {
+                        setAddressErrors({ ...addressErrors, email: '' });
+                      }
+                    }}
+                    className={`w-full bg-gray-50 border rounded-xl px-3.5 py-2 text-xs text-gray-900 focus:outline-none focus:border-primary ${
+                      addressErrors.email ? 'border-red-400 bg-red-50/30' : 'border-gray-200'
+                    }`}
+                  />
+                  {addressErrors.email && (
+                    <span className="text-[10px] text-red-500 mt-0.5 block font-semibold">
+                      {addressErrors.email}
+                    </span>
+                  )}
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                    Flat / House No., Apartment, Street *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Flat 402, Lotus Heights, 100ft Road"
+                    value={addressForm.street}
+                    onChange={(e) => {
+                      setAddressForm({ ...addressForm, street: e.target.value });
+                      if (addressErrors.street) {
+                        setAddressErrors({ ...addressErrors, street: '' });
+                      }
+                    }}
+                    className={`w-full bg-gray-50 border rounded-xl px-3.5 py-2 text-xs text-gray-900 focus:outline-none focus:border-primary ${
+                      addressErrors.street ? 'border-red-400 bg-red-50/30' : 'border-gray-200'
+                    }`}
+                  />
+                  {addressErrors.street && (
+                    <span className="text-[10px] text-red-500 mt-0.5 block font-semibold">
+                      {addressErrors.street}
+                    </span>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 mb-1">City *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Bengaluru"
+                    value={addressForm.city}
+                    onChange={(e) => {
+                      setAddressForm({ ...addressForm, city: e.target.value });
+                      if (addressErrors.city) {
+                        setAddressErrors({ ...addressErrors, city: '' });
+                      }
+                    }}
+                    className={`w-full bg-gray-50 border rounded-xl px-3.5 py-2 text-xs text-gray-900 focus:outline-none focus:border-primary ${
+                      addressErrors.city ? 'border-red-400 bg-red-50/30' : 'border-gray-200'
+                    }`}
+                  />
+                  {addressErrors.city && (
+                    <span className="text-[10px] text-red-500 mt-0.5 block font-semibold">
+                      {addressErrors.city}
+                    </span>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 mb-1">State *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Karnataka"
+                    value={addressForm.state}
+                    onChange={(e) => {
+                      setAddressForm({ ...addressForm, state: e.target.value });
+                      if (addressErrors.state) {
+                        setAddressErrors({ ...addressErrors, state: '' });
+                      }
+                    }}
+                    className={`w-full bg-gray-50 border rounded-xl px-3.5 py-2 text-xs text-gray-900 focus:outline-none focus:border-primary ${
+                      addressErrors.state ? 'border-red-400 bg-red-50/30' : 'border-gray-200'
+                    }`}
+                  />
+                  {addressErrors.state && (
+                    <span className="text-[10px] text-red-500 mt-0.5 block font-semibold">
+                      {addressErrors.state}
+                    </span>
+                  )}
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                    PIN Code (6 Digits) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    placeholder="e.g. 560038"
+                    value={addressForm.pincode}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, '');
+                      setAddressForm({ ...addressForm, pincode: val });
+                      if (addressErrors.pincode) {
+                        setAddressErrors({ ...addressErrors, pincode: '' });
+                      }
+                    }}
+                    className={`w-full bg-gray-50 border rounded-xl px-3.5 py-2 text-xs text-gray-900 focus:outline-none focus:border-primary ${
+                      addressErrors.pincode ? 'border-red-400 bg-red-50/30' : 'border-gray-200'
+                    }`}
+                  />
+                  {addressErrors.pincode && (
+                    <span className="text-[10px] text-red-500 mt-0.5 block font-semibold">
+                      {addressErrors.pincode}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
