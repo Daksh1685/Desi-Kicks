@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import type { Order, OrderStatus, OrderItem } from '../types/order';
+import { saveOrderToSupabase } from '../lib/supabase';
 
 const INITIAL_ORDERS: Order[] = [];
 
@@ -85,6 +86,12 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
     };
 
     setOrders((prev) => [newOrder, ...prev]);
+
+    // Asynchronously sync to Supabase if configured
+    saveOrderToSupabase(newOrder).catch((err) => {
+      console.warn('[OrderContext] Supabase order sync skipped/failed:', err);
+    });
+
     return newOrder;
   }, []);
 

@@ -4,21 +4,16 @@ import { Icon } from '../components/ui/Icon';
 import { SeoHead } from '../components/SeoHead';
 import { useProductCatalog } from '../context/ProductContext';
 import { useOrders } from '../context/OrderContext';
-import { useAuth } from '../context/AuthContext';
 import type { Product, NewProductInput } from '../types/product';
+import {
+  getAllCategories,
+  getSubcategoriesForCategory,
+} from '../constants/taxonomy';
 
-const CATEGORIES = [
-  'Festive & Ethnic',
-  'Daily Comfort',
-  "Women's Festive",
-  'Gym & Sports',
-  'Work & Formal',
-  'Heritage Traditional',
-];
+const CATEGORIES = getAllCategories();
 
 export function AdminPage() {
   const navigate = useNavigate();
-  const { currentUser, loading: authLoading, signInWithGoogle, logOut } = useAuth();
   const {
     products,
     addProduct,
@@ -29,72 +24,78 @@ export function AdminPage() {
   } = useProductCatalog();
   const { orders, updateOrderStatus, metrics, clearAllOrders, resetOrders } = useOrders();
 
-  const [sessionUnlocked, setSessionUnlocked] = useState<boolean>(() => {
+  // Admin Credentials Authentication (No Google Auth)
+  const [isAuthorized, setIsAuthorized] = useState<boolean>(() => {
     try {
-      return sessionStorage.getItem('craftyoursole_admin_authorized') === 'true';
+      return (
+        sessionStorage.getItem('craftyoursole_admin_authorized') === 'true' ||
+        localStorage.getItem('craftyoursole_admin_authorized') === 'true'
+      );
     } catch {
       return false;
     }
   });
-  const [passcode, setPasscode] = useState('');
-  const [passcodeError, setPasscodeError] = useState('');
-  const [isSigningIn, setIsSigningIn] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
 
-  // RBAC Admin authorization check
-  const isAuthorized = useMemo(() => {
-    if (sessionUnlocked) return true;
-    if (!currentUser || !currentUser.email) return false;
-
-    const email = currentUser.email.toLowerCase().trim();
-    const envAdminEmails = (import.meta.env.VITE_ADMIN_EMAILS || '')
-      .split(',')
-      .map((e: string) => e.trim().toLowerCase())
-      .filter(Boolean);
-
-    const defaultAdminEmails = ['support@craftyoursole.in', 'admin@craftyoursole.in'];
-    const allowedEmails = new Set([...defaultAdminEmails, ...envAdminEmails]);
-
-    return allowedEmails.has(email);
-  }, [currentUser, sessionUnlocked]);
-
-  const handlePasscodeUnlock = (e: React.FormEvent) => {
-    e.preventDefault();
-    const expectedPasscode = import.meta.env.VITE_ADMIN_PASSCODE || 'craftyoursole2026';
-    if (passcode.trim() === expectedPasscode) {
-      setSessionUnlocked(true);
-      try {
-        sessionStorage.setItem('craftyoursole_admin_authorized', 'true');
-      } catch {
-        // ignore
-      }
-      setPasscodeError('');
-    } else {
-      setPasscodeError('Invalid Administrator Passcode. Access denied.');
-    }
-  };
-
-  const handleGoogleAdminLogin = async () => {
+  const [adminUser, setAdminUser] = useState<string>(() => {
     try {
-      setIsSigningIn(true);
-      setAuthError(null);
-      await signInWithGoogle();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Google sign-in failed.';
-      setAuthError(msg);
-    } finally {
-      setIsSigningIn(false);
+      return (
+        sessionStorage.getItem('craftyoursole_admin_user') ||
+        localStorage.getItem('craftyoursole_admin_user') ||
+        'admin@craftyoursole.in'
+      );
+    } catch {
+      return 'admin@craftyoursole.in';
+    }
+  });
+
+  const [loginUser, setLoginUser] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
+  const [loginError, setLoginError] = useState<string | null>(null);
+
+  const handleAdminLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    const expectedUser = (import.meta.env.VITE_ADMIN_USER || 'admin@craftyoursole.in')
+      .trim()
+      .toLowerCase();
+    const expectedPass =
+      import.meta.env.VITE_ADMIN_PASSWORD ||
+      import.meta.env.VITE_ADMIN_PASSCODE ||
+      'craftyoursole2026';
+
+    const enteredUser = loginUser.trim().toLowerCase();
+    const enteredPass = loginPassword.trim();
+
+    // Accept configured user, 'admin', or 'admin@craftyoursole.in'
+    const isUserValid =
+      enteredUser === expectedUser ||
+      enteredUser === 'admin' ||
+      enteredUser === 'admin@craftyoursole.in';
+    const isPassValid = enteredPass === expectedPass;
+
+    if (isUserValid && isPassValid) {
+      setIsAuthorized(true);
+      setAdminUser(enteredUser);
+      setLoginError(null);
+      const storage = rememberMe ? localStorage : sessionStorage;
+      storage.setItem('craftyoursole_admin_authorized', 'true');
+      storage.setItem('craftyoursole_admin_user', enteredUser);
+    } else {
+      setLoginError('Invalid Administrator Username or Password. Access denied.');
     }
   };
 
-  const handleAdminLogout = async () => {
+  const handleAdminLogout = () => {
     try {
       sessionStorage.removeItem('craftyoursole_admin_authorized');
-      setSessionUnlocked(false);
-      await logOut();
-    } catch (e) {
-      console.warn('Sign out failed', e);
+      sessionStorage.removeItem('craftyoursole_admin_user');
+      localStorage.removeItem('craftyoursole_admin_authorized');
+      localStorage.removeItem('craftyoursole_admin_user');
+    } catch {
+      // ignore
     }
+    setIsAuthorized(false);
   };
 
   const [activeTab, setActiveTab] = useState<'analytics' | 'catalog' | 'orders'>('analytics');
@@ -104,6 +105,7 @@ export function AdminPage() {
   // Filters for Products
   const [productSearch, setProductSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
+  const [subcategoryFilter, setSubcategoryFilter] = useState('All');
 
   // Filters for Orders
   const [orderSearch, setOrderSearch] = useState('');
@@ -113,6 +115,8 @@ export function AdminPage() {
   const [formData, setFormData] = useState({
     name: '',
     category: CATEGORIES[0],
+    subcategory: getSubcategoriesForCategory(CATEGORIES[0])[0] || '',
+    gender: 'Unisex' as 'Men' | 'Women' | 'Unisex',
     tag: 'New Drop',
     price: 2995,
     originalPrice: 4495,
@@ -126,6 +130,8 @@ export function AdminPage() {
     img: '',
     additionalImg1: '',
     additionalImg2: '',
+    additionalImg3: '',
+    additionalImg4: '',
     stockUK6: 0,
     stockUK7: 0,
     stockUK8: 0,
@@ -140,6 +146,8 @@ export function AdminPage() {
   const [editFormData, setEditFormData] = useState({
     name: '',
     category: CATEGORIES[0],
+    subcategory: '',
+    gender: 'Unisex' as 'Men' | 'Women' | 'Unisex',
     tag: '',
     price: 0,
     originalPrice: 0,
@@ -151,6 +159,10 @@ export function AdminPage() {
     idealFor: '',
     artisanRegion: '',
     img: '',
+    additionalImg1: '',
+    additionalImg2: '',
+    additionalImg3: '',
+    additionalImg4: '',
     stockUK6: 0,
     stockUK7: 0,
     stockUK8: 0,
@@ -162,9 +174,12 @@ export function AdminPage() {
   const handleOpenEditModal = (prod: Product) => {
     setEditingProductId(prod.id);
     const vStock = (size: string) => prod.variants?.find((v) => v.size === size)?.stock ?? 0;
+    const addImages = prod.additionalImages || [];
     setEditFormData({
       name: prod.name,
       category: prod.category,
+      subcategory: prod.subcategory || getSubcategoriesForCategory(prod.category)[0] || '',
+      gender: prod.gender || 'Unisex',
       tag: prod.tag || '',
       price: prod.price,
       originalPrice: prod.originalPrice || prod.price,
@@ -176,6 +191,10 @@ export function AdminPage() {
       idealFor: prod.idealFor || '',
       artisanRegion: prod.artisanRegion || '',
       img: prod.img,
+      additionalImg1: addImages[0] || '',
+      additionalImg2: addImages[1] || '',
+      additionalImg3: addImages[2] || '',
+      additionalImg4: addImages[3] || '',
       stockUK6: vStock('UK 6'),
       stockUK7: vStock('UK 7'),
       stockUK8: vStock('UK 8'),
@@ -203,9 +222,18 @@ export function AdminPage() {
       { size: 'UK 11', stock: Number(editFormData.stockUK11) || 0 },
     ];
 
+    const additionalImages = [
+      editFormData.additionalImg1,
+      editFormData.additionalImg2,
+      editFormData.additionalImg3,
+      editFormData.additionalImg4,
+    ].map((s) => s.trim()).filter(Boolean);
+
     updateProduct(editingProductId, {
       name: editFormData.name.trim(),
       category: editFormData.category,
+      subcategory: editFormData.subcategory.trim() || undefined,
+      gender: editFormData.gender,
       tag: editFormData.tag.trim(),
       price: Number(editFormData.price) || 2495,
       originalPrice: Number(editFormData.originalPrice) || Number(editFormData.price) + 1500,
@@ -217,6 +245,7 @@ export function AdminPage() {
       idealFor: editFormData.idealFor.trim(),
       artisanRegion: editFormData.artisanRegion.trim(),
       img: editFormData.img.trim(),
+      additionalImages,
       sizes,
       variants,
     });
@@ -236,11 +265,13 @@ export function AdminPage() {
     return products.filter((p) => {
       const matchesSearch =
         p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
-        p.category.toLowerCase().includes(productSearch.toLowerCase());
+        p.category.toLowerCase().includes(productSearch.toLowerCase()) ||
+        (p.subcategory && p.subcategory.toLowerCase().includes(productSearch.toLowerCase()));
       const matchesCat = categoryFilter === 'All' || p.category === categoryFilter;
-      return matchesSearch && matchesCat;
+      const matchesSubcat = subcategoryFilter === 'All' || p.subcategory === subcategoryFilter;
+      return matchesSearch && matchesCat && matchesSubcat;
     });
-  }, [products, productSearch, categoryFilter]);
+  }, [products, productSearch, categoryFilter, subcategoryFilter]);
 
   // Filtered Orders
   const filteredOrders = useMemo(() => {
@@ -395,13 +426,18 @@ export function AdminPage() {
       { size: 'UK 11', stock: Number(formData.stockUK11) || 0 },
     ];
 
-    const additionalImages: string[] = [];
-    if (formData.additionalImg1) additionalImages.push(formData.additionalImg1);
-    if (formData.additionalImg2) additionalImages.push(formData.additionalImg2);
+    const additionalImages: string[] = [
+      formData.additionalImg1,
+      formData.additionalImg2,
+      formData.additionalImg3,
+      formData.additionalImg4,
+    ].map((s) => s.trim()).filter(Boolean);
 
     const newProd: NewProductInput = {
       name: formData.name.trim(),
       category: formData.category,
+      subcategory: formData.subcategory.trim() || undefined,
+      gender: formData.gender,
       tag: formData.tag.trim() || 'New Launch',
       price: Number(formData.price) || 2495,
       originalPrice: Number(formData.originalPrice) || Number(formData.price) + 1500,
@@ -431,6 +467,8 @@ export function AdminPage() {
     setFormData({
       name: '',
       category: CATEGORIES[0],
+      subcategory: getSubcategoriesForCategory(CATEGORIES[0])[0] || '',
+      gender: 'Unisex',
       tag: 'New Drop',
       price: 2995,
       originalPrice: 4495,
@@ -444,6 +482,8 @@ export function AdminPage() {
       img: '',
       additionalImg1: '',
       additionalImg2: '',
+      additionalImg3: '',
+      additionalImg4: '',
       stockUK6: 0,
       stockUK7: 0,
       stockUK8: 0,
@@ -453,32 +493,12 @@ export function AdminPage() {
     });
   };
 
-  // Render loading state while verifying auth session
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-4">
-        <SeoHead
-          title="Admin Verification | CraftYourSole"
-          description="Verifying administrator authorization credentials."
-          noindex
-          canonicalPath="/admin"
-        />
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-            Verifying Administrator Credentials...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // Render unauthorized access wall
+  // Render dedicated administrator credentials login screen (No Google Auth)
   if (!isAuthorized) {
     return (
       <div className="min-h-screen bg-gray-950 text-white flex flex-col justify-between font-sans">
         <SeoHead
-          title="Admin Access Required | CraftYourSole"
+          title="Admin Login | CraftYourSole"
           description="Restricted Administrator Operations Portal."
           canonicalPath="/admin"
           noindex
@@ -497,93 +517,96 @@ export function AdminPage() {
                 Admin Operations
               </h2>
               <p className="text-xs text-gray-400 mt-1.5">
-                Catalog management, order fulfillment and live business metrics.
+                Sign in with your administrator credentials.
               </p>
             </div>
 
-            {/* If signed in as non-admin */}
-            {currentUser && !isAuthorized && (
-              <div className="mb-5 p-3.5 bg-red-950/60 border border-red-800/80 rounded-2xl text-xs text-red-200">
+            {loginError && (
+              <div className="mb-5 p-3.5 bg-red-950/60 border border-red-800/80 rounded-2xl text-xs text-red-200 animate-fade-in">
                 <div className="font-bold flex items-center gap-1.5 mb-1 text-red-400">
                   <span>⛔</span> Access Denied
                 </div>
-                <p className="text-[11px] leading-relaxed">
-                  Signed in as <strong className="text-white">{currentUser.email}</strong>. This account does not have administrator privileges.
-                </p>
+                <p className="text-[11px] leading-relaxed">{loginError}</p>
               </div>
             )}
 
-            {authError && (
-              <div className="mb-4 p-3 bg-red-950/50 border border-red-800 rounded-xl text-xs text-red-300">
-                {authError}
+            {/* Admin Credentials Login Form */}
+            <form onSubmit={handleAdminLogin} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">
+                  Administrator Username or Email
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    value={loginUser}
+                    onChange={(e) => {
+                      setLoginUser(e.target.value);
+                      setLoginError(null);
+                    }}
+                    placeholder="admin@craftyoursole.in"
+                    autoComplete="username"
+                    className="w-full bg-gray-800/80 border border-gray-700 rounded-xl px-4 py-3 pl-10 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-primary"
+                  />
+                  <Icon
+                    name="person"
+                    className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2"
+                  />
+                </div>
               </div>
-            )}
 
-            {/* Google Sign-In */}
-            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={loginPassword}
+                    onChange={(e) => {
+                      setLoginPassword(e.target.value);
+                      setLoginError(null);
+                    }}
+                    placeholder="Enter admin password"
+                    autoComplete="current-password"
+                    className="w-full bg-gray-800/80 border border-gray-700 rounded-xl px-4 py-3 pl-10 pr-10 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-primary font-mono"
+                  />
+                  <Icon
+                    name="lock"
+                    className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white text-xs cursor-pointer select-none"
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? '🙈' : '👁️'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-xs text-gray-400 pt-1">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="w-4 h-4 rounded text-primary accent-primary cursor-pointer"
+                  />
+                  <span>Remember this device</span>
+                </label>
+              </div>
+
               <button
-                onClick={handleGoogleAdminLogin}
-                disabled={isSigningIn}
-                className="w-full py-3.5 px-4 bg-white hover:bg-gray-100 text-gray-900 font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50"
+                type="submit"
+                className="w-full py-3.5 px-4 bg-primary hover:bg-[#8a2600] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-colors cursor-pointer shadow-md mt-2"
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                  />
-                </svg>
-                <span>
-                  {isSigningIn
-                    ? 'Signing In...'
-                    : currentUser
-                    ? 'Switch to Admin Account'
-                    : 'Sign In with Google Admin'}
-                </span>
+                Sign In to Admin Portal →
               </button>
-
-              <div className="relative flex py-2 items-center">
-                <div className="flex-grow border-t border-gray-800"></div>
-                <span className="flex-shrink mx-3 text-[10px] uppercase font-bold text-gray-500 tracking-wider">
-                  Or Master Passcode
-                </span>
-                <div className="flex-grow border-t border-gray-800"></div>
-              </div>
-
-              {/* Passcode fallback */}
-              <form onSubmit={handlePasscodeUnlock} className="space-y-2">
-                <input
-                  type="password"
-                  value={passcode}
-                  onChange={(e) => {
-                    setPasscode(e.target.value);
-                    setPasscodeError('');
-                  }}
-                  placeholder="Enter Administrator Passcode"
-                  className="w-full bg-gray-800/80 border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-primary"
-                />
-                {passcodeError && (
-                  <p className="text-[11px] text-red-400 font-semibold">{passcodeError}</p>
-                )}
-                <button
-                  type="submit"
-                  className="w-full py-2.5 px-4 bg-primary hover:bg-[#8a2600] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-colors cursor-pointer"
-                >
-                  Unlock Admin Portal →
-                </button>
-              </form>
-            </div>
+            </form>
 
             <div className="mt-6 pt-4 border-t border-gray-800 text-center">
               <button
@@ -656,6 +679,10 @@ export function AdminPage() {
                 <span className="font-bold text-white">
                   {totalInventoryPairs.toLocaleString('en-IN')} pairs
                 </span>
+              </div>
+              <div className="hidden sm:flex items-center gap-1.5 bg-gray-800/80 px-3 py-1.5 rounded-lg border border-gray-700/60">
+                <Icon name="person" className="w-3.5 h-3.5 text-gray-400" />
+                <span className="font-bold text-white">{adminUser}</span>
               </div>
               <button
                 onClick={handleAdminLogout}
@@ -1030,7 +1057,10 @@ export function AdminPage() {
                 {/* Category Dropdown */}
                 <select
                   value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  onChange={(e) => {
+                    setCategoryFilter(e.target.value);
+                    setSubcategoryFilter('All');
+                  }}
                   className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-700 font-medium focus:outline-none focus:border-primary cursor-pointer"
                 >
                   <option value="All">All Categories</option>
@@ -1040,6 +1070,22 @@ export function AdminPage() {
                     </option>
                   ))}
                 </select>
+
+                {/* Subcategory Dropdown */}
+                {categoryFilter !== 'All' && getSubcategoriesForCategory(categoryFilter).length > 0 && (
+                  <select
+                    value={subcategoryFilter}
+                    onChange={(e) => setSubcategoryFilter(e.target.value)}
+                    className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-700 font-medium focus:outline-none focus:border-primary cursor-pointer"
+                  >
+                    <option value="All">All Subcategories</option>
+                    {getSubcategoriesForCategory(categoryFilter).map((subcat) => (
+                      <option key={subcat} value={subcat}>
+                        {subcat}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               {/* Action Buttons */}
@@ -1119,11 +1165,23 @@ export function AdminPage() {
 
                           <td className="py-3.5 px-4">
                             <span className="font-medium text-gray-800 block">{prod.category}</span>
-                            {prod.tag && (
-                              <span className="inline-block mt-0.5 px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px] font-semibold">
-                                {prod.tag}
-                              </span>
-                            )}
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {prod.subcategory && (
+                                <span className="px-1.5 py-0.5 bg-orange-50 text-primary border border-orange-200/60 rounded text-[10px] font-semibold">
+                                  {prod.subcategory}
+                                </span>
+                              )}
+                              {prod.gender && prod.gender !== 'Unisex' && (
+                                <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200/60 rounded text-[10px] font-semibold">
+                                  {prod.gender}
+                                </span>
+                              )}
+                              {prod.tag && (
+                                <span className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px] font-semibold">
+                                  {prod.tag}
+                                </span>
+                              )}
+                            </div>
                           </td>
 
                           <td className="py-3.5 px-4 font-bold text-gray-900 text-sm">
@@ -1135,9 +1193,23 @@ export function AdminPage() {
                           </td>
 
                           <td className="py-3.5 px-4">
-                            <div className="font-semibold text-gray-800">{totalStock} pairs</div>
-                            <div className="text-[10px] text-gray-400">
-                              Sizes: {prod.sizes.join(', ')}
+                            <div className="font-semibold text-gray-800">{totalStock} pairs total</div>
+                            <div className="text-[10px] text-gray-500 mt-1 flex flex-wrap gap-1 max-w-[200px]">
+                              {prod.variants?.map((v) => (
+                                <span
+                                  key={v.size}
+                                  className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                                    v.stock === 0
+                                      ? 'bg-red-50 text-red-600 border border-red-200'
+                                      : v.stock <= 5
+                                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                      : 'bg-gray-100 text-gray-700'
+                                  }`}
+                                  title={`${v.size}: ${v.stock} in stock`}
+                                >
+                                  {v.size.replace('UK ', '')}:{v.stock}
+                                </span>
+                              ))}
                             </div>
                           </td>
 
@@ -1458,10 +1530,18 @@ export function AdminPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">Category</label>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Category *</label>
                     <select
                       value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      onChange={(e) => {
+                        const newCat = e.target.value;
+                        const subcats = getSubcategoriesForCategory(newCat);
+                        setFormData({
+                          ...formData,
+                          category: newCat,
+                          subcategory: subcats[0] || '',
+                        });
+                      }}
                       className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-primary cursor-pointer"
                     >
                       {CATEGORIES.map((cat) => (
@@ -1469,6 +1549,39 @@ export function AdminPage() {
                           {cat}
                         </option>
                       ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Subcategory</label>
+                    <select
+                      value={formData.subcategory}
+                      onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-primary cursor-pointer"
+                    >
+                      {getSubcategoriesForCategory(formData.category).map((subcat) => (
+                        <option key={subcat} value={subcat}>
+                          {subcat}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Target Gender</label>
+                    <select
+                      value={formData.gender}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          gender: e.target.value as 'Men' | 'Women' | 'Unisex',
+                        })
+                      }
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-primary cursor-pointer"
+                    >
+                      <option value="Unisex">Unisex / Universal</option>
+                      <option value="Men">Men's Exclusive</option>
+                      <option value="Women">Women's Exclusive</option>
                     </select>
                   </div>
 
@@ -1593,7 +1706,7 @@ export function AdminPage() {
                 <div className="space-y-3">
                   <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1">
-                      Primary Image URL *
+                      Primary Hero Image URL *
                     </label>
                     <input
                       type="url"
@@ -1603,6 +1716,57 @@ export function AdminPage() {
                       onChange={(e) => setFormData({ ...formData, img: e.target.value })}
                       className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-primary"
                     />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1">
+                        Angle 2: Top View / Insole
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://..."
+                        value={formData.additionalImg1}
+                        onChange={(e) => setFormData({ ...formData, additionalImg1: e.target.value })}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1">
+                        Angle 3: Sole &amp; Tread Grip
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://..."
+                        value={formData.additionalImg2}
+                        onChange={(e) => setFormData({ ...formData, additionalImg2: e.target.value })}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1">
+                        Angle 4: Heel / Craft Detail
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://..."
+                        value={formData.additionalImg3}
+                        onChange={(e) => setFormData({ ...formData, additionalImg3: e.target.value })}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1">
+                        Angle 5: Lifestyle / On-Foot
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://..."
+                        value={formData.additionalImg4}
+                        onChange={(e) => setFormData({ ...formData, additionalImg4: e.target.value })}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-primary"
+                      />
+                    </div>
                   </div>
 
                   {/* Live Preview */}
@@ -1731,12 +1895,18 @@ export function AdminPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">Category</label>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Category *</label>
                     <select
                       value={editFormData.category}
-                      onChange={(e) =>
-                        setEditFormData({ ...editFormData, category: e.target.value })
-                      }
+                      onChange={(e) => {
+                        const newCat = e.target.value;
+                        const subcats = getSubcategoriesForCategory(newCat);
+                        setEditFormData({
+                          ...editFormData,
+                          category: newCat,
+                          subcategory: subcats[0] || '',
+                        });
+                      }}
                       className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-primary cursor-pointer"
                     >
                       {CATEGORIES.map((cat) => (
@@ -1744,6 +1914,41 @@ export function AdminPage() {
                           {cat}
                         </option>
                       ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Subcategory</label>
+                    <select
+                      value={editFormData.subcategory}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, subcategory: e.target.value })
+                      }
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-primary cursor-pointer"
+                    >
+                      {getSubcategoriesForCategory(editFormData.category).map((subcat) => (
+                        <option key={subcat} value={subcat}>
+                          {subcat}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Target Gender</label>
+                    <select
+                      value={editFormData.gender}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          gender: e.target.value as 'Men' | 'Women' | 'Unisex',
+                        })
+                      }
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-primary cursor-pointer"
+                    >
+                      <option value="Unisex">Unisex / Universal</option>
+                      <option value="Men">Men's Exclusive</option>
+                      <option value="Women">Women's Exclusive</option>
                     </select>
                   </div>
 
@@ -1879,41 +2084,102 @@ export function AdminPage() {
               {/* Section 3: Media */}
               <div className="pt-4 border-t border-gray-100">
                 <h4 className="text-xs font-bold text-primary uppercase tracking-wider mb-3">
-                  3. Image Media
+                  3. Image Media &amp; Showcase Angles
                 </h4>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">
-                    Primary Image URL *
-                  </label>
-                  <input
-                    type="url"
-                    required
-                    value={editFormData.img}
-                    onChange={(e) =>
-                      setEditFormData({ ...editFormData, img: e.target.value })
-                    }
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-primary"
-                  />
-                </div>
-
-                {editFormData.img && (
-                  <div className="mt-3 flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200/80">
-                    <img
-                      src={editFormData.img}
-                      alt="Preview"
-                      className="w-16 h-16 rounded-lg object-cover border border-gray-200"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Primary Hero Image URL *
+                    </label>
+                    <input
+                      type="url"
+                      required
+                      value={editFormData.img}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, img: e.target.value })
+                      }
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-primary"
                     />
-                    <div className="text-xs">
-                      <span className="font-bold text-gray-900 block">Thumbnail Preview</span>
-                      <span className="text-gray-400 text-[11px]">
-                        Appears on cards and checkout.
-                      </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1">
+                        Angle 2: Top View / Insole
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://..."
+                        value={editFormData.additionalImg1}
+                        onChange={(e) =>
+                          setEditFormData({ ...editFormData, additionalImg1: e.target.value })
+                        }
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1">
+                        Angle 3: Sole &amp; Tread Grip
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://..."
+                        value={editFormData.additionalImg2}
+                        onChange={(e) =>
+                          setEditFormData({ ...editFormData, additionalImg2: e.target.value })
+                        }
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1">
+                        Angle 4: Heel / Craft Detail
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://..."
+                        value={editFormData.additionalImg3}
+                        onChange={(e) =>
+                          setEditFormData({ ...editFormData, additionalImg3: e.target.value })
+                        }
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1">
+                        Angle 5: Lifestyle / On-Foot
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://..."
+                        value={editFormData.additionalImg4}
+                        onChange={(e) =>
+                          setEditFormData({ ...editFormData, additionalImg4: e.target.value })
+                        }
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-primary"
+                      />
                     </div>
                   </div>
-                )}
+
+                  {editFormData.img && (
+                    <div className="mt-3 flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200/80">
+                      <img
+                        src={editFormData.img}
+                        alt="Preview"
+                        className="w-16 h-16 rounded-lg object-cover border border-gray-200"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                      <div className="text-xs">
+                        <span className="font-bold text-gray-900 block">Thumbnail Preview</span>
+                        <span className="text-gray-400 text-[11px]">
+                          Appears on cards and checkout.
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Section 4: Size Inventory Matrix */}

@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import type { Product, NewProductInput } from '../types/product';
+import { getProductsFromSupabase, isSupabaseConfigured } from '../lib/supabase';
 
 const INITIAL_PRODUCTS: Product[] = [];
 const MOCK_IDS = new Set(['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6']);
@@ -51,6 +52,25 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       console.warn('Failed to save products to localStorage', e);
     }
   }, [products]);
+
+  // Sync products from Supabase if available
+  useEffect(() => {
+    let mounted = true;
+    if (isSupabaseConfigured) {
+      getProductsFromSupabase()
+        .then((remoteProducts) => {
+          if (mounted && remoteProducts && remoteProducts.length > 0) {
+            setProducts(remoteProducts);
+          }
+        })
+        .catch((e) => {
+          console.warn('[ProductContext] Supabase sync skipped:', e);
+        });
+    }
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const activeProducts = useMemo(() => products.filter((p) => p.isActive), [products]);
 

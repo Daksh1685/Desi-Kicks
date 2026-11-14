@@ -263,6 +263,12 @@ function ProductDetailContent({ product }: { product: Product }) {
             </Link>
             <span className="text-gray-300">/</span>
             <span className="text-gray-600 font-medium">{product.category}</span>
+            {product.subcategory && (
+              <>
+                <span className="text-gray-300">/</span>
+                <span className="text-gray-600 font-medium">{product.subcategory}</span>
+              </>
+            )}
             <span className="text-gray-300">/</span>
             <span className="text-gray-900 font-bold truncate max-w-[200px] sm:max-w-none">
               {product.name}

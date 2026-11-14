@@ -8,6 +8,8 @@ export interface Product {
   slug: string;
   name: string;
   category: string;
+  subcategory?: string;
+  gender?: 'Men' | 'Women' | 'Unisex';
   tag?: string;
   price: number;
   originalPrice: number;
