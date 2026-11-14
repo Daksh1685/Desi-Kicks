@@ -795,9 +795,6 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
                     Signed in as <strong>{currentUser.displayName || currentUser.email}</strong>
                   </span>
                 </div>
-                <span className="text-[10px] uppercase tracking-wider font-bold text-emerald-700 bg-emerald-100/60 px-2 py-0.5 rounded-md">
-                  Google Verified
-                </span>
               </div>
             )}
 
