@@ -1,5 +1,5 @@
 import { useEffect, lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import './App.css';
 import { LandingPage } from './routes/LandingPage';
 import { ProfilePage } from './routes/ProfilePage';
@@ -58,34 +58,9 @@ function ScrollAndHashRedirectHandler() {
   return null;
 }
 
-function PreLaunchBanner() {
-  return (
-    <div className="bg-gray-950 text-white text-[11px] sm:text-xs py-2 px-4 border-b border-white/10">
-      <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center sm:justify-between gap-2 text-center sm:text-left">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 bg-amber-500/20 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider shrink-0">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-            Pre-Launch Preview
-          </span>
-          <span className="text-white/85">
-            CraftYourSole is in final development and opening to public shoppers soon.
-          </span>
-        </div>
-        <Link
-          to="/contact"
-          className="text-amber-300 hover:text-amber-200 font-bold whitespace-nowrap transition-colors"
-        >
-          Early Access &amp; Inquiries →
-        </Link>
-      </div>
-    </div>
-  );
-}
-
 function CustomerLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-white flex flex-col justify-between">
-      <PreLaunchBanner />
       <Navbar />
       <div className="flex-1 pb-16 md:pb-0">
         {children}

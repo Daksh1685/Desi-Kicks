@@ -43,7 +43,7 @@ if (isFirebaseConfigured) {
     storage = getStorage(app);
 
     // Initialize Google Analytics if supported in the browser environment
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && firebaseConfig.measurementId) {
       isSupported().then((supported) => {
         if (supported && app) {
           analytics = getAnalytics(app);
