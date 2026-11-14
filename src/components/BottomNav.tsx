@@ -24,7 +24,7 @@ export function BottomNav({ onNavigate }: BottomNavProps = {}) {
   };
 
   const isWishlistActive = pathname === '/profile' && search.includes('tab=wishlist');
-  const isProfileActive = pathname === '/profile' && !search.includes('tab=wishlist');
+  const isProfileActive = (pathname === '/profile' && !search.includes('tab=wishlist')) || pathname === '/login';
 
   const navItems = [
     {

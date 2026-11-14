@@ -9,7 +9,7 @@ This document tracks the architecture, implementation status, and **verifiable f
 | Phase | Focus Area | Completion | Target Milestone | Status |
 |---|---|:---:|---|:---:|
 | **Phase 1** | **Storefront, Rebrand, Routes & SEO Foundation** | **100%** | Pre-Launch | 🟢 Complete |
-| **Phase 2** | **Backend Persistence, Auth Security & Payments** | **85%** | Launch Blocker | 🟡 In Progress |
+| **Phase 2** | **Backend Persistence, Auth Security & Payments** | **90%** | Launch Blocker | 🟡 In Progress |
 | **Phase 3** | **Admin Dashboard & Inventory/Order Security** | **95%** | Launch Blocker | 🟢 Launch Ready |
 | **Phase 4** | **Fulfillment, Logistics API & Customer Notifications** | **0%** | Post-Launch M1 | ⚪ Planned |
 | **Phase 5** | **Scale, Automated Testing, CI/CD & Performance** | **65%** | Ongoing | 🟡 In Progress |
@@ -71,7 +71,7 @@ Work through each `FR-*` item below in order before switching off `PreLaunchBann
 
 | ID | Requirement | Current State | Gaps / Work Required | How to Verify |
 |---|---|---|---|---|
-| **FR-06** | **Firebase Google Sign-In on Live Domain** | 🟡 Needs Live Check | `AuthContext.tsx` & `firebase.ts` wired; add `craftyoursole.in` and `www.craftyoursole.in` to Firebase Console → Authentication → Authorized Domains | Click Sign In on `https://craftyoursole.in/profile`, complete Google OAuth popup, reload and confirm session persists |
+| **FR-06** | **Firebase Google Sign-In on Live Domain** | 🟢 Implemented | ✅ Added dedicated `/login` and `/signin` route (`LoginPage.tsx`) with Google Sign-In, error handling & member benefits; wired one-click Google Sign-In button in header `Navbar.tsx` for unauthenticated shoppers; added 1-click Google Sign-In banner in checkout `CartPage.tsx`; linked to `craftyoursole.in` authorized domain in Firebase. | Visit `/login` or click "Sign In" in header or cart. Complete Google OAuth popup: verify automatic redirect, session persistence, and pre-filled customer details. |
 | **FR-07** | **Admin Portal Authentication & RBAC** | 🟢 Implemented | ✅ Implemented full RBAC access wall guarding `/admin` (`AdminPage.tsx`). Restricts access to authorized admins (`support@craftyoursole.in`, `admin@craftyoursole.in`, and `VITE_ADMIN_EMAILS`) via Google Sign-In or emergency `VITE_ADMIN_PASSCODE` unlock. Added session lock & sign out button. | Open `/admin` in Incognito: verify full-screen access wall blocks operations. Sign in with unauthorized user → Access Denied. Sign in with admin email or passcode → Portal unlocks. |
 | **FR-08** | **Phone OTP Login (Optional for India COD)** | ⚪ Planned | Only Google Sign-In exists in `firebase.ts`; Phone OTP helps reduce COD fraud and friction for non-Google shoppers | Sign in with Indian mobile `+91` OTP and confirm session creation |
 

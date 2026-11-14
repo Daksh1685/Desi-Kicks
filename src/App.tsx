@@ -4,6 +4,7 @@ import './App.css';
 import { LandingPage } from './routes/LandingPage';
 import { ProfilePage } from './routes/ProfilePage';
 import { CartPage } from './routes/CartPage';
+import { LoginPage } from './routes/LoginPage';
 import { ProductDetailPage } from './routes/ProductDetailPage';
 import { CollectionsPage } from './routes/CollectionsPage';
 
@@ -124,6 +125,8 @@ function App() {
                           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                           <Route path="/terms" element={<TermsPage />} />
                           <Route path="/profile" element={<ProfilePage />} />
+                          <Route path="/login" element={<LoginPage />} />
+                          <Route path="/signin" element={<LoginPage />} />
                           <Route path="/cart" element={<CartPage />} />
                           <Route path="*" element={<NotFoundPage />} />
                         </Routes>
