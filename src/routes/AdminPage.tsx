@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Icon, type IconName } from '../components/ui/Icon';
 import { SeoHead } from '../components/SeoHead';
+import craftYourSoleLogo from '../assets/craftyoursole_logo.svg';
 import { useProductCatalog } from '../context/ProductContext';
 import { useOrders } from '../context/OrderContext';
 import type { Product, NewProductInput } from '../types/product';
@@ -481,13 +482,17 @@ export function AdminPage() {
         <div className="w-full max-w-sm">
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-xl mb-4 shadow-sm">
-              <Icon name="lock" className="w-6 h-6 text-white" />
+            <Link to="/" className="inline-block hover:opacity-90 transition-opacity">
+              <img
+                src={craftYourSoleLogo}
+                alt="CraftYourSole"
+                className="h-8 sm:h-9 w-auto mx-auto"
+              />
+            </Link>
+            <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-bold uppercase tracking-wider">
+              <Icon name="lock" className="w-3.5 h-3.5" />
+              <span>Admin Portal</span>
             </div>
-            <h1 className="text-2xl font-black text-gray-900 tracking-tight">
-              CRAFT<span className="text-primary">YOUR</span>SOLE
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">Admin Portal</p>
           </div>
 
           {/* Card */}
@@ -611,11 +616,37 @@ export function AdminPage() {
         } sticky top-0 h-screen overflow-hidden`}
       >
         {/* Brand */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100">
-          {!sidebarCollapsed && (
-            <span className="font-black text-sm tracking-tight text-gray-900">
-              CRAFT<span className="text-primary">YOUR</span>SOLE
-            </span>
+        <div
+          className={`flex items-center border-b border-gray-100 min-h-[58px] ${
+            sidebarCollapsed
+              ? 'flex-col justify-center py-3 px-2 gap-2'
+              : 'justify-between px-4 py-3'
+          }`}
+        >
+          {!sidebarCollapsed ? (
+            <Link
+              to="/"
+              className="flex items-center hover:opacity-90 transition-opacity"
+              title="CraftYourSole Storefront"
+            >
+              <img
+                src={craftYourSoleLogo}
+                alt="CraftYourSole"
+                className="h-6 w-auto max-w-[130px]"
+              />
+            </Link>
+          ) : (
+            <Link
+              to="/"
+              className="flex items-center justify-center hover:opacity-90 transition-opacity"
+              title="CraftYourSole Storefront"
+            >
+              <img
+                src="/favicon.svg"
+                alt="CraftYourSole"
+                className="w-7 h-7 rounded-lg shadow-2xs"
+              />
+            </Link>
           )}
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
