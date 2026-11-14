@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 
 export interface CartItem {
   id: string;
+  productId?: string;
   name: string;
   category: string;
   price: number;
@@ -27,49 +28,18 @@ interface CartContextType {
   totalSavings: number;
 }
 
-const INITIAL_CART: CartItem[] = [
-  {
-    id: 'c1',
-    name: 'Royal Velvet Embroidered Mojari',
-    category: 'Festive & Wedding',
-    price: 3495,
-    originalPrice: 5495,
-    size: 'UK 9',
-    color: 'Royal Maroon',
-    img: 'https://images.unsplash.com/photo-1535043934128-cf0b28d52f95?q=80&w=600&auto=format&fit=crop',
-    quantity: 1,
-  },
-  {
-    id: 'c2',
-    name: 'BreezeStep Knit Slip-On Loafer',
-    category: 'Daily Comfort',
-    price: 2295,
-    originalPrice: 3495,
-    size: 'UK 9',
-    color: 'Navy Blue',
-    img: 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=600&auto=format&fit=crop',
-    quantity: 1,
-  },
-  {
-    id: 'c3',
-    name: 'Aura Metallic Block Heel Sandal',
-    category: "Women's Festive",
-    price: 2995,
-    originalPrice: 4495,
-    size: 'UK 5',
-    color: 'Champagne Gold',
-    img: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=600&auto=format&fit=crop',
-    quantity: 1,
-  },
-];
+const INITIAL_CART: CartItem[] = [];
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
     try {
-      const saved = localStorage.getItem('desikicks_cart');
-      if (saved) return JSON.parse(saved);
+      const saved = localStorage.getItem('craftyoursole_cart') || localStorage.getItem('desikicks_cart');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
     } catch {
       // Fallback
     }
@@ -78,7 +48,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('desikicks_cart', JSON.stringify(cartItems));
+      localStorage.setItem('craftyoursole_cart', JSON.stringify(cartItems));
     } catch {
       // Ignore
     }
@@ -86,15 +56,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addToCart = (item: Omit<CartItem, 'quantity'>) => {
     setCartItems((prev) => {
-      const existing = prev.find((i) => i.name === item.name && i.size === item.size);
-      if (existing) {
-        return prev.map((i) =>
-          i.name === item.name && i.size === item.size
-            ? { ...i, quantity: i.quantity + 1 }
-            : i
+      const canonicalId =
+        item.id ||
+        (item.productId ? `${item.productId}-${item.size}` : `${item.name}-${item.size}`);
+
+      const existingIndex = prev.findIndex(
+        (i) =>
+          i.id === canonicalId ||
+          (item.productId && i.productId && i.productId === item.productId && i.size === item.size) ||
+          (i.name.trim().toLowerCase() === item.name.trim().toLowerCase() && i.size === item.size)
+      );
+
+      if (existingIndex > -1) {
+        return prev.map((i, idx) =>
+          idx === existingIndex ? { ...i, quantity: i.quantity + 1 } : i
         );
       }
-      return [...prev, { ...item, quantity: 1 }];
+      return [...prev, { ...item, id: canonicalId, quantity: 1 }];
     });
   };
 
@@ -113,9 +91,40 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const updateSize = (id: string, newSize: string) => {
-    setCartItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, size: newSize } : item))
-    );
+    setCartItems((prev) => {
+      const itemToUpdate = prev.find((item) => item.id === id);
+      if (!itemToUpdate || itemToUpdate.size === newSize) return prev;
+
+      const baseProductId =
+        itemToUpdate.productId ||
+        itemToUpdate.id.replace(/-UK\s*\d+/i, '').replace(/-\d+$/, '');
+      const newId = `${baseProductId}-${newSize}`;
+
+      // Check if target size already exists in another row for this product
+      const existingTarget = prev.find(
+        (item) =>
+          item.id !== id &&
+          (item.id === newId ||
+            (item.name.trim().toLowerCase() === itemToUpdate.name.trim().toLowerCase() &&
+              item.size === newSize))
+      );
+
+      if (existingTarget) {
+        // Merge into existing target and remove current row
+        return prev
+          .filter((item) => item.id !== id)
+          .map((item) =>
+            item.id === existingTarget.id
+              ? { ...item, quantity: item.quantity + itemToUpdate.quantity }
+              : item
+          );
+      }
+
+      // No duplicate: just update size and id
+      return prev.map((item) =>
+        item.id === id ? { ...item, size: newSize, id: newId } : item
+      );
+    });
   };
 
   const removeFromCart = (id: string) => {

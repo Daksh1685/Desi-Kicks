@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext';
 import { useProductModal } from '../context/ProductModalContext';
 
 export interface ProductCardProps {
+  id?: string;
   name: string;
   rating: number;
   price: string;
@@ -14,7 +15,7 @@ export interface ProductCardProps {
   slug?: string;
 }
 
-export function ProductCard({ name, rating, price, originalPrice, tag, img, slug }: ProductCardProps) {
+export function ProductCard({ id, name, rating, price, originalPrice, tag, img, slug }: ProductCardProps) {
   const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
@@ -31,6 +32,7 @@ export function ProductCard({ name, rating, price, originalPrice, tag, img, slug
   const handleQuickView = (e: React.MouseEvent) => {
     e.stopPropagation();
     openProductModal({
+      id: id || computedSlug,
       name,
       rating,
       price,
@@ -38,6 +40,7 @@ export function ProductCard({ name, rating, price, originalPrice, tag, img, slug
       tag,
       img,
       category: tag || 'Footwear',
+      slug: computedSlug,
     });
   };
 
@@ -47,9 +50,11 @@ export function ProductCard({ name, rating, price, originalPrice, tag, img, slug
     const cleanOriginalPrice = originalPrice
       ? parseInt(originalPrice.replace(/[^0-9]/g, ''), 10)
       : cleanPrice + 1500;
+    const productId = id || computedSlug || name;
 
     addToCart({
-      id: `${name}-${cleanPrice}`,
+      id: `${productId}-UK 9`,
+      productId,
       name,
       category: tag || 'Footwear',
       price: cleanPrice,

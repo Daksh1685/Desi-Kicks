@@ -17,7 +17,7 @@ steps:
       - '--image'
       - 'gcr.io/$PROJECT_ID/desi-kicks:$COMMIT_SHA'
       - '--region'
-      - 'asia-south1'
+      - 'us-central1'
       - '--allow-unauthenticated'
 
 images:

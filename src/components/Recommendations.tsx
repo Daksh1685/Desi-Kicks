@@ -60,6 +60,7 @@ export function Recommendations() {
           {activeProducts.map((p) => (
             <ProductCard
               key={p.id}
+              id={p.id}
               slug={p.slug}
               name={p.name}
               rating={p.rating}

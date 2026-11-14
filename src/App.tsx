@@ -1,12 +1,15 @@
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import './App.css';
 import { LandingPage } from './routes/LandingPage';
 import { ProfilePage } from './routes/ProfilePage';
 import { CartPage } from './routes/CartPage';
 import { ProductDetailPage } from './routes/ProductDetailPage';
-import { AdminPage } from './routes/AdminPage';
 import { CollectionsPage } from './routes/CollectionsPage';
+
+const AdminPage = lazy(() =>
+  import('./routes/AdminPage').then((module) => ({ default: module.AdminPage }))
+);
 import {
   AboutPage,
   AuthenticityPage,
@@ -102,8 +105,26 @@ function App() {
               <ProductModalProvider>
                 <ScrollAndHashRedirectHandler />
                 <Routes>
-                  {/* Admin Operations Portal */}
-                  <Route path="/admin" element={<AdminPage />} />
+                  {/* Admin Operations Portal (Code-Split) */}
+                  <Route
+                    path="/admin"
+                    element={
+                      <Suspense
+                        fallback={
+                          <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                            <div className="flex flex-col items-center gap-3">
+                              <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+                              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Loading Admin Operations...
+                              </p>
+                            </div>
+                          </div>
+                        }
+                      >
+                        <AdminPage />
+                      </Suspense>
+                    }
+                  />
 
                   {/* Customer Storefront Routes */}
                   <Route

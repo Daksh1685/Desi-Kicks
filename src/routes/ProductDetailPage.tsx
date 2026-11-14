@@ -88,9 +88,11 @@ function ProductDetailContent({ product }: { product: Product }) {
 
   // Handle Add To Cart
   const handleAddToCart = () => {
+    const productId = product.id || product.slug || product.name;
     for (let i = 0; i < quantity; i++) {
       addToCart({
-        id: `${product.name}-${selectedSize}`,
+        id: `${productId}-${selectedSize}`,
+        productId,
         name: product.name,
         category: product.category,
         price: product.price,

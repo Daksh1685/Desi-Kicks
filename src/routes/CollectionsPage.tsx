@@ -188,6 +188,7 @@ export function CollectionsPage() {
             {displayProducts.map((p) => (
               <ProductCard
                 key={p.id}
+                id={p.id}
                 name={p.name}
                 slug={p.slug}
                 rating={p.rating}

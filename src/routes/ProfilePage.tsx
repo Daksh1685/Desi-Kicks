@@ -100,9 +100,11 @@ export function ProfilePage({ onBackToHome, onNavigateToCart }: ProfilePageProps
   const handleMoveToBag = (item: typeof wishlistItems[0]) => {
     const cleanPrice = parseInt(item.price.replace(/[^0-9]/g, ''), 10) || 2995;
     const cleanOriginalPrice = parseInt(item.originalPrice.replace(/[^0-9]/g, ''), 10) || cleanPrice + 1500;
+    const productId = String(item.id);
 
     addToCart({
-      id: `wishlist-${item.id}-${item.name}`,
+      id: `${productId}-${item.size}`,
+      productId,
       name: item.name,
       category: item.category,
       price: cleanPrice,

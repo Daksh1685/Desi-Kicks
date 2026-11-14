@@ -48,10 +48,12 @@ function ProductDetailModalInner({
     ? product.additionalImages
     : [product.img];
   const activeImg = images[activeImageIndex] || product.img;
+  const productId = product.id || product.slug || product.name;
 
   const handleAddToCart = () => {
     addToCart({
-      id: `${product.name}-${selectedSize}`,
+      id: `${productId}-${selectedSize}`,
+      productId,
       name: product.name,
       category: product.category,
       price: priceNum,
@@ -65,7 +67,8 @@ function ProductDetailModalInner({
 
   const handleBuyNow = () => {
     addToCart({
-      id: `${product.name}-${selectedSize}`,
+      id: `${productId}-${selectedSize}`,
+      productId,
       name: product.name,
       category: product.category,
       price: priceNum,

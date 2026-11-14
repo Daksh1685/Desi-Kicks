@@ -27,10 +27,7 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
   } = useCart();
 
   const [couponCode, setCouponCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>({
-    code: 'FESTIVE500',
-    discount: 500,
-  });
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [couponError, setCouponError] = useState('');
   const [useWalletCoins, setUseWalletCoins] = useState(false);
   const [addCareKit, setAddCareKit] = useState(false);
@@ -42,6 +39,15 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
   const [selectedPayment, setSelectedPayment] = useState<'upi' | 'cod' | 'card'>('upi');
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [placedOrderNumber, setPlacedOrderNumber] = useState<string>('CYS-2026-9852');
+  const [estimatedDeliveryDate] = useState<string>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 3);
+    return `${d.toLocaleDateString('en-IN', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    })} (2-3 Days)`;
+  });
 
   const availableCoupons = [
     { code: 'FESTIVE500', label: '₹500 OFF on Festive Footwear', discount: 500 },
@@ -57,7 +63,7 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
       setCouponError('');
       setCouponCode('');
     } else if (code === 'SOLEFIRST' || code === 'DESIFIRST') {
-      setAppliedCoupon({ code, discount: Math.round(subtotal * 0.1) });
+      setAppliedCoupon({ code: 'SOLEFIRST', discount: Math.round(subtotal * 0.1) });
       setCouponError('');
       setCouponCode('');
     } else {
@@ -72,7 +78,11 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
 
   const careKitPrice = addCareKit ? 299 : 0;
   const walletCoinsDiscount = useWalletCoins ? 250 : 0;
-  const couponDiscount = appliedCoupon ? appliedCoupon.discount : 0;
+  const couponDiscount = appliedCoupon
+    ? appliedCoupon.code === 'SOLEFIRST'
+      ? Math.round(subtotal * 0.1)
+      : appliedCoupon.discount
+    : 0;
   const finalTotal = Math.max(0, subtotal + careKitPrice - couponDiscount - walletCoinsDiscount);
   const totalSavedWithCoupons = totalSavings + couponDiscount + walletCoinsDiscount + (addCareKit ? 200 : 0);
 
@@ -158,11 +168,15 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
           <div className="bg-orange-50/80 border border-orange-200/80 rounded-2xl p-4 my-6 text-left text-xs">
             <div className="flex justify-between items-center mb-1.5">
               <span className="text-gray-500 font-medium">Estimated Delivery:</span>
-              <span className="font-bold text-gray-900">Thursday, Oct 2 (2 Days)</span>
+              <span className="font-bold text-gray-900">{estimatedDeliveryDate}</span>
             </div>
             <div className="flex justify-between items-center mb-1.5">
               <span className="text-gray-500 font-medium">Delivery Address:</span>
-              <span className="font-bold text-gray-900">Indiranagar, Bengaluru</span>
+              <span className="font-bold text-gray-900">
+                {selectedAddress === 'home'
+                  ? 'Home (Indiranagar, Bengaluru - 560038)'
+                  : 'Work (Bellandur, Bengaluru - 560103)'}
+              </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-500 font-medium">Payment Mode:</span>

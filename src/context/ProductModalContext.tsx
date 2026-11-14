@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useCallback, useMemo } from
 
 export interface ProductDetails {
   id?: string;
+  slug?: string;
   name: string;
   category: string;
   tag?: string;
