@@ -1,7 +1,8 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Icon } from './ui/Icon';
 import { useProductModal } from '../context/ProductModalContext';
 import { useProductCatalog } from '../context/ProductContext';
+import { IMG } from '../constants/images';
 
 export function NewArrivals() {
   const { openProductModal } = useProductModal();
@@ -13,7 +14,49 @@ export function NewArrivals() {
   const second = activeProducts[1] || activeProducts[0];
   const third = activeProducts[2] || activeProducts[0];
 
-  if (!featured) return null;
+  if (!featured) {
+    return (
+      <section className="bg-gray-900 py-14 border-t border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 text-center">
+            <span className="text-primary text-xs font-bold uppercase tracking-widest">Just Arrived Soon</span>
+            <h3 className="font-anton text-3xl sm:text-4xl md:text-5xl text-white uppercase tracking-wide mt-1 mb-3">
+              NEW SEASON DROPS INCOMING
+            </h3>
+            <p className="text-gray-400 text-sm max-w-md mx-auto leading-relaxed">
+              Fresh silhouettes and heritage craftsmanship — our next wave of launches is on the way.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+            {[IMG.trend1, IMG.trend3, IMG.trend4].map((src, i) => (
+              <div key={i} className="relative rounded-2xl overflow-hidden aspect-[4/3] shadow-lg">
+                <img
+                  src={src}
+                  alt="Coming soon"
+                  className="w-full h-full object-cover grayscale opacity-70"
+                />
+                <div className="absolute inset-0 bg-black/55 flex items-center justify-center">
+                  <span className="bg-white/10 border border-white/30 text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-widest backdrop-blur-sm">
+                    Coming Soon
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center">
+            <Link
+              to="/profile"
+              className="inline-flex items-center gap-2 text-white font-bold text-sm uppercase tracking-wider hover:text-primary transition-colors"
+            >
+              Be the first to know →
+            </Link>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   const calculateDiscount = (price: number, mrp: number) => {
     if (!mrp || mrp <= price) return null;
