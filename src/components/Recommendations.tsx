@@ -8,6 +8,8 @@ export function Recommendations() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { activeProducts } = useProductCatalog();
 
+  if (activeProducts.length === 0) return null;
+
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
       const scrollAmount = direction === 'left' ? -320 : 320;

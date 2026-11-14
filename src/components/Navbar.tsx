@@ -2,8 +2,10 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Icon } from './ui/Icon';
 import { useTypingEffect } from '../hooks/useTypingEffect';
-import { SEARCH_KEYWORDS, ALL_PRODUCTS } from '../constants/search';
+import { SEARCH_KEYWORDS } from '../constants/search';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
+import { useProductCatalog } from '../context/ProductContext';
 import { useProductModal } from '../context/ProductModalContext';
 import { useAuth } from '../context/AuthContext';
 import craftYourSoleLogo from '../assets/craftyoursole_logo.svg';
@@ -11,6 +13,8 @@ import craftYourSoleLogo from '../assets/craftyoursole_logo.svg';
 export function Navbar() {
   const typedText = useTypingEffect(SEARCH_KEYWORDS);
   const { totalItemsCount } = useCart();
+  const { wishlistCount } = useWishlist();
+  const { activeProducts } = useProductCatalog();
   const { openProductModal } = useProductModal();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -34,13 +38,13 @@ export function Navbar() {
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const q = searchQuery.toLowerCase();
-    return ALL_PRODUCTS.filter(
+    return activeProducts.filter(
       (p) =>
         p.name.toLowerCase().includes(q) ||
         p.category.toLowerCase().includes(q) ||
-        p.tag.toLowerCase().includes(q)
+        (p.tag && p.tag.toLowerCase().includes(q))
     );
-  }, [searchQuery]);
+  }, [searchQuery, activeProducts]);
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
@@ -99,13 +103,24 @@ export function Navbar() {
                         key={item.name}
                         onClick={() => {
                           openProductModal({
+                            id: item.id,
                             name: item.name,
                             category: item.category,
-                            price: item.price,
-                            originalPrice: item.originalPrice,
+                            price: `₹${item.price.toLocaleString('en-IN')}`,
+                            originalPrice: item.originalPrice ? `₹${item.originalPrice.toLocaleString('en-IN')}` : undefined,
                             tag: item.tag,
                             rating: item.rating,
+                            reviewsCount: item.reviewsCount,
                             img: item.img,
+                            additionalImages: item.additionalImages,
+                            description: item.description,
+                            story: item.story,
+                            upperMaterial: item.upperMaterial,
+                            soleMaterial: item.soleMaterial,
+                            insoleType: item.insoleType,
+                            idealFor: item.idealFor,
+                            sizes: item.sizes,
+                            slug: item.slug,
                           });
                           setIsSearchFocused(false);
                           setSearchQuery('');
@@ -118,7 +133,7 @@ export function Navbar() {
                           <span className="text-[10px] text-gray-400 block">{item.category}</span>
                         </div>
                         <div className="text-right">
-                          <span className="font-bold text-xs text-primary">{item.price}</span>
+                          <span className="font-bold text-xs text-primary">₹{item.price.toLocaleString('en-IN')}</span>
                           <div className="flex items-center gap-0.5 text-[10px] text-amber-500 font-bold justify-end">
                             <Icon name="star" className="w-3 h-3 fill-amber-500 text-amber-500" filled />
                             <span>{item.rating}</span>
@@ -156,11 +171,16 @@ export function Navbar() {
         </div>
         <div className="flex items-center gap-1 md:gap-3 text-gray-700">
           <button
-            onClick={() => navigate('/profile')}
+            onClick={() => navigate('/profile?tab=wishlist')}
             title="Wishlist"
-            className="p-2 hover:text-primary transition-colors cursor-pointer"
+            className="p-2 hover:text-primary transition-colors cursor-pointer relative"
           >
             <Icon name="favorite" className="w-6 h-6" />
+            {wishlistCount > 0 && (
+              <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                {wishlistCount}
+              </span>
+            )}
           </button>
           <button
             onClick={() => navigate('/cart')}

@@ -8,11 +8,11 @@ This document tracks the architecture, implementation status, and **verifiable f
 
 | Phase | Focus Area | Completion | Target Milestone | Status |
 |---|---|:---:|---|:---:|
-| **Phase 1** | **Storefront, Rebrand, Routes & SEO Foundation** | **95%** | Pre-Launch | 🟢 Live Preview |
-| **Phase 2** | **Backend Persistence, Auth Security & Payments** | **75%** | Launch Blocker | 🟡 In Progress |
+| **Phase 1** | **Storefront, Rebrand, Routes & SEO Foundation** | **100%** | Pre-Launch | 🟢 Complete |
+| **Phase 2** | **Backend Persistence, Auth Security & Payments** | **85%** | Launch Blocker | 🟡 In Progress |
 | **Phase 3** | **Admin Dashboard & Inventory/Order Security** | **95%** | Launch Blocker | 🟢 Launch Ready |
 | **Phase 4** | **Fulfillment, Logistics API & Customer Notifications** | **0%** | Post-Launch M1 | ⚪ Planned |
-| **Phase 5** | **Scale, Automated Testing, CI/CD & Performance** | **60%** | Ongoing | 🟡 In Progress |
+| **Phase 5** | **Scale, Automated Testing, CI/CD & Performance** | **65%** | Ongoing | 🟡 In Progress |
 
 ---
 
@@ -63,9 +63,9 @@ Work through each `FR-*` item below in order before switching off `PreLaunchBann
 |---|---|---|---|---|
 | **FR-01** | **Brand Identity & Visual Assets** | 🟡 Partial | ✅ `craftyoursole_logo.svg` & `favicon.svg` wired and unused starter assets (`react.svg`, `vite.svg`, `icons.svg`, `public/_redirects`) removed. Still verify dark-footer CSS invert visually and inspect unused `src/assets/hero.png` | Load `/` and `/collections` on desktop & mobile; confirm CraftYourSole logo, favicon, and zero `DESIKICKS` brand text in UI |
 | **FR-02** | **Navigation & All Storefront Routes** | 🟢 Implemented | All 7 collection slugs (`/collections/*`), `/products/:slug`, `/about`, `/size-guide`, `/authenticity`, `/shipping-policy`, `/returns-exchange`, `/contact`, `/privacy-policy`, `/terms`, `/track-order`, and `*` 404 exist | Click every header nav item, category card, and footer link; verify zero dead links and unknown URLs render `NotFoundPage` |
-| **FR-03** | **Search Bar & Collection Filtering** | 🟡 Gap | `Navbar` & `MobileSearch` filter static `ALL_PRODUCTS` (`src/constants/search.ts`) instead of live `ProductContext`; `CollectionsPage` needs attribute filters (size, price, sort) | Add a product in `/admin`, then search for it in header search and filter/sort on `/collections` |
+| **FR-03** | **Search Bar & Collection Filtering** | 🟢 Implemented | ✅ `Navbar` and `MobileSearch` now filter live catalog (`useProductCatalog().activeProducts`). `CollectionsPage.tsx` now supports multi-attribute filtering (Indian Size `UK 6`–`UK 11`, In-Stock Only, and Sort by Price / Rating / Featured) plus empty catalog resilience. | Add a product in `/admin`, then search for it in header search and filter/sort on `/collections`. Confirm live match and sorting. |
 | **FR-04** | **Product Detail, Size Selection & Reviews** | 🟡 Partial | Deep links, tabs, size guide, and reviews work via `localStorage`; pincode checker (`ProductDetailPage.tsx`) uses mock date math instead of real serviceability | Open `/products/royal-velvet-embroidered-mojari`, switch images, select UK size, check pincode, submit review, reload and verify persistence |
-| **FR-05** | **Persistent Wishlist Across Views** | 🔴 Gap | `ProductCard` and `ProductDetailPage` store `isWishlisted` in ephemeral local component state; `ProfilePage` shows hardcoded wishlist items | Click heart on any product card, navigate to `/profile` Wishlist tab, reload page, and verify synced item appears |
+| **FR-05** | **Persistent Wishlist Across Views** | 🟢 Implemented | ✅ Implemented global `WishlistContext.tsx` persisted to `craftyoursole_wishlist`. Wired to all heart icons in `ProductCard`, `ProductDetailPage`, and `ProductDetailModal`. Badged in `Navbar` and `BottomNav` with direct navigation to `/profile?tab=wishlist`. `ProfilePage.tsx` renders real wishlisted items with "Move to Bag" and removal, and clean zero-state when empty. | Click heart on any product card, verify red counter on header and bottom nav, click badge to navigate to `/profile?tab=wishlist`, reload page, and verify persistence. Click "Move to Bag" to confirm cart addition and wishlist removal. |
 
 ### B. Authentication, Security & Access Control (`FR-06` – `FR-08`)
 

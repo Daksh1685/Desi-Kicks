@@ -28,6 +28,7 @@ import { BottomNav } from './components/BottomNav';
 import { CartProvider } from './context/CartContext';
 import { ProductProvider } from './context/ProductContext';
 import { OrderProvider } from './context/OrderContext';
+import { WishlistProvider } from './context/WishlistContext';
 import { ProductModalProvider } from './context/ProductModalContext';
 import { AuthProvider } from './context/AuthContext';
 import { ProductDetailModal } from './components/ProductDetailModal';
@@ -102,7 +103,8 @@ function App() {
         <ProductProvider>
           <OrderProvider>
             <CartProvider>
-              <ProductModalProvider>
+              <WishlistProvider>
+                <ProductModalProvider>
                 <ScrollAndHashRedirectHandler />
                 <Routes>
                   {/* Admin Operations Portal (Code-Split) */}
@@ -156,7 +158,8 @@ function App() {
                 </Routes>
                 <ProductDetailModal />
               </ProductModalProvider>
-            </CartProvider>
+            </WishlistProvider>
+          </CartProvider>
           </OrderProvider>
         </ProductProvider>
       </AuthProvider>

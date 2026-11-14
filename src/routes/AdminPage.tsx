@@ -1056,17 +1056,17 @@ export function AdminPage() {
                   onClick={() => {
                     if (
                       confirm(
-                        'Restore catalog to factory default seed products? Any custom products will be reset.'
+                        'Clear all products from the catalog?'
                       )
                     ) {
                       resetToDefaultCatalog();
-                      showToast('Catalog restored to default seed products.');
+                      showToast('Catalog cleared.');
                     }
                   }}
                   className="border border-gray-200 hover:bg-gray-100 text-gray-600 px-3 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
-                  title="Restore default catalog"
+                  title="Clear catalog"
                 >
-                  Restore Default Catalog
+                  Clear Catalog
                 </button>
               </div>
             </div>
@@ -1184,7 +1184,9 @@ export function AdminPage() {
                     {filteredProducts.length === 0 && (
                       <tr>
                         <td colSpan={7} className="text-center py-12 text-gray-400">
-                          No products found matching your search.
+                          {products.length === 0
+                            ? 'Catalog is empty. Click "+ Add New Product" above to upload your first footwear style.'
+                            : 'No products found matching your search.'}
                         </td>
                       </tr>
                     )}

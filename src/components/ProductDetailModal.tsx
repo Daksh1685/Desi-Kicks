@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useProductModal } from '../context/ProductModalContext';
 import type { ProductDetails } from '../context/ProductModalContext';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 import { Icon } from './ui/Icon';
 import { getEnrichedProductDetails } from '../constants/productCatalog';
 
@@ -25,7 +26,9 @@ function ProductDetailModalInner({
   const [selectedSize, setSelectedSize] = useState<string>(
     () => product.sizes?.[2] || product.sizes?.[0] || 'UK 9'
   );
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const wishKey = productDetails.id || productSlug;
+  const isWishlisted = isInWishlist(wishKey);
   const [addedToast, setAddedToast] = useState(false);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
 
@@ -132,7 +135,17 @@ function ProductDetailModalInner({
                 )}
 
                 <button
-                  onClick={() => setIsWishlisted(!isWishlisted)}
+                  onClick={() =>
+                    toggleWishlist({
+                      id: wishKey,
+                      name: product.name,
+                      price: priceNum,
+                      originalPrice: originalPriceNum,
+                      category: product.category,
+                      img: product.img,
+                      slug: productSlug,
+                    })
+                  }
                   aria-label="Toggle Wishlist"
                   className="absolute top-3 right-3 z-10 p-2 rounded-full bg-white/90 hover:bg-white text-gray-700 shadow-sm transition-all hover:scale-110 active:scale-90 cursor-pointer"
                 >

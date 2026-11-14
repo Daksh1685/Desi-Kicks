@@ -4,6 +4,7 @@ import { Icon } from '../components/ui/Icon';
 import { SeoHead } from '../components/SeoHead';
 import { useProductCatalog } from '../context/ProductContext';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 import { SAMPLE_PRODUCT_REVIEWS, SIZING_CHART_DATA } from '../constants/productReviews';
 import { SITE_NAME, SITE_URL } from '../constants/site';
 import type { Product, ProductReview } from '../types/product';
@@ -36,7 +37,9 @@ function ProductDetailContent({ product }: { product: Product }) {
     () => product.sizes?.[2] || product.sizes?.[0] || 'UK 8'
   );
   const [quantity, setQuantity] = useState<number>(1);
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const productKey = product.id || product.slug || product.name;
+  const isWishlisted = isInWishlist(productKey);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
   const [shareToast, setShareToast] = useState(false);
   const [addedToast, setAddedToast] = useState(false);
@@ -311,7 +314,18 @@ function ProductDetailContent({ product }: { product: Product }) {
                   <Icon name="share" className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => setIsWishlisted(!isWishlisted)}
+                  onClick={() =>
+                    toggleWishlist({
+                      id: productKey,
+                      name: product.name,
+                      price: product.price,
+                      originalPrice,
+                      category: product.category,
+                      img: product.img,
+                      slug: product.slug,
+                      stock: currentStock,
+                    })
+                  }
                   title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
                   className="w-10 h-10 rounded-full bg-white/90 hover:bg-white text-gray-700 shadow-md flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer"
                 >
@@ -788,53 +802,55 @@ function ProductDetailContent({ product }: { product: Product }) {
         </section>
 
         {/* RELATED / YOU MAY ALSO LIKE */}
-        <section className="mt-16 pt-10 border-t border-gray-200">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <span className="text-xs font-bold text-primary uppercase tracking-wider">Curated Recommendations</span>
-              <h3 className="text-2xl font-black text-gray-900">You May Also Like</h3>
-            </div>
-            <Link to="/" className="text-xs font-bold text-primary hover:underline">
-              View All Footwear →
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {relatedProducts.map((rel) => (
-              <div
-                key={rel.id}
-                onClick={() => navigate(`/products/${rel.slug}`)}
-                className="group bg-white p-3.5 rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all cursor-pointer flex flex-col justify-between"
-              >
-                <div>
-                  <div className="aspect-[4/3] rounded-xl overflow-hidden bg-gray-50 mb-3 relative">
-                    <img
-                      src={rel.img}
-                      alt={rel.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    {rel.tag && (
-                      <span className="absolute top-2 left-2 bg-black/80 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">
-                        {rel.tag}
-                      </span>
-                    )}
-                  </div>
-                  <h4 className="font-bold text-xs text-gray-900 group-hover:text-primary transition-colors line-clamp-1">
-                    {rel.name}
-                  </h4>
-                  <p className="text-[11px] text-gray-500 mb-2">{rel.category}</p>
-                </div>
-                <div className="flex items-baseline justify-between pt-2 border-t border-gray-100">
-                  <span className="font-black text-sm text-gray-900">₹{rel.price.toLocaleString('en-IN')}</span>
-                  <span className="text-[11px] font-bold text-amber-600 flex items-center gap-0.5">
-                    <Icon name="star" filled className="w-3 h-3 fill-amber-500" />
-                    {rel.rating}
-                  </span>
-                </div>
+        {relatedProducts.length > 0 && (
+          <section className="mt-16 pt-10 border-t border-gray-200">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <span className="text-xs font-bold text-primary uppercase tracking-wider">Curated Recommendations</span>
+                <h3 className="text-2xl font-black text-gray-900">You May Also Like</h3>
               </div>
-            ))}
-          </div>
-        </section>
+              <Link to="/" className="text-xs font-bold text-primary hover:underline">
+                View All Footwear →
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {relatedProducts.map((rel) => (
+                <div
+                  key={rel.id}
+                  onClick={() => navigate(`/products/${rel.slug}`)}
+                  className="group bg-white p-3.5 rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all cursor-pointer flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="aspect-[4/3] rounded-xl overflow-hidden bg-gray-50 mb-3 relative">
+                      <img
+                        src={rel.img}
+                        alt={rel.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      {rel.tag && (
+                        <span className="absolute top-2 left-2 bg-black/80 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">
+                          {rel.tag}
+                        </span>
+                      )}
+                    </div>
+                    <h4 className="font-bold text-xs text-gray-900 group-hover:text-primary transition-colors line-clamp-1">
+                      {rel.name}
+                    </h4>
+                    <p className="text-[11px] text-gray-500 mb-2">{rel.category}</p>
+                  </div>
+                  <div className="flex items-baseline justify-between pt-2 border-t border-gray-100">
+                    <span className="font-black text-sm text-gray-900">₹{rel.price.toLocaleString('en-IN')}</span>
+                    <span className="text-[11px] font-bold text-amber-600 flex items-center gap-0.5">
+                      <Icon name="star" filled className="w-3 h-3 fill-amber-500" />
+                      {rel.rating}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
 
       {/* SIZE GUIDE MODAL */}

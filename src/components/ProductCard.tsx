@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Icon } from './ui/Icon';
 import { useCart } from '../context/CartContext';
 import { useProductModal } from '../context/ProductModalContext';
+import { useWishlist } from '../context/WishlistContext';
 
 export interface ProductCardProps {
   id?: string;
@@ -28,13 +29,14 @@ export function ProductCard({
   stock,
 }: ProductCardProps) {
   const navigate = useNavigate();
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
   const { addToCart } = useCart();
   const { openProductModal } = useProductModal();
+  const { isInWishlist, toggleWishlist } = useWishlist();
 
   const computedSlug =
     slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const isWishlisted = isInWishlist(id || computedSlug);
 
   const handleCardClick = () => {
     navigate(`/products/${computedSlug}`);
@@ -83,7 +85,21 @@ export function ProductCard({
 
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsWishlisted(!isWishlisted);
+    const cleanPrice = parseInt(price.replace(/[^0-9]/g, ''), 10) || 2995;
+    const cleanOriginalPrice = originalPrice
+      ? parseInt(originalPrice.replace(/[^0-9]/g, ''), 10)
+      : cleanPrice + 1500;
+
+    toggleWishlist({
+      id: id || computedSlug,
+      name,
+      price: cleanPrice,
+      originalPrice: cleanOriginalPrice,
+      category: tag || 'Footwear',
+      img,
+      slug: computedSlug,
+      stock,
+    });
   };
 
   return (

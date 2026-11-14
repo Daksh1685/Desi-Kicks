@@ -1,11 +1,13 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Icon } from './ui/Icon';
 import { useTypingEffect } from '../hooks/useTypingEffect';
-import { SEARCH_KEYWORDS, ALL_PRODUCTS } from '../constants/search';
+import { SEARCH_KEYWORDS } from '../constants/search';
+import { useProductCatalog } from '../context/ProductContext';
 import { useProductModal } from '../context/ProductModalContext';
 
 export function MobileSearch() {
   const typedText = useTypingEffect(SEARCH_KEYWORDS);
+  const { activeProducts } = useProductCatalog();
   const { openProductModal } = useProductModal();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -24,13 +26,13 @@ export function MobileSearch() {
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const q = searchQuery.toLowerCase();
-    return ALL_PRODUCTS.filter(
+    return activeProducts.filter(
       (p) =>
         p.name.toLowerCase().includes(q) ||
         p.category.toLowerCase().includes(q) ||
-        p.tag.toLowerCase().includes(q)
+        (p.tag && p.tag.toLowerCase().includes(q))
     );
-  }, [searchQuery]);
+  }, [searchQuery, activeProducts]);
 
   return (
     <div ref={searchContainerRef} className="px-4 py-3 bg-white md:hidden border-b border-gray-100 relative z-30">
@@ -73,13 +75,24 @@ export function MobileSearch() {
                     key={item.name}
                     onClick={() => {
                       openProductModal({
+                        id: item.id,
                         name: item.name,
                         category: item.category,
-                        price: item.price,
-                        originalPrice: item.originalPrice,
+                        price: `₹${item.price.toLocaleString('en-IN')}`,
+                        originalPrice: item.originalPrice ? `₹${item.originalPrice.toLocaleString('en-IN')}` : undefined,
                         tag: item.tag,
                         rating: item.rating,
+                        reviewsCount: item.reviewsCount,
                         img: item.img,
+                        additionalImages: item.additionalImages,
+                        description: item.description,
+                        story: item.story,
+                        upperMaterial: item.upperMaterial,
+                        soleMaterial: item.soleMaterial,
+                        insoleType: item.insoleType,
+                        idealFor: item.idealFor,
+                        sizes: item.sizes,
+                        slug: item.slug,
                       });
                       setIsSearchFocused(false);
                       setSearchQuery('');
@@ -96,7 +109,7 @@ export function MobileSearch() {
                       <span className="text-[10px] text-gray-400 block">{item.category}</span>
                     </div>
                     <div className="text-right">
-                      <span className="font-bold text-xs text-primary">{item.price}</span>
+                      <span className="font-bold text-xs text-primary">₹{item.price.toLocaleString('en-IN')}</span>
                       <div className="flex items-center gap-0.5 text-[10px] text-amber-500 font-bold justify-end">
                         <Icon name="star" className="w-3 h-3 fill-amber-500 text-amber-500" filled />
                         <span>{item.rating}</span>

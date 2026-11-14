@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Icon } from './ui/Icon';
 import type { IconName } from './ui/Icon';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 
 interface BottomNavProps {
   onNavigate?: (page: 'landing' | 'profile' | 'cart') => void;
@@ -10,8 +11,9 @@ interface BottomNavProps {
 
 export function BottomNav({ onNavigate }: BottomNavProps = {}) {
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const { totalItemsCount } = useCart();
+  const { wishlistCount } = useWishlist();
 
   const handleNav = (target: string, fallbackPage: 'landing' | 'profile' | 'cart') => {
     if (onNavigate) {
@@ -20,6 +22,9 @@ export function BottomNav({ onNavigate }: BottomNavProps = {}) {
       navigate(target);
     }
   };
+
+  const isWishlistActive = pathname === '/profile' && search.includes('tab=wishlist');
+  const isProfileActive = pathname === '/profile' && !search.includes('tab=wishlist');
 
   const navItems = [
     {
@@ -54,14 +59,15 @@ export function BottomNav({ onNavigate }: BottomNavProps = {}) {
     {
       icon: 'favorite' as IconName,
       label: 'Wishlist',
-      action: () => handleNav('/profile', 'profile'),
-      active: false,
+      badge: wishlistCount,
+      action: () => navigate('/profile?tab=wishlist'),
+      active: isWishlistActive,
     },
     {
       icon: 'person' as IconName,
       label: 'Profile',
-      action: () => handleNav('/profile', 'profile'),
-      active: pathname === '/profile',
+      action: () => navigate('/profile'),
+      active: isProfileActive,
     },
   ];
 
