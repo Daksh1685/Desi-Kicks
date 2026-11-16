@@ -65,6 +65,7 @@ export function Dropdown({
   const [searchQuery, setSearchQuery] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const optionsContainerRef = useRef<HTMLDivElement>(null);
 
   // Flatten all items for lookup
   const allItems = useMemo<DropdownItem[]>(() => {
@@ -118,13 +119,20 @@ export function Dropdown({
     };
   }, [isOpen]);
 
-  // Focus search input when menu opens
+  // Focus search input or auto-scroll to selected option when menu opens
   useEffect(() => {
-    if (isOpen && searchable) {
-      const timer = setTimeout(() => {
-        searchInputRef.current?.focus();
-      }, 50);
-      return () => clearTimeout(timer);
+    if (isOpen) {
+      if (searchable) {
+        const timer = setTimeout(() => {
+          searchInputRef.current?.focus();
+        }, 50);
+        return () => clearTimeout(timer);
+      } else if (optionsContainerRef.current) {
+        const selectedEl = optionsContainerRef.current.querySelector<HTMLElement>('[aria-selected="true"]');
+        if (selectedEl) {
+          selectedEl.scrollIntoView({ block: 'nearest' });
+        }
+      }
     }
   }, [isOpen, searchable]);
 
@@ -323,7 +331,10 @@ export function Dropdown({
           )}
 
           {/* Options Scrollable Container */}
-          <div className="overflow-y-auto p-1.5 space-y-0.5 divide-y divide-gray-50">
+          <div
+            ref={optionsContainerRef}
+            className="overflow-y-auto p-1.5 space-y-0.5 divide-y divide-gray-50"
+          >
             {filteredOptions.length === 0 ? (
               <div className="py-6 px-4 text-center">
                 <p className="text-xs text-gray-400">No matching options found</p>

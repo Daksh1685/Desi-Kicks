@@ -28,12 +28,13 @@ export function Hero() {
 
   useEffect(() => {
     if (isPaused || slides.length <= 1) return;
-    const interval = setInterval(nextSlide, 6000);
+    const interval = setInterval(nextSlide, 4000);
     return () => clearInterval(interval);
-  }, [isPaused, nextSlide, slides.length]);
+  }, [isPaused, nextSlide, slides.length, currentSlide]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
+    setIsPaused(false);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -62,7 +63,12 @@ export function Hero() {
     <div className="w-full max-w-[1600px] mx-auto px-2 sm:px-4 md:px-6 pt-2 pb-3">
       <section
         className="relative w-full aspect-[9/16] sm:aspect-[16/9] max-h-[85vh] sm:max-h-none overflow-hidden rounded-xl sm:rounded-2xl md:rounded-3xl shadow-sm bg-neutral-900 group select-none"
-        onMouseEnter={() => setIsPaused(true)}
+        onMouseEnter={() => {
+          // Pause only for real mouse pointers, not simulated touch taps
+          if (window.matchMedia('(hover: hover)').matches) {
+            setIsPaused(true);
+          }
+        }}
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
