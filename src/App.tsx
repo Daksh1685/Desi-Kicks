@@ -31,6 +31,7 @@ import { ProductProvider } from './context/ProductContext';
 import { OrderProvider } from './context/OrderContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { ProductModalProvider } from './context/ProductModalContext';
+import { HeroProvider } from './context/HeroContext';
 import { AuthProvider } from './context/AuthContext';
 import { ProductDetailModal } from './components/ProductDetailModal';
 
@@ -77,7 +78,8 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <ProductProvider>
-          <OrderProvider>
+          <HeroProvider>
+            <OrderProvider>
             <CartProvider>
               <WishlistProvider>
                 <ProductModalProvider>
@@ -139,6 +141,7 @@ function App() {
             </WishlistProvider>
           </CartProvider>
           </OrderProvider>
+          </HeroProvider>
         </ProductProvider>
       </AuthProvider>
     </BrowserRouter>

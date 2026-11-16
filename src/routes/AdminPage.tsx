@@ -5,6 +5,7 @@ import { SeoHead } from '../components/SeoHead';
 import craftYourSoleLogo from '../assets/craftyoursole_logo.svg';
 import { useProductCatalog } from '../context/ProductContext';
 import { useOrders } from '../context/OrderContext';
+import { useHero, type HeroSlide } from '../context/HeroContext';
 import type { Product, NewProductInput, ProductGender } from '../types/product';
 import {
   getAllCategories,
@@ -187,7 +188,7 @@ function SizeInventoryManager({
   );
 }
 
-type AdminSection = 'dashboard' | 'catalog' | 'orders';
+type AdminSection = 'dashboard' | 'catalog' | 'orders' | 'banners';
 
 // ─── Shared input class ────────────────────────────────────────────────────────
 const inputCls =
@@ -204,6 +205,16 @@ export function AdminPage() {
     resetToDefaultCatalog,
   } = useProductCatalog();
   const { orders, updateOrderStatus, metrics, clearAllOrders, resetOrders } = useOrders();
+  const {
+    slides: heroSlides,
+    activeSlides: activeHeroSlides,
+    addSlide: addHeroSlide,
+    updateSlide: updateHeroSlide,
+    deleteSlide: deleteHeroSlide,
+    moveSlide: moveHeroSlide,
+    toggleSlideActive: toggleHeroSlideActive,
+    resetToDefaultSlides: resetHeroSlides,
+  } = useHero();
 
   // ─── Admin Auth ──────────────────────────────────────────────────────────────
   const [isAuthorized, setIsAuthorized] = useState<boolean>(() => {
@@ -453,6 +464,110 @@ export function AdminPage() {
   const showToast = (message: string) => {
     setSuccessToast(message);
     setTimeout(() => setSuccessToast(null), 3500);
+  };
+
+  // ─── Hero Banner Modal State ────────────────────────────────────────────────
+  const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
+  const [editingBannerId, setEditingBannerId] = useState<string | null>(null);
+  const [bannerFormData, setBannerFormData] = useState({
+    title: '',
+    scriptText: '',
+    subtitle: '',
+    ctaText: 'EXPLORE NOW',
+    to: '/collections',
+    img: '',
+    imgWebp: '',
+    mobileImg: '',
+    mobileImgWebp: '',
+    alt: '',
+    isFullBanner: true,
+    isActive: true,
+  });
+
+  const handleOpenAddBannerModal = () => {
+    setEditingBannerId(null);
+    setBannerFormData({
+      title: '',
+      scriptText: '',
+      subtitle: '',
+      ctaText: 'EXPLORE NOW',
+      to: '/collections',
+      img: '',
+      imgWebp: '',
+      mobileImg: '',
+      mobileImgWebp: '',
+      alt: '',
+      isFullBanner: true,
+      isActive: true,
+    });
+    setIsBannerModalOpen(true);
+  };
+
+  const handleOpenEditBannerModal = (slide: HeroSlide) => {
+    setEditingBannerId(slide.id);
+    setBannerFormData({
+      title: slide.title || '',
+      scriptText: slide.scriptText || '',
+      subtitle: slide.subtitle || '',
+      ctaText: slide.ctaText || 'EXPLORE NOW',
+      to: slide.to || '/collections',
+      img: slide.img || '',
+      imgWebp: slide.imgWebp || '',
+      mobileImg: slide.mobileImg || '',
+      mobileImgWebp: slide.mobileImgWebp || '',
+      alt: slide.alt || '',
+      isFullBanner: slide.isFullBanner ?? true,
+      isActive: slide.isActive ?? true,
+    });
+    setIsBannerModalOpen(true);
+  };
+
+  const handleBannerFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bannerFormData.img.trim()) {
+      alert('Please provide at least a Desktop Banner image URL.');
+      return;
+    }
+    const altText =
+      bannerFormData.alt.trim() ||
+      bannerFormData.title.trim() ||
+      'Hero Banner Promotion';
+
+    if (editingBannerId) {
+      updateHeroSlide(editingBannerId, {
+        title: bannerFormData.title.trim(),
+        scriptText: bannerFormData.scriptText.trim(),
+        subtitle: bannerFormData.subtitle.trim(),
+        ctaText: bannerFormData.ctaText.trim() || 'EXPLORE NOW',
+        to: bannerFormData.to.trim() || '/collections',
+        img: bannerFormData.img.trim(),
+        imgWebp: bannerFormData.imgWebp.trim() || undefined,
+        mobileImg: bannerFormData.mobileImg.trim() || undefined,
+        mobileImgWebp: bannerFormData.mobileImgWebp.trim() || undefined,
+        alt: altText,
+        isFullBanner: bannerFormData.isFullBanner,
+        isActive: bannerFormData.isActive,
+      });
+      showToast('Hero banner updated successfully.');
+    } else {
+      addHeroSlide({
+        title: bannerFormData.title.trim(),
+        scriptText: bannerFormData.scriptText.trim(),
+        subtitle: bannerFormData.subtitle.trim(),
+        ctaText: bannerFormData.ctaText.trim() || 'EXPLORE NOW',
+        to: bannerFormData.to.trim() || '/collections',
+        img: bannerFormData.img.trim(),
+        imgWebp: bannerFormData.imgWebp.trim() || undefined,
+        mobileImg: bannerFormData.mobileImg.trim() || undefined,
+        mobileImgWebp: bannerFormData.mobileImgWebp.trim() || undefined,
+        alt: altText,
+        isFullBanner: bannerFormData.isFullBanner,
+        isActive: bannerFormData.isActive,
+      });
+      showToast('New hero banner added!');
+    }
+    setIsBannerModalOpen(false);
+    setEditingBannerId(null);
   };
 
   // ─── Derived / Computed ──────────────────────────────────────────────────────
@@ -773,6 +888,7 @@ export function AdminPage() {
     { id: 'dashboard', label: 'Dashboard', icon: 'briefcase' },
     { id: 'catalog', label: 'Products', icon: 'running', count: products.length },
     { id: 'orders', label: 'Orders', icon: 'shopping_bag', count: orders.length },
+    { id: 'banners', label: 'Hero Banners', icon: 'lifestyle', count: heroSlides.length },
   ];
 
   // ============================================================================
@@ -917,12 +1033,15 @@ export function AdminPage() {
                 ? 'Dashboard'
                 : activeSection === 'catalog'
                   ? 'Product Catalog'
-                  : 'Orders & Shipping'}
+                  : activeSection === 'orders'
+                    ? 'Orders & Shipping'
+                    : 'Hero Banners & Carousel'}
             </h1>
             <p className="text-xs text-gray-400">
               {activeSection === 'dashboard' && 'Sales overview and key metrics'}
               {activeSection === 'catalog' && `${products.length} products · manage your storefront`}
               {activeSection === 'orders' && `${orders.length} orders total`}
+              {activeSection === 'banners' && `${heroSlides.length} banners (${activeHeroSlides.length} live on homepage)`}
             </p>
           </div>
 
@@ -1530,6 +1649,253 @@ export function AdminPage() {
               </div>
             </div>
           )}
+
+          {/* ================================================================
+              SECTION: HERO BANNERS & CAROUSEL
+             ================================================================ */}
+          {activeSection === 'banners' && (
+            <div className="space-y-6 max-w-6xl">
+              {/* Top Header Card */}
+              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg font-bold text-gray-900">Hero Carousel Banners</h2>
+                    <span className="bg-primary/10 text-primary text-xs font-bold px-2.5 py-0.5 rounded-full">
+                      {activeHeroSlides.length} Live / {heroSlides.length} Total
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1 max-w-2xl">
+                    Customize the rotating banners displayed at the top of your homepage. Slides adapt dynamically: if you configure 2 slides, exactly 2 will rotate; if you add 7, all 7 rotate smoothly with autoplay, indicator dots, and touch gestures.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2.5 self-stretch md:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm('Reset hero carousel to default factory slides? Any custom slides will be replaced.')) {
+                        resetHeroSlides();
+                        showToast('Hero banners reset to factory defaults.');
+                      }
+                    }}
+                    className="flex-1 md:flex-initial px-3.5 py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-50 text-xs font-semibold transition cursor-pointer"
+                  >
+                    Reset Defaults
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleOpenAddBannerModal}
+                    className="flex-1 md:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-primary hover:bg-[#8a2600] text-white text-xs font-bold transition shadow-sm cursor-pointer"
+                  >
+                    <span className="text-base leading-none font-black">+</span>
+                    <span>Add Banner Slide</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Responsive Tip Banner */}
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50/50 border border-amber-200/80 rounded-2xl p-4 flex items-start gap-3 text-xs text-amber-900">
+                <div className="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 mt-0.5 font-bold">
+                  💡
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-amber-950">Art Direction & Image Dimensions Guide</p>
+                  <p className="text-amber-800/90 mt-0.5">
+                    For crystal-clear rendering across all devices: provide a <strong>16:9 Landscape</strong> image (recommended: 1920×1080px or 1600×900px) for desktop laptops, and optionally a <strong>9:16 Portrait</strong> image (recommended: 1080×1920px) for mobile smartphones. If mobile image is omitted, the desktop image automatically covers mobile screens.
+                  </p>
+                </div>
+              </div>
+
+              {/* Banners List */}
+              <div className="space-y-4">
+                {heroSlides.map((slide, idx) => {
+                  const isFirst = idx === 0;
+                  const isLast = idx === heroSlides.length - 1;
+                  const isLive = slide.isActive !== false;
+
+                  return (
+                    <div
+                      key={slide.id}
+                      className={`bg-white rounded-2xl border transition-all ${
+                        isLive ? 'border-gray-200 hover:border-gray-300' : 'border-dashed border-gray-300 opacity-75'
+                      } p-5 shadow-xs flex flex-col md:flex-row gap-5 items-stretch md:items-center`}
+                    >
+                      {/* Position + Reorder Controls */}
+                      <div className="flex md:flex-col items-center justify-between md:justify-center gap-1 shrink-0">
+                        <span className="w-8 h-8 rounded-lg bg-gray-100 text-gray-700 font-extrabold text-xs flex items-center justify-center">
+                          #{idx + 1}
+                        </span>
+                        <div className="flex md:flex-col gap-1">
+                          <button
+                            type="button"
+                            disabled={isFirst}
+                            onClick={() => moveHeroSlide(idx, 'up')}
+                            title="Move slide earlier in rotation"
+                            className={`p-1.5 rounded-lg border text-xs transition ${
+                              isFirst
+                                ? 'border-gray-100 text-gray-300 cursor-not-allowed'
+                                : 'border-gray-200 text-gray-600 hover:bg-gray-100 cursor-pointer'
+                            }`}
+                          >
+                            ▲
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isLast}
+                            onClick={() => moveHeroSlide(idx, 'down')}
+                            title="Move slide later in rotation"
+                            className={`p-1.5 rounded-lg border text-xs transition ${
+                              isLast
+                                ? 'border-gray-100 text-gray-300 cursor-not-allowed'
+                                : 'border-gray-200 text-gray-600 hover:bg-gray-100 cursor-pointer'
+                            }`}
+                          >
+                            ▼
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Thumbnail Preview */}
+                      <div className="relative w-full md:w-56 h-32 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 shrink-0 group">
+                        <img
+                          src={slide.img}
+                          alt={slide.alt || slide.title}
+                          className="w-full h-full object-cover transition duration-300 group-hover:scale-105"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src =
+                              'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop';
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 flex flex-col justify-between p-2.5">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-black/60 text-white backdrop-blur-xs">
+                              16:9 Desktop
+                            </span>
+                            {slide.mobileImg && (
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/90 text-white backdrop-blur-xs">
+                                + 9:16 Mobile
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            {slide.scriptText && (
+                              <p className="text-[11px] font-handwriting text-primary-light italic line-clamp-1 drop-shadow">
+                                {slide.scriptText}
+                              </p>
+                            )}
+                            <p className="text-xs font-black text-white line-clamp-1 drop-shadow">
+                              {slide.title || 'Untitled Banner'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Details & Target */}
+                      <div className="flex-1 min-w-0 space-y-1.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="font-extrabold text-gray-900 text-sm truncate">
+                            {slide.title || 'Full-Bleed Visual Banner'}
+                          </h3>
+                          {slide.isFullBanner ? (
+                            <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-200">
+                              Full-Bleed Banner
+                            </span>
+                          ) : (
+                            <span className="bg-purple-50 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded border border-purple-200">
+                              Split Card Style
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => toggleHeroSlideActive(slide.id)}
+                            className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full transition cursor-pointer ${
+                              isLive
+                                ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                                : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                            }`}
+                          >
+                            {isLive ? '● Live on Store' : '○ Draft (Hidden)'}
+                          </button>
+                        </div>
+
+                        {slide.subtitle && (
+                          <p className="text-xs text-gray-600 line-clamp-1">
+                            {slide.subtitle}
+                          </p>
+                        )}
+
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 pt-1">
+                          <span className="flex items-center gap-1 font-mono text-[11px] bg-gray-50 px-2 py-0.5 rounded border border-gray-100">
+                            <span className="text-gray-400">Link:</span> {slide.to}
+                          </span>
+                          <span className="flex items-center gap-1 text-[11px]">
+                            <span className="text-gray-400">CTA:</span> "{slide.ctaText || 'EXPLORE'}"
+                          </span>
+                          <span className="flex items-center gap-1 text-[11px] text-gray-400 truncate max-w-xs" title={slide.img}>
+                            Src: {slide.img}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center justify-end md:flex-col gap-2 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-gray-100">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditBannerModal(slide)}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-gray-700 hover:bg-orange-50 hover:text-primary hover:border-orange-200 text-xs font-semibold transition cursor-pointer"
+                        >
+                          <Icon name="edit" className="w-3.5 h-3.5" />
+                          <span>Edit</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (confirm(`Delete banner "${slide.title || 'Untitled'}"?`)) {
+                              deleteHeroSlide(slide.id);
+                              showToast('Hero banner deleted.');
+                            }
+                          }}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-xs font-semibold transition cursor-pointer"
+                        >
+                          <Icon name="trash" className="w-3.5 h-3.5" />
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {heroSlides.length === 0 && (
+                  <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+                    <div className="w-14 h-14 bg-gray-100 text-gray-400 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                      <Icon name="photo_camera" className="w-7 h-7" />
+                    </div>
+                    <h3 className="font-bold text-gray-800 mb-1">No Hero Banners</h3>
+                    <p className="text-xs text-gray-400 max-w-sm mx-auto mb-4">
+                      You currently have no hero slides configured. Click below to add one or reset defaults.
+                    </p>
+                    <div className="flex items-center justify-center gap-3">
+                      <button
+                        type="button"
+                        onClick={resetHeroSlides}
+                        className="px-4 py-2 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 cursor-pointer"
+                      >
+                        Reset Factory Slides
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleOpenAddBannerModal}
+                        className="px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-[#8a2600] cursor-pointer"
+                      >
+                        + Add First Banner
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </main>
       </div>
 
@@ -1909,6 +2275,281 @@ export function AdminPage() {
           </div>
         </div>
       )}
+
+      {/* ================================================================
+          MODAL: ADD / EDIT HERO BANNER
+         ================================================================ */}
+      {isBannerModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl w-full max-w-2xl shadow-xl border border-gray-200 flex flex-col my-auto animate-scale-up">
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10 rounded-t-2xl">
+              <div>
+                <h2 className="text-lg font-black text-gray-900 uppercase tracking-wide">
+                  {editingBannerId ? 'Edit Hero Banner Slide' : 'Add New Hero Banner Slide'}
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Changes will sync immediately to the homepage hero carousel
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsBannerModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 font-bold cursor-pointer text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleBannerFormSubmit} className="p-6 space-y-6 overflow-y-auto max-h-[76vh]">
+              {/* Section 1: Images */}
+              <div>
+                <p className="text-xs font-bold text-primary uppercase tracking-wider mb-3">
+                  1. Imagery & Responsive Art Direction
+                </p>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Desktop Landscape Image URL (16:9) *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. /hero/retro-timeless-landscape.jpg or https://images.unsplash.com/..."
+                      value={bannerFormData.img}
+                      onChange={(e) => setBannerFormData({ ...bannerFormData, img: e.target.value })}
+                      className={inputCls}
+                    />
+                    <p className="text-[11px] text-gray-400 mt-1">
+                      Recommended: 1672 × 941px or 1920 × 1080px (16:9 ratio). Local files in <code className="bg-gray-100 px-1 py-0.5 rounded">public/hero/</code> or external CDN links.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Desktop WebP URL (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. /hero/retro-timeless-landscape.webp"
+                        value={bannerFormData.imgWebp}
+                        onChange={(e) => setBannerFormData({ ...bannerFormData, imgWebp: e.target.value })}
+                        className={inputCls}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Mobile Portrait Image URL (9:16 Optional)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. /hero/retro-timeless-portrait.jpg"
+                        value={bannerFormData.mobileImg}
+                        onChange={(e) => setBannerFormData({ ...bannerFormData, mobileImg: e.target.value })}
+                        className={inputCls}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Mobile WebP URL (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. /hero/retro-timeless-portrait.webp"
+                      value={bannerFormData.mobileImgWebp}
+                      onChange={(e) => setBannerFormData({ ...bannerFormData, mobileImgWebp: e.target.value })}
+                      className={inputCls}
+                    />
+                  </div>
+
+                  {/* Live preview inside modal */}
+                  {bannerFormData.img && (
+                    <div className="p-3 bg-gray-50 rounded-xl border border-gray-200">
+                      <p className="text-xs font-bold text-gray-700 mb-2">Live Slide Preview</p>
+                      <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-black/10">
+                        <img
+                          src={bannerFormData.img}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src =
+                              'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop';
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/20 p-4 flex flex-col justify-end text-white">
+                          {bannerFormData.scriptText && (
+                            <p className="font-handwriting text-primary-light italic text-sm">
+                              {bannerFormData.scriptText}
+                            </p>
+                          )}
+                          <p className="font-extrabold text-base sm:text-lg leading-tight">
+                            {bannerFormData.title || 'YOUR SLIDE TITLE'}
+                          </p>
+                          {bannerFormData.subtitle && (
+                            <p className="text-xs text-white/80 mt-0.5 uppercase tracking-wider font-medium">
+                              {bannerFormData.subtitle}
+                            </p>
+                          )}
+                          <div className="mt-2">
+                            <span className="inline-block bg-primary text-white text-[11px] font-bold px-3 py-1 rounded-full">
+                              {bannerFormData.ctaText || 'EXPLORE NOW'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Section 2: Copy & Content */}
+              <div className="border-t border-gray-100 pt-5">
+                <p className="text-xs font-bold text-primary uppercase tracking-wider mb-3">
+                  2. Slide Copy & Headings
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Main Heading (Title)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. STEP INTO TIMELESS STYLE"
+                      value={bannerFormData.title}
+                      onChange={(e) => setBannerFormData({ ...bannerFormData, title: e.target.value })}
+                      className={inputCls}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Script Accent Text (Cursive)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. A Classic Redefined"
+                      value={bannerFormData.scriptText}
+                      onChange={(e) => setBannerFormData({ ...bannerFormData, scriptText: e.target.value })}
+                      className={inputCls}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Subtitle / Eyebrow Text
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. RETRO SNEAKERS. EVERYDAY CHARACTER."
+                      value={bannerFormData.subtitle}
+                      onChange={(e) => setBannerFormData({ ...bannerFormData, subtitle: e.target.value })}
+                      className={inputCls}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 3: Call to Action & Link */}
+              <div className="border-t border-gray-100 pt-5">
+                <p className="text-xs font-bold text-primary uppercase tracking-wider mb-3">
+                  3. Button & Link Destination
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Button Text (CTA)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. EXPLORE THE COLLECTION"
+                      value={bannerFormData.ctaText}
+                      onChange={(e) => setBannerFormData({ ...bannerFormData, ctaText: e.target.value })}
+                      className={inputCls}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Target Destination Path / URL
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. /collections/men, /collections, etc."
+                      value={bannerFormData.to}
+                      onChange={(e) => setBannerFormData({ ...bannerFormData, to: e.target.value })}
+                      className={inputCls}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Image Alt Text (SEO & Accessibility)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Step Into Timeless Style - Retro Sneakers Everyday Character"
+                      value={bannerFormData.alt}
+                      onChange={(e) => setBannerFormData({ ...bannerFormData, alt: e.target.value })}
+                      className={inputCls}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 4: Display Options */}
+              <div className="border-t border-gray-100 pt-5">
+                <p className="text-xs font-bold text-primary uppercase tracking-wider mb-3">
+                  4. Layout & Visibility
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <label className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={bannerFormData.isFullBanner}
+                      onChange={(e) => setBannerFormData({ ...bannerFormData, isFullBanner: e.target.checked })}
+                      className="w-4 h-4 rounded accent-primary cursor-pointer"
+                    />
+                    <div>
+                      <p className="text-xs font-bold text-gray-800">Full-Bleed Banner</p>
+                      <p className="text-[11px] text-gray-400">Expanded layout matching hero container width</p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={bannerFormData.isActive}
+                      onChange={(e) => setBannerFormData({ ...bannerFormData, isActive: e.target.checked })}
+                      className="w-4 h-4 rounded accent-primary cursor-pointer"
+                    />
+                    <div>
+                      <p className="text-xs font-bold text-gray-800">Active (Visible)</p>
+                      <p className="text-[11px] text-gray-400">Included in the live rotating carousel on homepage</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 sticky bottom-0 bg-white pb-1">
+                <button
+                  type="button"
+                  onClick={() => setIsBannerModalOpen(false)}
+                  className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-xl bg-primary hover:bg-[#8a2600] text-white text-sm font-bold shadow-sm transition cursor-pointer"
+                >
+                  {editingBannerId ? 'Save Changes ✓' : 'Add Banner Slide ✓'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

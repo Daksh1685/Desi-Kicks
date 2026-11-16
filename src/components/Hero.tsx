@@ -1,84 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from './ui/Icon';
-
-interface HeroSlide {
-  id: string;
-  isFullBanner?: boolean;
-  scriptText?: string;
-  title: string;
-  subtitle?: string;
-  ctaText?: string;
-  to: string;
-  img: string;
-  imgWebp?: string;
-  mobileImg?: string;
-  mobileImgWebp?: string;
-  alt: string;
-}
-
-const HERO_SLIDES: HeroSlide[] = [
-  {
-    id: 'timeless-style',
-    isFullBanner: true,
-    scriptText: 'A Classic Redefined',
-    title: 'STEP INTO TIMELESS STYLE',
-    subtitle: 'RETRO SNEAKERS. EVERYDAY CHARACTER.',
-    ctaText: 'EXPLORE THE COLLECTION',
-    to: '/collections/men',
-    img: '/hero/retro-timeless-landscape.jpg',
-    imgWebp: '/hero/retro-timeless-landscape.webp',
-    mobileImg: '/hero/retro-timeless-portrait.jpg',
-    mobileImgWebp: '/hero/retro-timeless-portrait.webp',
-    alt: 'Step Into Timeless Style - Retro Sneakers Everyday Character',
-  },
-  {
-    id: 'retro-casuals',
-    isFullBanner: true,
-    scriptText: 'Too Fresh',
-    title: 'TO FOLLOW',
-    subtitle: 'RETRO CASUALS',
-    ctaText: 'SHOP NOW',
-    to: '/collections/all',
-    img: '/hero/retro-casuals-hero-clean.jpg',
-    alt: 'Too Fresh To Follow - Retro Casuals Sneakers Collection',
-  },
-  {
-    id: 'festive-ethnic',
-    isFullBanner: false,
-    scriptText: 'Grand Festive Edit',
-    title: 'THE ROYAL DESI\nHERITAGE EDITIONS',
-    subtitle: 'HANDCRAFTED JUTTIS & MOJARIS',
-    ctaText: 'EXPLORE FESTIVE',
-    to: '/collections/festive-ethnic',
-    img: 'https://images.unsplash.com/photo-1535043934128-cf0b28d52f95?q=80&w=1600&auto=format&fit=crop',
-    alt: 'Handcrafted Royal Desi Ethnic Footwear Collection',
-  },
-  {
-    id: 'daily-comfort',
-    isFullBanner: false,
-    scriptText: 'All-Day Everyday',
-    title: 'CLOUD STEPPER\nDAILY WEAR',
-    subtitle: 'FEATHERLIGHT SLIP-ONS & LOAFERS',
-    ctaText: 'SHOP DAILY WEAR',
-    to: '/collections/daily-comfort',
-    img: 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=1600&auto=format&fit=crop',
-    alt: 'Cloud Stepper Daily Comfort Walking Shoes',
-  },
-  {
-    id: 'gym-sports',
-    isFullBanner: false,
-    scriptText: 'Active Performance',
-    title: 'AERO STRIDE\nPRO RUNNER',
-    subtitle: 'HIGH-REBOUND ATHLETIC SNEAKERS',
-    ctaText: 'SHOP ATHLETIC',
-    to: '/collections/gym-sports',
-    img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1600&auto=format&fit=crop',
-    alt: 'Aero Stride Pro Athletic Running Shoes',
-  },
-];
+import { useHero } from '../context/HeroContext';
 
 export function Hero() {
+  const { activeSlides } = useHero();
+  const slides = activeSlides;
+
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -87,18 +15,27 @@ export function Hero() {
   const touchEndX = useRef<number | null>(null);
 
   const nextSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
-  }, []);
+    if (slides.length <= 1) return;
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
+  }, [slides.length]);
 
   const prevSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
-  }, []);
+    if (slides.length <= 1) return;
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+  }, [slides.length]);
+
+  // Keep slide in bounds if total slides count changes
+  useEffect(() => {
+    if (currentSlide >= slides.length) {
+      setCurrentSlide(0);
+    }
+  }, [currentSlide, slides.length]);
 
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || slides.length <= 1) return;
     const interval = setInterval(nextSlide, 6000);
     return () => clearInterval(interval);
-  }, [isPaused, nextSlide]);
+  }, [isPaused, nextSlide, slides.length]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -122,6 +59,10 @@ export function Hero() {
     touchEndX.current = null;
   };
 
+  if (!slides || slides.length === 0) {
+    return null;
+  }
+
   return (
     <div className="w-full max-w-[1600px] mx-auto px-2 sm:px-4 md:px-6 pt-2 pb-3">
       <section
@@ -138,7 +79,7 @@ export function Hero() {
           className="flex h-full w-full transition-transform duration-700 ease-out"
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
         >
-          {HERO_SLIDES.map((slide, idx) => (
+          {slides.map((slide, idx) => (
             <div key={slide.id} className="min-w-full h-full relative shrink-0">
               {slide.isFullBanner ? (
                 /* Full Graphic Creative Banner with Responsive Art Direction */
@@ -179,7 +120,7 @@ export function Hero() {
                     <img
                       className="w-full h-full object-cover object-center"
                       src={slide.img}
-                      alt={slide.alt}
+                      alt={slide.alt || slide.title}
                       loading={idx === 0 ? 'eager' : 'lazy'}
                     />
                   </picture>
@@ -192,7 +133,7 @@ export function Hero() {
                   <img
                     className="w-full h-full object-cover object-[75%_center] md:object-center brightness-90"
                     src={slide.img}
-                    alt={slide.alt}
+                    alt={slide.alt || slide.title}
                     loading={idx === 0 ? 'eager' : 'lazy'}
                   />
 
@@ -233,37 +174,41 @@ export function Hero() {
           ))}
         </div>
 
-        {/* Navigation Arrows (Visible on sm+ screens, swipe on mobile) */}
-        <button
-          onClick={prevSlide}
-          aria-label="Previous Slide"
-          className="hidden sm:flex absolute left-2 sm:left-4 md:left-6 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/35 hover:bg-black/70 text-white backdrop-blur-xs items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer z-20 opacity-80 hover:opacity-100"
-        >
-          <Icon name="chevron_left" className="w-5 h-5 sm:w-6 sm:h-6" />
-        </button>
-        <button
-          onClick={nextSlide}
-          aria-label="Next Slide"
-          className="hidden sm:flex absolute right-2 sm:right-4 md:right-6 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/35 hover:bg-black/70 text-white backdrop-blur-xs items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer z-20 opacity-80 hover:opacity-100"
-        >
-          <Icon name="chevron_right" className="w-5 h-5 sm:w-6 sm:h-6" />
-        </button>
-
-        {/* Slide Indicators (Centered Minimalist Dots) */}
-        <div className="absolute bottom-3 md:bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
-          {HERO_SLIDES.map((_, idx) => (
+        {/* Navigation Arrows (Visible when more than 1 slide) */}
+        {slides.length > 1 && (
+          <>
             <button
-              key={idx}
-              onClick={() => setCurrentSlide(idx)}
-              aria-label={`Go to slide ${idx + 1}`}
-              className={`transition-all duration-300 rounded-full cursor-pointer ${
-                currentSlide === idx
-                  ? 'w-6 md:w-8 h-2 bg-white shadow-sm'
-                  : 'w-2 h-2 bg-white/50 hover:bg-white/80'
-              }`}
-            />
-          ))}
-        </div>
+              onClick={prevSlide}
+              aria-label="Previous Slide"
+              className="hidden sm:flex absolute left-2 sm:left-4 md:left-6 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/35 hover:bg-black/70 text-white backdrop-blur-xs items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer z-20 opacity-80 hover:opacity-100"
+            >
+              <Icon name="chevron_left" className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+            <button
+              onClick={nextSlide}
+              aria-label="Next Slide"
+              className="hidden sm:flex absolute right-2 sm:right-4 md:right-6 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/35 hover:bg-black/70 text-white backdrop-blur-xs items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer z-20 opacity-80 hover:opacity-100"
+            >
+              <Icon name="chevron_right" className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+
+            {/* Slide Indicators (Centered Minimalist Dots) */}
+            <div className="absolute bottom-3 md:bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
+              {slides.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentSlide(idx)}
+                  aria-label={`Go to slide ${idx + 1}`}
+                  className={`transition-all duration-300 rounded-full cursor-pointer ${
+                    currentSlide === idx
+                      ? 'w-6 md:w-8 h-2 bg-white shadow-sm'
+                      : 'w-2 h-2 bg-white/50 hover:bg-white/80'
+                  }`}
+                />
+              ))}
+            </div>
+          </>
+        )}
       </section>
     </div>
   );
