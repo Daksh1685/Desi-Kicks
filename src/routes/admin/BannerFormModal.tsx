@@ -1,12 +1,10 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { ImageUploadField } from './ImageUploadField';
 import { inputCls } from './adminTypes';
+import { useProductCatalog } from '../../context/ProductContext';
+import { Dropdown, type DropdownOption } from '../../components/ui/Dropdown';
 
 export type BannerFormData = {
-  title: string;
-  scriptText: string;
-  subtitle: string;
-  ctaText: string;
   to: string;
   img: string;
   imgWebp: string;
@@ -34,6 +32,90 @@ export function BannerFormModal({
   onSubmit,
   onClose,
 }: BannerFormModalProps) {
+  const { activeProducts } = useProductCatalog();
+
+  // Predefined site links grouped by department and customer service
+  const destinationOptions = useMemo<DropdownOption[]>(() => {
+    const list: DropdownOption[] = [
+      {
+        group: 'Collections & Categories',
+        items: [
+          { label: 'All Collections', value: '/collections', description: '/collections', badge: 'Catalog' },
+          { label: "Men's Footwear", value: '/collections/men', description: '/collections/men' },
+          { label: "Women's Footwear", value: '/collections/women', description: '/collections/women' },
+          { label: "Kids' Collection", value: '/collections/kids', description: '/collections/kids' },
+          { label: 'Festive & Ethnic Mojaris', value: '/collections/festive-ethnic', description: '/collections/festive-ethnic' },
+          { label: 'Daily Comfort Slip-Ons', value: '/collections/daily-comfort', description: '/collections/daily-comfort' },
+          { label: 'Gym & Sports Trainers', value: '/collections/gym-sports', description: '/collections/gym-sports' },
+          { label: 'Work & Formal Leather', value: '/collections/work-formal', description: '/collections/work-formal' },
+        ],
+      },
+      {
+        group: 'Storefront & Customer Services',
+        items: [
+          { label: 'Homepage', value: '/', description: '/' },
+          { label: 'Shopping Cart', value: '/cart', description: '/cart' },
+          { label: 'Track Order Progress', value: '/track-order', description: '/track-order' },
+          { label: 'Size Guide & Measurement Chart', value: '/size-guide', description: '/size-guide' },
+          { label: 'Handcrafted Authenticity', value: '/authenticity', description: '/authenticity' },
+          { label: 'Our Heritage Story', value: '/about', description: '/about' },
+          { label: 'Contact Support & Concierge', value: '/contact', description: '/contact' },
+          { label: 'Shipping & Delivery Policy', value: '/shipping-policy', description: '/shipping-policy' },
+          { label: '7-Day Return & Size Exchange', value: '/returns-exchange', description: '/returns-exchange' },
+          { label: 'Privacy Policy', value: '/privacy-policy', description: '/privacy-policy' },
+          { label: 'Terms of Service', value: '/terms', description: '/terms' },
+        ],
+      },
+    ];
+
+    if (activeProducts.length > 0) {
+      list.push({
+        group: 'Active Products',
+        items: activeProducts.map((prod) => ({
+          label: prod.name,
+          value: `/products/${prod.slug}`,
+          description: `/products/${prod.slug}`,
+          badge: prod.category || undefined,
+        })),
+      });
+    }
+
+    list.push({
+      group: 'Other',
+      items: [
+        {
+          label: 'Custom Path / External URL...',
+          value: '__custom__',
+          description: 'Type a custom route or external website link',
+        },
+      ],
+    });
+
+    return list;
+  }, [activeProducts]);
+
+  // Check if current target path exists among predefined options
+  const isKnownPreset = useMemo(() => {
+    return destinationOptions.some((opt) => {
+      if ('items' in opt && Array.isArray(opt.items)) {
+        return opt.items.some((item) => item.value !== '__custom__' && item.value === bannerFormData.to);
+      }
+      return 'value' in opt && (opt as { value: string }).value !== '__custom__' && (opt as { value: string }).value === bannerFormData.to;
+    });
+  }, [destinationOptions, bannerFormData.to]);
+
+  const [userWantsCustom, setUserWantsCustom] = useState<boolean>(false);
+  const isCustomMode = userWantsCustom || (!isKnownPreset && Boolean(bannerFormData.to));
+
+  const handleDropdownChange = (val: string) => {
+    if (val === '__custom__') {
+      setUserWantsCustom(true);
+    } else {
+      setUserWantsCustom(false);
+      setBannerFormData({ ...bannerFormData, to: val });
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -103,137 +185,104 @@ export function BannerFormModal({
               {/* Live preview inside modal */}
               {bannerFormData.img && (
                 <div className="p-3 bg-gray-50 rounded-xl border border-gray-200">
-                  <p className="text-xs font-bold text-gray-700 mb-2">Live Slide Preview</p>
-                  <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-black/10">
+                  <p className="text-xs font-bold text-gray-700 mb-2">Live Slide Preview (Desktop 16:9)</p>
+                  <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-black/10 border border-gray-200">
                     <img
                       src={bannerFormData.img}
-                      alt="Preview"
+                      alt={bannerFormData.alt || "Preview"}
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src =
                           'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop';
                       }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/20 p-4 flex flex-col justify-end text-white">
-                      {bannerFormData.scriptText && (
-                        <p className="font-handwriting text-primary-light italic text-sm">
-                          {bannerFormData.scriptText}
-                        </p>
-                      )}
-                      <p className="font-extrabold text-base sm:text-lg leading-tight">
-                        {bannerFormData.title || 'YOUR SLIDE TITLE'}
-                      </p>
-                      {bannerFormData.subtitle && (
-                        <p className="text-xs text-white/80 mt-0.5 uppercase tracking-wider font-medium">
-                          {bannerFormData.subtitle}
-                        </p>
-                      )}
-                      <div className="mt-2">
-                        <span className="inline-block bg-primary text-white text-[11px] font-bold px-3 py-1 rounded-full">
-                          {bannerFormData.ctaText || 'EXPLORE NOW'}
-                        </span>
-                      </div>
-                    </div>
                   </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Section 2: Copy & Content */}
+          {/* Section 2: Link Destination & SEO */}
           <div className="border-t border-gray-100 pt-5">
             <p className="text-xs font-bold text-primary uppercase tracking-wider mb-3">
-              2. Slide Copy & Headings
+              2. Link Destination & Accessibility
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                  Main Heading (Title)
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. STEP INTO TIMELESS STYLE"
-                  value={bannerFormData.title}
-                  onChange={(e) => setBannerFormData({ ...bannerFormData, title: e.target.value })}
-                  className={inputCls}
-                />
-              </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                  Script Accent Text (Cursive)
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. A Classic Redefined"
-                  value={bannerFormData.scriptText}
-                  onChange={(e) => setBannerFormData({ ...bannerFormData, scriptText: e.target.value })}
-                  className={inputCls}
+                <Dropdown
+                  label="Target Destination Link"
+                  value={isCustomMode || !isKnownPreset ? '__custom__' : bannerFormData.to}
+                  onChange={handleDropdownChange}
+                  options={destinationOptions}
+                  searchable
+                  searchPlaceholder="Search collections, pages, or products..."
+                  placeholder="Select a destination link..."
+                  variant="default"
                 />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                  Subtitle / Eyebrow Text
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. RETRO SNEAKERS. EVERYDAY CHARACTER."
-                  value={bannerFormData.subtitle}
-                  onChange={(e) => setBannerFormData({ ...bannerFormData, subtitle: e.target.value })}
-                  className={inputCls}
-                />
-              </div>
-            </div>
-          </div>
 
-          {/* Section 3: Call to Action & Link */}
-          <div className="border-t border-gray-100 pt-5">
-            <p className="text-xs font-bold text-primary uppercase tracking-wider mb-3">
-              3. Button & Link Destination
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {isCustomMode || !isKnownPreset ? (
+                  <div className="mt-2.5">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-semibold text-gray-700">
+                        Enter Custom Path or URL:
+                      </label>
+                      {isKnownPreset && (
+                        <button
+                          type="button"
+                          onClick={() => setUserWantsCustom(false)}
+                          className="text-[11px] text-primary hover:underline font-medium cursor-pointer"
+                        >
+                          Cancel custom URL
+                        </button>
+                      )}
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="e.g. /collections/men?sort=new or https://..."
+                      value={bannerFormData.to}
+                      onChange={(e) => setBannerFormData({ ...bannerFormData, to: e.target.value })}
+                      className={inputCls}
+                      autoFocus
+                    />
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-gray-500 mt-1.5 flex items-center justify-between">
+                    <span>
+                      Active: <code className="bg-gray-100 text-gray-700 font-mono px-1 py-0.5 rounded text-[10px]">{bannerFormData.to || '/collections'}</code>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setUserWantsCustom(true)}
+                      className="text-[11px] text-primary hover:underline font-medium cursor-pointer"
+                    >
+                      Type custom URL
+                    </button>
+                  </p>
+                )}
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                  Button Text (CTA)
+                  Banner Alt / Label (SEO & Accessibility)
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. EXPLORE THE COLLECTION"
-                  value={bannerFormData.ctaText}
-                  onChange={(e) => setBannerFormData({ ...bannerFormData, ctaText: e.target.value })}
-                  className={inputCls}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                  Target Destination Path / URL
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. /collections/men, /collections, etc."
-                  value={bannerFormData.to}
-                  onChange={(e) => setBannerFormData({ ...bannerFormData, to: e.target.value })}
-                  className={inputCls}
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                  Image Alt Text (SEO & Accessibility)
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Step Into Timeless Style - Retro Sneakers Everyday Character"
+                  placeholder="e.g. Retro Timeless Sneakers - Artisanal Heritage Drop"
                   value={bannerFormData.alt}
                   onChange={(e) => setBannerFormData({ ...bannerFormData, alt: e.target.value })}
                   className={inputCls}
                 />
+                <p className="text-[11px] text-gray-400 mt-1">
+                  Descriptive label for screen readers and SEO indexers.
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Section 4: Display Options */}
+          {/* Section 3: Display Options */}
           <div className="border-t border-gray-100 pt-5">
             <p className="text-xs font-bold text-primary uppercase tracking-wider mb-3">
-              4. Layout & Visibility
+              3. Layout & Visibility
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <label className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer">

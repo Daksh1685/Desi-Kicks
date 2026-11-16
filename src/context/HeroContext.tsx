@@ -5,7 +5,7 @@ export interface HeroSlide {
   id: string;
   isFullBanner?: boolean;
   scriptText?: string;
-  title: string;
+  title?: string;
   subtitle?: string;
   ctaText?: string;
   to: string;

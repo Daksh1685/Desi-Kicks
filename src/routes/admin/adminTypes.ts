@@ -1,6 +1,15 @@
 import type { ProductGender } from '../../types/product';
+import type { IconName } from '../../components/ui/Icon';
 
 export type AdminSection = 'dashboard' | 'catalog' | 'orders' | 'banners';
+
+export interface AdminNavItem {
+  id: AdminSection;
+  label: string;
+  icon: IconName;
+  path: string;
+  count?: number;
+}
 
 export const inputCls =
   'w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition';

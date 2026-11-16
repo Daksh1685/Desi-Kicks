@@ -85,9 +85,9 @@ function App() {
                 <ProductModalProvider>
                 <ScrollAndHashRedirectHandler />
                 <Routes>
-                  {/* Admin Operations Portal (Code-Split) */}
+                  {/* Admin Operations Portal (Code-Split with Nested Sub-Routes) */}
                   <Route
-                    path="/admin"
+                    path="/admin/*"
                     element={
                       <Suspense
                         fallback={

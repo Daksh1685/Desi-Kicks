@@ -81,7 +81,7 @@ export function Hero() {
                 <Link
                   to={slide.to}
                   className="block w-full h-full cursor-pointer relative"
-                  aria-label={`${slide.scriptText || ''} ${slide.title} - ${slide.subtitle || 'Explore The Collection'}`}
+                  aria-label={slide.alt || [slide.scriptText, slide.title, slide.subtitle].filter(Boolean).join(' - ') || 'Explore The Collection'}
                 >
                   <picture className="w-full h-full block">
                     {/* Mobile WebP format */}
@@ -115,7 +115,7 @@ export function Hero() {
                     <img
                       className="w-full h-full object-cover object-center"
                       src={slide.img}
-                      alt={slide.alt || slide.title}
+                      alt={slide.alt || slide.title || 'Hero Banner'}
                       loading={idx === 0 ? 'eager' : 'lazy'}
                     />
                   </picture>
@@ -128,7 +128,7 @@ export function Hero() {
                   <img
                     className="w-full h-full object-cover object-[75%_center] md:object-center brightness-90"
                     src={slide.img}
-                    alt={slide.alt || slide.title}
+                    alt={slide.alt || slide.title || 'Hero Banner'}
                     loading={idx === 0 ? 'eager' : 'lazy'}
                   />
 
@@ -143,9 +143,11 @@ export function Hero() {
                       )}
 
                       {/* Bold Condensed Title */}
-                      <h2 className="font-anton text-2xl sm:text-4xl md:text-5xl lg:text-6xl uppercase leading-[0.98] tracking-wide text-white drop-shadow-lg mb-1 md:mb-2 whitespace-pre-line">
-                        {slide.title}
-                      </h2>
+                      {slide.title && (
+                        <h2 className="font-anton text-2xl sm:text-4xl md:text-5xl lg:text-6xl uppercase leading-[0.98] tracking-wide text-white drop-shadow-lg mb-1 md:mb-2 whitespace-pre-line">
+                          {slide.title}
+                        </h2>
+                      )}
 
                       {/* Uppercase Letter-spaced Subtitle */}
                       {slide.subtitle && (

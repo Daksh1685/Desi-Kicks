@@ -1,19 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Icon, type IconName } from '../../components/ui/Icon';
 import craftYourSoleLogo from '../../assets/craftyoursole_logo.svg';
-import type { AdminSection } from './adminTypes';
-
-interface NavItem {
-  id: AdminSection;
-  label: string;
-  icon: IconName;
-  count?: number;
-}
+import type { AdminSection, AdminNavItem } from './adminTypes';
 
 interface AdminSidebarProps {
-  navItems: NavItem[];
+  navItems: AdminNavItem[];
   activeSection: AdminSection;
-  setActiveSection: (s: AdminSection) => void;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (v: boolean) => void;
   adminUser: string;
@@ -24,7 +16,6 @@ interface AdminSidebarProps {
 export function AdminSidebar({
   navItems,
   activeSection,
-  setActiveSection,
   sidebarCollapsed,
   setSidebarCollapsed,
   adminUser,
@@ -82,9 +73,9 @@ export function AdminSidebar({
         {navItems.map((item) => {
           const isActive = activeSection === item.id;
           return (
-            <button
+            <Link
               key={item.id}
-              onClick={() => setActiveSection(item.id)}
+              to={item.path}
               title={sidebarCollapsed ? item.label : undefined}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors cursor-pointer group ${isActive
                   ? 'bg-primary/10 text-primary'
@@ -108,7 +99,7 @@ export function AdminSidebar({
                   )}
                 </>
               )}
-            </button>
+            </Link>
           );
         })}
 

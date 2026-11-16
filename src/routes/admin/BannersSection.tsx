@@ -137,35 +137,13 @@ export function BannersSection({
                       'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop';
                   }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 flex flex-col justify-between p-2.5">
-                  <div className="flex items-center justify-between gap-1">
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-black/60 text-white backdrop-blur-xs">
-                      16:9 Desktop
-                    </span>
-                    {slide.mobileImg && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/90 text-white backdrop-blur-xs">
-                        + 9:16 Mobile
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    {slide.scriptText && (
-                      <p className="text-[11px] font-handwriting text-primary-light italic line-clamp-1 drop-shadow">
-                        {slide.scriptText}
-                      </p>
-                    )}
-                    <p className="text-xs font-black text-white line-clamp-1 drop-shadow">
-                      {slide.title || 'Untitled Banner'}
-                    </p>
-                  </div>
-                </div>
               </div>
 
               {/* Details & Target */}
               <div className="flex-1 min-w-0 space-y-1.5">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-extrabold text-gray-900 text-sm truncate">
-                    {slide.title || 'Full-Bleed Visual Banner'}
+                    {slide.alt || slide.title || 'Full-Bleed Visual Banner'}
                   </h3>
                   {slide.isFullBanner ? (
                     <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-200">
@@ -174,6 +152,11 @@ export function BannersSection({
                   ) : (
                     <span className="bg-purple-50 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded border border-purple-200">
                       Split Card Style
+                    </span>
+                  )}
+                  {slide.mobileImg && (
+                    <span className="bg-orange-50 text-primary text-[10px] font-bold px-2 py-0.5 rounded border border-orange-200">
+                      + 9:16 Mobile
                     </span>
                   )}
                   <button
@@ -189,21 +172,12 @@ export function BannersSection({
                   </button>
                 </div>
 
-                {slide.subtitle && (
-                  <p className="text-xs text-gray-600 line-clamp-1">
-                    {slide.subtitle}
-                  </p>
-                )}
-
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 pt-1">
                   <span className="flex items-center gap-1 font-mono text-[11px] bg-gray-50 px-2 py-0.5 rounded border border-gray-100">
-                    <span className="text-gray-400">Link:</span> {slide.to}
+                    <span className="text-gray-400">Target Link:</span> {slide.to}
                   </span>
-                  <span className="flex items-center gap-1 text-[11px]">
-                    <span className="text-gray-400">CTA:</span> "{slide.ctaText || 'EXPLORE'}"
-                  </span>
-                  <span className="flex items-center gap-1 text-[11px] text-gray-400 truncate max-w-xs" title={slide.img}>
-                    Src: {slide.img}
+                  <span className="flex items-center gap-1 text-[11px] text-gray-400 truncate max-w-sm" title={slide.img}>
+                    <span className="text-gray-400">Image:</span> {slide.img}
                   </span>
                 </div>
               </div>
@@ -222,8 +196,9 @@ export function BannersSection({
                 <button
                   type="button"
                   onClick={() => {
-                    if (confirm(`Delete banner "${slide.title || 'Untitled'}"?`)) {
-                      onDelete(slide.id, slide.title || 'Untitled');
+                    const bannerLabel = slide.alt || slide.title || 'Untitled Banner';
+                    if (confirm(`Delete banner "${bannerLabel}"?`)) {
+                      onDelete(slide.id, bannerLabel);
                       showToast('Hero banner deleted.');
                     }
                   }}

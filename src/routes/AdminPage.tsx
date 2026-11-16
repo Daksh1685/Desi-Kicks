@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useMemo } from 'react';
+import { useNavigate, useLocation, Routes, Route, Navigate } from 'react-router-dom';
 import { SeoHead } from '../components/SeoHead';
 import { useProductCatalog } from '../context/ProductContext';
 import { useOrders } from '../context/OrderContext';
@@ -13,6 +13,7 @@ import {
 // Subcomponents & types
 import {
   type AdminSection,
+  type AdminNavItem,
   ALL_ADMIN_SIZES,
   GENDER_SIZE_PRESETS,
 } from './admin/adminTypes';
@@ -132,8 +133,17 @@ export function AdminPage() {
     setIsAuthorized(false);
   };
 
-  // ─── UI State ────────────────────────────────────────────────────────────────
-  const [activeSection, setActiveSection] = useState<AdminSection>('dashboard');
+  // ─── UI & Routing State ───────────────────────────────────────────────────────
+  const location = useLocation();
+
+  // Derive active section from the current URL path
+  const activeSection: AdminSection = useMemo(() => {
+    const path = location.pathname.toLowerCase();
+    if (path.includes('/admin/products') || path.includes('/admin/catalog')) return 'catalog';
+    if (path.includes('/admin/orders')) return 'orders';
+    if (path.includes('/admin/banners')) return 'banners';
+    return 'dashboard';
+  }, [location.pathname]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [successToast, setSuccessToast] = useState<string | null>(null);
@@ -378,10 +388,6 @@ export function AdminPage() {
   const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
   const [editingBannerId, setEditingBannerId] = useState<string | null>(null);
   const [bannerFormData, setBannerFormData] = useState<BannerFormData>({
-    title: '',
-    scriptText: '',
-    subtitle: '',
-    ctaText: 'EXPLORE NOW',
     to: '/collections',
     img: '',
     imgWebp: '',
@@ -395,10 +401,6 @@ export function AdminPage() {
   const handleOpenAddBannerModal = () => {
     setEditingBannerId(null);
     setBannerFormData({
-      title: '',
-      scriptText: '',
-      subtitle: '',
-      ctaText: 'EXPLORE NOW',
       to: '/collections',
       img: '',
       imgWebp: '',
@@ -414,16 +416,12 @@ export function AdminPage() {
   const handleOpenEditBannerModal = (slide: HeroSlide) => {
     setEditingBannerId(slide.id);
     setBannerFormData({
-      title: slide.title || '',
-      scriptText: slide.scriptText || '',
-      subtitle: slide.subtitle || '',
-      ctaText: slide.ctaText || 'EXPLORE NOW',
       to: slide.to || '/collections',
       img: slide.img || '',
       imgWebp: slide.imgWebp || '',
       mobileImg: slide.mobileImg || '',
       mobileImgWebp: slide.mobileImgWebp || '',
-      alt: slide.alt || '',
+      alt: slide.alt || slide.title || '',
       isFullBanner: slide.isFullBanner ?? true,
       isActive: slide.isActive ?? true,
     });
@@ -438,15 +436,10 @@ export function AdminPage() {
     }
     const altText =
       bannerFormData.alt.trim() ||
-      bannerFormData.title.trim() ||
       'Hero Banner Promotion';
 
     if (editingBannerId) {
       updateHeroSlide(editingBannerId, {
-        title: bannerFormData.title.trim(),
-        scriptText: bannerFormData.scriptText.trim(),
-        subtitle: bannerFormData.subtitle.trim(),
-        ctaText: bannerFormData.ctaText.trim() || 'EXPLORE NOW',
         to: bannerFormData.to.trim() || '/collections',
         img: bannerFormData.img.trim(),
         imgWebp: bannerFormData.imgWebp.trim() || undefined,
@@ -459,10 +452,6 @@ export function AdminPage() {
       showToast('Hero banner updated successfully.');
     } else {
       addHeroSlide({
-        title: bannerFormData.title.trim(),
-        scriptText: bannerFormData.scriptText.trim(),
-        subtitle: bannerFormData.subtitle.trim(),
-        ctaText: bannerFormData.ctaText.trim() || 'EXPLORE NOW',
         to: bannerFormData.to.trim() || '/collections',
         img: bannerFormData.img.trim(),
         imgWebp: bannerFormData.imgWebp.trim() || undefined,
@@ -498,11 +487,11 @@ export function AdminPage() {
     );
   }
 
-  const navItems = [
-    { id: 'dashboard' as AdminSection, label: 'Dashboard', icon: 'briefcase' as const },
-    { id: 'catalog' as AdminSection, label: 'Products', icon: 'running' as const, count: products.length },
-    { id: 'orders' as AdminSection, label: 'Orders', icon: 'shopping_bag' as const, count: orders.length },
-    { id: 'banners' as AdminSection, label: 'Hero Banners', icon: 'lifestyle' as const, count: heroSlides.length },
+  const navItems: AdminNavItem[] = [
+    { id: 'dashboard', label: 'Dashboard', icon: 'briefcase', path: '/admin/dashboard' },
+    { id: 'catalog', label: 'Products', icon: 'running', path: '/admin/products', count: products.length },
+    { id: 'orders', label: 'Orders', icon: 'shopping_bag', path: '/admin/orders', count: orders.length },
+    { id: 'banners', label: 'Hero Banners', icon: 'lifestyle', path: '/admin/banners', count: heroSlides.length },
   ];
 
   return (
@@ -510,7 +499,7 @@ export function AdminPage() {
       <SeoHead
         title="Admin | CraftYourSole"
         description="CraftYourSole internal catalog and order management portal."
-        canonicalPath="/admin"
+        canonicalPath={location.pathname}
         noindex
       />
 
@@ -518,13 +507,12 @@ export function AdminPage() {
       <AdminSidebar
         navItems={navItems}
         activeSection={activeSection}
-        setActiveSection={setActiveSection}
         sidebarCollapsed={sidebarCollapsed}
         setSidebarCollapsed={setSidebarCollapsed}
         adminUser={adminUser}
         onLogout={handleAdminLogout}
         onAddProduct={() => {
-          setActiveSection('catalog');
+          navigate('/admin/products');
           setIsAddModalOpen(true);
         }}
       />
@@ -558,57 +546,78 @@ export function AdminPage() {
             </div>
           )}
 
-          {/* Section: Dashboard */}
-          {activeSection === 'dashboard' && (
-            <DashboardSection
-              products={products}
-              orders={orders}
-              metrics={metrics}
-              onViewCatalog={() => setActiveSection('catalog')}
+          {/* Sub-Routes Section Views */}
+          <Routes>
+            <Route
+              index
+              element={
+                <DashboardSection
+                  products={products}
+                  orders={orders}
+                  metrics={metrics}
+                  onViewCatalog={() => navigate('/admin/products')}
+                />
+              }
             />
-          )}
-
-          {/* Section: Catalog */}
-          {activeSection === 'catalog' && (
-            <CatalogSection
-              products={products}
-              onEdit={handleOpenEditModal}
-              onDelete={(id, name) => {
-                deleteProduct(id);
-                showToast(`Removed "${name}".`);
-              }}
-              onToggleStatus={toggleProductStatus}
-              onReset={resetToDefaultCatalog}
-              onAdd={() => setIsAddModalOpen(true)}
-              showToast={showToast}
+            <Route
+              path="dashboard"
+              element={
+                <DashboardSection
+                  products={products}
+                  orders={orders}
+                  metrics={metrics}
+                  onViewCatalog={() => navigate('/admin/products')}
+                />
+              }
             />
-          )}
-
-          {/* Section: Orders */}
-          {activeSection === 'orders' && (
-            <OrdersSection
-              orders={orders}
-              onUpdateStatus={updateOrderStatus}
-              onResetDemo={resetOrders}
-              onClearAll={clearAllOrders}
-              showToast={showToast}
+            <Route
+              path="products"
+              element={
+                <CatalogSection
+                  products={products}
+                  onEdit={handleOpenEditModal}
+                  onDelete={(id, name) => {
+                    deleteProduct(id);
+                    showToast(`Removed "${name}".`);
+                  }}
+                  onToggleStatus={toggleProductStatus}
+                  onReset={resetToDefaultCatalog}
+                  onAdd={() => setIsAddModalOpen(true)}
+                  showToast={showToast}
+                />
+              }
             />
-          )}
-
-          {/* Section: Hero Banners */}
-          {activeSection === 'banners' && (
-            <BannersSection
-              heroSlides={heroSlides}
-              activeHeroSlides={activeHeroSlides}
-              onMove={moveHeroSlide}
-              onToggleActive={toggleHeroSlideActive}
-              onEdit={handleOpenEditBannerModal}
-              onDelete={deleteHeroSlide}
-              onAdd={handleOpenAddBannerModal}
-              onReset={resetHeroSlides}
-              showToast={showToast}
+            <Route path="catalog" element={<Navigate to="/admin/products" replace />} />
+            <Route
+              path="orders"
+              element={
+                <OrdersSection
+                  orders={orders}
+                  onUpdateStatus={updateOrderStatus}
+                  onResetDemo={resetOrders}
+                  onClearAll={clearAllOrders}
+                  showToast={showToast}
+                />
+              }
             />
-          )}
+            <Route
+              path="banners"
+              element={
+                <BannersSection
+                  heroSlides={heroSlides}
+                  activeHeroSlides={activeHeroSlides}
+                  onMove={moveHeroSlide}
+                  onToggleActive={toggleHeroSlideActive}
+                  onEdit={handleOpenEditBannerModal}
+                  onDelete={deleteHeroSlide}
+                  onAdd={handleOpenAddBannerModal}
+                  onReset={resetHeroSlides}
+                  showToast={showToast}
+                />
+              }
+            />
+            <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+          </Routes>
         </main>
       </div>
 
