@@ -98,8 +98,7 @@ export function calculateBestSellerScore(
 
 /**
  * Curated Fallback Best Sellers
- * Used when the store is launching or catalog has no orders yet,
- * ensuring the storefront looks vibrant, realistic, and complete.
+ * Clean placeholders ready for your custom images anytime.
  */
 export const FALLBACK_BEST_SELLERS: Product[] = [
   {
@@ -114,7 +113,7 @@ export const FALLBACK_BEST_SELLERS: Product[] = [
     originalPrice: 3999,
     rating: 4.9,
     reviewsCount: 428,
-    img: '/hero/category-men.jpg',
+    img: '', // Drop your image path here anytime (e.g. /products/retro-sneaker.jpg)
     description: 'Iconic low-top retro sneaker with dual-density cushioned sole and suede accents.',
     story: 'Designed for effortless everyday character and all-day street comfort.',
     upperMaterial: 'Full-Grain Vegan Suede & Breathable Canvas',
@@ -135,6 +134,37 @@ export const FALLBACK_BEST_SELLERS: Product[] = [
   },
   {
     id: 'bs-2',
+    slug: 'mens-heritage-street-sneaker',
+    name: "Men's Heritage Street Sneaker",
+    category: 'Men',
+    subcategory: 'Casual Sneakers',
+    gender: 'Men',
+    tag: 'Best Seller',
+    price: 2699,
+    originalPrice: 4199,
+    rating: 4.9,
+    reviewsCount: 385,
+    img: '', // Drop your image path here
+    description: 'Vintage olive and cream retro sneaker with gum sole and plush collar.',
+    story: 'Tailored for relaxed tailoring, chinos, and everyday urban street style.',
+    upperMaterial: 'Suede Overlays with Soft Action Leather',
+    soleMaterial: 'Vintage Gum Rubber Sole',
+    insoleType: 'High-Density Arch Cushion',
+    idealFor: 'Smart Casuals, Chinos & Daily Street Style',
+    sizes: ['UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11'],
+    variants: [
+      { size: 'UK 7', stock: 12 },
+      { size: 'UK 8', stock: 20 },
+      { size: 'UK 9', stock: 28 },
+      { size: 'UK 10', stock: 16 },
+      { size: 'UK 11', stock: 8 },
+    ],
+    isActive: true,
+    totalSold: 590,
+    createdAt: '2026-01-20T00:00:00.000Z',
+  },
+  {
+    id: 'bs-3',
     slug: 'womens-dusty-rose-bloom-sneaker',
     name: "Women's In Bloom Pastel Sneaker",
     category: 'Women',
@@ -145,7 +175,7 @@ export const FALLBACK_BEST_SELLERS: Product[] = [
     originalPrice: 3499,
     rating: 4.8,
     reviewsCount: 315,
-    img: '/hero/category-women.jpg',
+    img: '', // Drop your image path here
     description: 'Soft dusty rose casual trainer with plush ankle collar and ultra-lightweight sole.',
     story: 'Blends playful floral undertones with cloud-like walking comfort.',
     upperMaterial: 'Pastel Microfiber & Breathable Knit',
@@ -165,7 +195,7 @@ export const FALLBACK_BEST_SELLERS: Product[] = [
     createdAt: '2026-02-01T00:00:00.000Z',
   },
   {
-    id: 'bs-3',
+    id: 'bs-4',
     slug: 'playful-kids-active-sneaker',
     name: "Playful Kids' Easy-Strap Sneaker",
     category: 'Kids',
@@ -176,7 +206,7 @@ export const FALLBACK_BEST_SELLERS: Product[] = [
     originalPrice: 2499,
     rating: 4.9,
     reviewsCount: 260,
-    img: '/hero/category-kids.jpg',
+    img: '', // Drop your image path here
     description: 'Durable playground runner with easy hook-and-loop strap and cute heart detail.',
     story: 'Engineered for non-stop play with reinforced toe guards and flexible sole.',
     upperMaterial: 'Durable Anti-Scuff Synthetic Leather',
@@ -196,7 +226,7 @@ export const FALLBACK_BEST_SELLERS: Product[] = [
     createdAt: '2026-02-10T00:00:00.000Z',
   },
   {
-    id: 'bs-4',
+    id: 'bs-5',
     slug: 'royal-velvet-embroidered-mojari',
     name: 'Royal Velvet Embroidered Mojari',
     category: 'Festive & Ethnic',
@@ -207,7 +237,7 @@ export const FALLBACK_BEST_SELLERS: Product[] = [
     originalPrice: 4299,
     rating: 4.9,
     reviewsCount: 348,
-    img: 'https://images.unsplash.com/photo-1535043934128-cf0b28d52f95?q=80&w=800&auto=format&fit=crop',
+    img: '', // Drop your image path here
     description: 'Handcrafted royal velvet mojari with intricate gold Zari threadwork and zero heel-bite.',
     story: 'Handcrafted by generational artisans in Jaipur with double-padded arch cushion.',
     upperMaterial: 'Pure Royal Velvet with Hand-Embroidered Zari',
@@ -226,7 +256,7 @@ export const FALLBACK_BEST_SELLERS: Product[] = [
     createdAt: '2026-01-05T00:00:00.000Z',
   },
   {
-    id: 'bs-5',
+    id: 'bs-6',
     slug: 'cloudknit-daily-slip-on-loafer',
     name: 'CloudKnit Daily Slip-On Loafer',
     category: 'Daily Comfort',
@@ -237,7 +267,7 @@ export const FALLBACK_BEST_SELLERS: Product[] = [
     originalPrice: 2999,
     rating: 4.8,
     reviewsCount: 512,
-    img: 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=800&auto=format&fit=crop',
+    img: '', // Drop your image path here
     description: 'Ultra-lightweight slip-on with 3D breathable knit upper and rebound EVA midsole.',
     story: 'Engineered for 12+ hour daily commutes, office wear, and relaxed weekend walking.',
     upperMaterial: 'Engineered 3D Breathable AirKnit Yarn',
@@ -256,7 +286,7 @@ export const FALLBACK_BEST_SELLERS: Product[] = [
     createdAt: '2026-01-20T00:00:00.000Z',
   },
   {
-    id: 'bs-6',
+    id: 'bs-7',
     slug: 'vortex-flex-gym-runner',
     name: 'Vortex Flex Gym & Road Runner',
     category: 'Gym & Sports',
@@ -267,7 +297,7 @@ export const FALLBACK_BEST_SELLERS: Product[] = [
     originalPrice: 3899,
     rating: 4.8,
     reviewsCount: 421,
-    img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop',
+    img: '', // Drop your image path here
     description: 'High-rebound road runner with shock-absorbing midsole and carbon traction pods.',
     story: 'Precision-tuned for cardio, morning runs, and intense gym workouts.',
     upperMaterial: 'Multi-Zone Performance Mesh',
