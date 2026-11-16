@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-export interface GenderCategoryCard {
+interface GenderCategoryCard {
   id: string;
   title: string;
   to: string;
@@ -9,7 +9,7 @@ export interface GenderCategoryCard {
   alt: string;
 }
 
-export const GENDER_CARDS: GenderCategoryCard[] = [
+const GENDER_CARDS: GenderCategoryCard[] = [
   {
     id: 'men',
     title: "Men's Collection",

@@ -113,7 +113,7 @@ export const FALLBACK_BEST_SELLERS: Product[] = [
     originalPrice: 3999,
     rating: 4.9,
     reviewsCount: 428,
-    img: '', // Drop your image path here anytime (e.g. /products/retro-sneaker.jpg)
+    img: '/products/retro-timeless-sneaker.jpg',
     description: 'Iconic low-top retro sneaker with dual-density cushioned sole and suede accents.',
     story: 'Designed for effortless everyday character and all-day street comfort.',
     upperMaterial: 'Full-Grain Vegan Suede & Breathable Canvas',
@@ -144,7 +144,7 @@ export const FALLBACK_BEST_SELLERS: Product[] = [
     originalPrice: 4199,
     rating: 4.9,
     reviewsCount: 385,
-    img: '', // Drop your image path here
+    img: '/products/mens-heritage-sneaker.jpg',
     description: 'Vintage olive and cream retro sneaker with gum sole and plush collar.',
     story: 'Tailored for relaxed tailoring, chinos, and everyday urban street style.',
     upperMaterial: 'Suede Overlays with Soft Action Leather',
@@ -175,7 +175,7 @@ export const FALLBACK_BEST_SELLERS: Product[] = [
     originalPrice: 3499,
     rating: 4.8,
     reviewsCount: 315,
-    img: '', // Drop your image path here
+    img: '/products/womens-in-bloom-sneaker.jpg',
     description: 'Soft dusty rose casual trainer with plush ankle collar and ultra-lightweight sole.',
     story: 'Blends playful floral undertones with cloud-like walking comfort.',
     upperMaterial: 'Pastel Microfiber & Breathable Knit',
@@ -206,7 +206,7 @@ export const FALLBACK_BEST_SELLERS: Product[] = [
     originalPrice: 2499,
     rating: 4.9,
     reviewsCount: 260,
-    img: '', // Drop your image path here
+    img: '/products/kids-playful-sneaker.jpg',
     description: 'Durable playground runner with easy hook-and-loop strap and cute heart detail.',
     story: 'Engineered for non-stop play with reinforced toe guards and flexible sole.',
     upperMaterial: 'Durable Anti-Scuff Synthetic Leather',
@@ -237,7 +237,7 @@ export const FALLBACK_BEST_SELLERS: Product[] = [
     originalPrice: 4299,
     rating: 4.9,
     reviewsCount: 348,
-    img: '', // Drop your image path here
+    img: 'https://images.unsplash.com/photo-1535043934128-cf0b28d52f95?q=80&w=800&auto=format&fit=crop',
     description: 'Handcrafted royal velvet mojari with intricate gold Zari threadwork and zero heel-bite.',
     story: 'Handcrafted by generational artisans in Jaipur with double-padded arch cushion.',
     upperMaterial: 'Pure Royal Velvet with Hand-Embroidered Zari',
@@ -267,7 +267,7 @@ export const FALLBACK_BEST_SELLERS: Product[] = [
     originalPrice: 2999,
     rating: 4.8,
     reviewsCount: 512,
-    img: '', // Drop your image path here
+    img: 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=800&auto=format&fit=crop',
     description: 'Ultra-lightweight slip-on with 3D breathable knit upper and rebound EVA midsole.',
     story: 'Engineered for 12+ hour daily commutes, office wear, and relaxed weekend walking.',
     upperMaterial: 'Engineered 3D Breathable AirKnit Yarn',
@@ -297,7 +297,7 @@ export const FALLBACK_BEST_SELLERS: Product[] = [
     originalPrice: 3899,
     rating: 4.8,
     reviewsCount: 421,
-    img: '', // Drop your image path here
+    img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop',
     description: 'High-rebound road runner with shock-absorbing midsole and carbon traction pods.',
     story: 'Precision-tuned for cardio, morning runs, and intense gym workouts.',
     upperMaterial: 'Multi-Zone Performance Mesh',

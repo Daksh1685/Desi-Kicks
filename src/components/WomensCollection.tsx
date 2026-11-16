@@ -5,7 +5,7 @@ import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useProductModal } from '../context/ProductModalContext';
 
-export interface WomenProductPlaceholder {
+interface WomenProductPlaceholder {
   id: string;
   slug: string;
   name: string;
@@ -16,15 +16,14 @@ export interface WomenProductPlaceholder {
   originalPrice: number;
   rating: number;
   reviewsCount: number;
-  img: string; // Placeholder: drop your images here anytime
+  img: string;
   sizes: string[];
 }
 
 /**
- * Curated Women's Collection placeholders.
- * You can replace `img: ''` with your image paths anytime.
+ * Curated Women's Collection footwear.
  */
-export const WOMEN_PLACEHOLDER_PRODUCTS: WomenProductPlaceholder[] = [
+const WOMEN_PLACEHOLDER_PRODUCTS: WomenProductPlaceholder[] = [
   {
     id: 'w-1',
     slug: 'flora-botanical-cushion-slide',
@@ -35,7 +34,7 @@ export const WOMEN_PLACEHOLDER_PRODUCTS: WomenProductPlaceholder[] = [
     originalPrice: 2999,
     rating: 4.9,
     reviewsCount: 382,
-    img: '',
+    img: '/products/floral-botanical-slide.jpg',
     sizes: ['UK 4', 'UK 5', 'UK 6', 'UK 7', 'UK 8'],
   },
   {
@@ -48,7 +47,7 @@ export const WOMEN_PLACEHOLDER_PRODUCTS: WomenProductPlaceholder[] = [
     originalPrice: 3499,
     rating: 4.9,
     reviewsCount: 415,
-    img: '',
+    img: '/products/womens-in-bloom-sneaker.jpg',
     sizes: ['UK 4', 'UK 5', 'UK 6', 'UK 7', 'UK 8'],
   },
   {
@@ -61,7 +60,7 @@ export const WOMEN_PLACEHOLDER_PRODUCTS: WomenProductPlaceholder[] = [
     originalPrice: 3799,
     rating: 4.8,
     reviewsCount: 289,
-    img: '',
+    img: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=800&auto=format&fit=crop',
     sizes: ['UK 4', 'UK 5', 'UK 6', 'UK 7', 'UK 8'],
   },
   {
@@ -74,7 +73,7 @@ export const WOMEN_PLACEHOLDER_PRODUCTS: WomenProductPlaceholder[] = [
     originalPrice: 3299,
     rating: 4.9,
     reviewsCount: 340,
-    img: '',
+    img: 'https://images.unsplash.com/photo-1535043934128-cf0b28d52f95?q=80&w=800&auto=format&fit=crop',
     sizes: ['UK 4', 'UK 5', 'UK 6', 'UK 7', 'UK 8'],
   },
   {
@@ -87,7 +86,7 @@ export const WOMEN_PLACEHOLDER_PRODUCTS: WomenProductPlaceholder[] = [
     originalPrice: 2699,
     rating: 4.8,
     reviewsCount: 275,
-    img: '',
+    img: '/products/meadow-cork-slide.jpg',
     sizes: ['UK 4', 'UK 5', 'UK 6', 'UK 7', 'UK 8'],
   },
   {
@@ -100,7 +99,7 @@ export const WOMEN_PLACEHOLDER_PRODUCTS: WomenProductPlaceholder[] = [
     originalPrice: 3599,
     rating: 4.8,
     reviewsCount: 210,
-    img: '',
+    img: 'https://images.unsplash.com/photo-1515347619252-60a4bf4fff4f?q=80&w=800&auto=format&fit=crop',
     sizes: ['UK 4', 'UK 5', 'UK 6', 'UK 7', 'UK 8'],
   },
 ];

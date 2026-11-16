@@ -9,9 +9,9 @@ This document tracks the architecture, implementation status, and **verifiable f
 | Phase | Focus Area | Completion | Target Milestone | Status |
 |---|---|:---:|---|:---:|
 | **Phase 1** | **Storefront, Rebrand, Routes & SEO Foundation** | **100%** | Pre-Launch | 🟢 Complete |
-| **Phase 2** | **Backend Persistence, Auth Security & Payments** | **85%** | Launch Blocker | 🟡 In Progress |
+| **Phase 2** | **Backend Persistence, Auth Security & Shiprocket Checkout (Address & Payments)** | **85%** | Launch Blocker | 🟡 In Progress |
 | **Phase 3** | **Admin Dashboard & Inventory/Order Security** | **95%** | Launch Blocker | 🟢 Launch Ready |
-| **Phase 4** | **Fulfillment, Logistics API & Customer Notifications** | **15%** | Post-Launch M1 | ⚪ Planned |
+| **Phase 4** | **Shiprocket Logistics API, Fulfillment & Customer Notifications** | **15%** | Post-Launch M1 | ⚪ Planned |
 | **Phase 5** | **Scale, Automated Testing, CI/CD & Performance** | **70%** | Ongoing | 🟡 In Progress |
 
 ---
@@ -31,13 +31,12 @@ graph TD
         NG["Nginx Alpine (nginx.conf.template)"]
     end
 
-    subgraph Auth & Data Services
+    subgraph Auth, Data & Shiprocket Services
         FA["Firebase Auth (Customer Google OAuth)"]
         SB["Supabase PostgreSQL (Products, Variants, Orders, Coupons)"]
         ST["Supabase Storage (product-images bucket)"]
         REC["Best Seller & Merchandising Engine (bestSellerAlgorithm.ts)"]
-        PAY["Payment Gateway (Razorpay / Cashfree - Next)"]
-        SHIP["Logistics API (Shiprocket / Delhivery - Planned)"]
+        SR["Shiprocket Unified Suite (Checkout, Address Intel, Payments & Logistics API)"]
     end
 
     C1 --> CF --> CR --> NG
@@ -45,11 +44,11 @@ graph TD
     C1 --> FA
     C1 --> SB
     C1 --> REC
-    C1 --> PAY
+    C1 --> SR
     C2 --> SB
     C2 --> ST
     C2 --> REC
-    C2 --> SHIP
+    C2 --> SR
 ```
 
 ---
@@ -65,7 +64,7 @@ Work through each `FR-*` item below in order before switching off `PreLaunchBann
 | **FR-01** | **Brand Identity & Visual Assets** | 🟢 Implemented | ✅ Official SVG logo (`craftyoursole_logo.svg`) wired across `Navbar`, `Footer`, `LoginPage`, and `AdminPage` (both expanded sidebar & collapsed icon mode + login screen). Favicon active. Zero residual "DESIKICKS" in customer UI. | Load `/` and `/admin` on desktop & mobile; confirm CraftYourSole logo and favicon appear crisp and clear. |
 | **FR-02** | **Navigation & All Storefront Routes** | 🟢 Implemented | All 7 collection slugs (`/collections/*`), `/products/:slug`, `/about`, `/size-guide`, `/authenticity`, `/shipping-policy`, `/returns-exchange`, `/contact`, `/privacy-policy`, `/terms`, `/track-order`, and `*` 404 exist | Click every header nav item, category card, and footer link; verify zero dead links and unknown URLs render `NotFoundPage` |
 | **FR-03** | **Search Bar & Collection Filtering** | 🟢 Implemented | ✅ `Navbar` and `MobileSearch` filter live catalog (`useProductCatalog().activeProducts`). `CollectionsPage.tsx` features a full multi-filter engine: taxonomy categories, dynamic subcategory chips, UK size buttons (`UK 6`–`UK 11`), price range bands, gender selector, and sort dropdown. | Add a product in `/admin`, search for it in header search and filter by size/price on `/collections`. Confirm live match and filtering. |
-| **FR-04** | **Product Detail, Size Selection & Reviews** | 🟡 Partial | Deep links, tabs, size guide, and reviews work via `localStorage`; pincode checker (`ProductDetailPage.tsx`) uses mock date math instead of real serviceability | Open `/products/royal-velvet-embroidered-mojari`, switch images, select UK size, check pincode, submit review, reload and verify persistence |
+| **FR-04** | **Product Detail, Size Selection & Reviews** | 🟡 Partial | Deep links, tabs, size guide, and reviews work via `localStorage`; pincode checker (`ProductDetailPage.tsx`) uses mock date math instead of Shiprocket live courier serviceability API | Open `/products/royal-velvet-embroidered-mojari`, switch images, select UK size, check pincode via Shiprocket SLA, submit review, reload and verify persistence |
 | **FR-05** | **Persistent Wishlist Across Views** | 🟢 Implemented | ✅ Implemented global `WishlistContext.tsx` persisted to `craftyoursole_wishlist`. Wired to all heart icons in `ProductCard`, `ProductDetailPage`, and `ProductDetailModal`. Badged in `Navbar` and `BottomNav` with direct navigation to `/profile?tab=wishlist`. `ProfilePage.tsx` renders real wishlisted items with "Move to Bag" and removal. | Click heart on any product card, verify red counter on header and bottom nav, click badge to navigate to `/profile?tab=wishlist`, reload page, and verify persistence. |
 
 ### B. Authentication, Security & Access Control (`FR-06` – `FR-08`)
@@ -74,15 +73,15 @@ Work through each `FR-*` item below in order before switching off `PreLaunchBann
 |---|---|---|---|---|
 | **FR-06** | **Firebase Google Sign-In for Customers** | 🟢 Implemented | ✅ Dedicated `/login` and `/signin` route (`LoginPage.tsx`) with Google Sign-In; wired header button in `Navbar.tsx`; 1-click Google Sign-In banner in checkout `CartPage.tsx`; linked to `craftyoursole.in` authorized domain in Firebase. | Visit `/login` or click "Sign In" in header or cart. Complete Google OAuth popup: verify automatic redirect and profile pre-fill. |
 | **FR-07** | **Admin Portal Authentication & RBAC** | 🟢 Implemented | ✅ Dedicated Administrator Credentials authentication for `/admin` (`AdminPage.tsx`). Completely decoupled from Google Sign-In; requires configured admin username/email (`VITE_ADMIN_USER`) and password (`VITE_ADMIN_PASSWORD`). Session persistence, password visibility toggle, session lock & sign out button. | Open `/admin` in Incognito: verify full-screen login wall prompts for admin credentials with zero Google Sign-In buttons. Valid credentials unlock portal immediately. |
-| **FR-08** | **Phone OTP Login (Optional for India COD)** | ⚪ Planned | Only Google Sign-In exists in `firebase.ts`; Phone OTP helps reduce COD fraud and friction for non-Google shoppers | Sign in with Indian mobile `+91` OTP and confirm session creation |
+| **FR-08** | **Shiprocket 1-Click Checkout & Phone OTP Login** | ⚪ Planned | Only Google Sign-In exists in `firebase.ts`; Shiprocket Checkout handles mobile OTP login with pre-filled address intelligence across 200M+ Indian shoppers, reducing COD fraud | Sign in with Indian mobile `+91` OTP in checkout, confirm pre-filled address and session creation |
 
 ### C. Cart, Checkout & Payments (`FR-09` – `FR-12`)
 
 | ID | Requirement | Current State | Gaps / Work Required | How to Verify |
 |---|---|---|---|---|
 | **FR-09** | **Cart Operations & Coupon Validation** | 🟢 Implemented | ✅ Add/remove items, update quantity/size, and `CartContext` sync work. Supabase coupon validation helper wired in `src/lib/supabase.ts` (`validateCouponInSupabase`). | Add product, change size/qty in `/cart`, apply coupon, reload page, verify totals match |
-| **FR-10** | **Customer Address Form (Replace Demo Data)** | 🟢 Implemented | ✅ Replaced hardcoded Bengaluru demo address radio choices in `CartPage.tsx` with interactive, validated customer shipping address form (Full Name, 10-digit Phone with `+91`, Email, Street Address, City, State, 6-digit Indian PIN code). Pre-fills from user profile. | Proceed to checkout in `/cart`: enter custom address, verify validation on empty or malformed fields, place order and verify real shipping address appears on confirmation screen and in order details. |
-| **FR-11** | **Live Payment Gateway & Webhook Verification** | 🔴 **Launch Blocker** | Checkout currently operates in simulated mode; integrate Razorpay / Cashfree order creation + signature verification + COD confirmation. | Complete a Razorpay/Cashfree test transaction (`UPI` / `Card`) and verify order transitions to `PAID` only after verified callback |
+| **FR-10** | **Customer Address Management (Shiprocket Intel + Fallback)** | 🟢 Implemented / Upgrading to Shiprocket | ✅ Replaced hardcoded demo addresses in `CartPage.tsx` with interactive, validated customer shipping address form (Full Name, 10-digit Phone, Email, Street, City, State, 6-digit PIN). Upgrading to Shiprocket Checkout pre-filled address intelligence. | Proceed to checkout in `/cart`: verify Shiprocket address auto-fill for mobile numbers and manual address validation on fallback. |
+| **FR-11** | **Live Payment Gateway & Webhook Verification (Shiprocket Payments)** | 🔴 **Launch Blocker** | Checkout currently operates in simulated mode; integrate Shiprocket Payments (UPI Intent, QR, Cards, NetBanking, and verified COD) with webhook signature verification. | Complete a Shiprocket test transaction (`UPI` / `Card` / `COD`) and verify order transitions to `PAID` only after verified callback |
 | **FR-12** | **Stock Validation & Variant Deduction** | 🟢 Implemented | ✅ Added `checkStockAvailability` and `deductVariantStock` in `ProductContext.tsx`. Order placement validates stock availability before placing and decrements variant stock automatically. In `ProductDetailPage.tsx`, disabled Add to Bag & Buy Now on out-of-stock sizes. `ProductCard.tsx` disables quick-add when sold out. | Set a size stock to `0` in `/admin` → Verify size button shows "Out", Add to Bag shows "Out of Stock" and is disabled on PDP. Order in-stock footwear → Verify stock decrements. |
 
 ### D. Backend Persistence & Operational Workflows (`FR-13` – `FR-15`)
@@ -91,7 +90,7 @@ Work through each `FR-*` item below in order before switching off `PreLaunchBann
 |---|---|---|---|---|
 | **FR-13** | **Real Database Persistence (Supabase Integration)** | 🟢 Implemented | ✅ Integrated `@supabase/supabase-js` in `src/lib/supabase.ts`. Comprehensive schema created (`supabase-schema.sql`) covering `products`, `product_variants`, `orders`, and `coupons` with RLS policies and `product-images` storage bucket. `OrderContext` saves orders to Supabase. `ProductContext` syncs from Supabase if configured. | Check Supabase dashboard table editor for `orders` and `products`. Place an order and confirm record appears in Supabase. |
 | **FR-14** | **Contact & Newsletter Form Delivery** | 🔴 Gap | `Footer.tsx` newsletter form and `ContactPage` form show local UI confirmation without saving to DB or sending email. | Submit inquiry on `/contact` and email in footer; confirm record lands in Supabase or sends email to `support@craftyoursole.in`. |
-| **FR-15** | **Order Tracking & Fulfillment Updates** | 🟡 Partial | `/admin` updates order status with status buttons (Pending → Packing → Shipped → Delivered); `/track-order` lookup needs wiring to query Supabase `orders` table directly by Order ID + Phone/Email. | Update order status to `Shipped` in `/admin`, then look up order ID on `/track-order` and `/profile`. |
+| **FR-15** | **Order Tracking & Shiprocket Fulfillment Updates** | 🟡 Partial | `/admin` updates order status with status buttons (Pending → Packing → Shipped → Delivered); `/track-order` and `/profile` lookup need wiring to Shiprocket Courier Tracking API & Supabase `orders` table by Order ID + Phone/Email. | Update order status to `Shipped` in `/admin`, generate Shiprocket AWB, then look up order ID on `/track-order` and `/profile` to verify live courier dispatch milestones. |
 
 ### E. SEO, Search Console & Cloud Deployment (`FR-16` – `FR-19`)
 
@@ -128,7 +127,7 @@ Work through each `FR-*` item below in order before switching off `PreLaunchBann
 
 | ID | Requirement | Current State | Gaps / Work Required | How to Verify |
 |---|---|---|---|---|
-| **FR-27** | **Direct Product Media Upload to Supabase Storage (`AdminPage.tsx`)** | 🔴 Gap | `AdminPage.tsx` currently accepts image URLs; wire direct drag-and-drop or file upload to Supabase Storage bucket (`product-images`). | Upload images from local device in Add/Edit product modal and confirm image loads from Supabase bucket URL. |
+| **FR-27** | **Direct Product Media Upload to Supabase Storage (`AdminPage.tsx`)** | 🟢 Implemented | ✅ Added reusable `ImageUploadField.tsx` with drag-and-drop, Supabase Storage (`product-images` bucket) upload helper (`uploadImageToSupabase`), local FileReader preview fallback, and live URL override across `ProductFormModal.tsx` (primary + 4 angles) and `BannerFormModal.tsx` (desktop + mobile). | Open `/admin` → Products or Hero Banners → Add/Edit modal. Select an image file or drag-and-drop; verify automatic upload/preview and save. |
 | **FR-28** | **Order Cancellation, Returns & GST Tax Invoicing (`ProfilePage.tsx`)** | 🟢 Implemented | ✅ `ProfilePage.tsx` features 7-day doorstep Size Exchange & Return modal, printable GST Tax Invoice modal, live delivery tracking modal, and `CYS-` order numbering. | Open `/profile`, click "Size Exchange", "Print Invoice", and verify modal functionality. |
 | **FR-29** | **Coupon CMS in Admin (`AdminPage.tsx`)** | 🟡 Partial | Coupons table and initial seeds (`FESTIVE20`, `DIWALI500`, `WELCOME10`) created in Supabase schema. Admin UI for creating/deleting coupons from the admin panel can be added to sidebar. | Create a coupon in `/admin` and verify customer can apply it in `/cart`. |
 | **FR-30** | **Secrets Hygiene & Production Config** | 🟢 Implemented | ✅ `.env.example` rebranded to CraftYourSole. Production Dockerfile clean. Supabase keys and Admin credentials configured. | Verify zero hardcoded secrets in source files. |
@@ -151,14 +150,14 @@ Work through each `FR-*` item below in order before switching off `PreLaunchBann
 - [x] **Unified Live Search & Collection Filters (`FR-03`, `FR-35`)**: Multi-filter engine on `CollectionsPage`: subcategories, UK sizes, price range, gender, in-stock toggle, and sorting.
 - [x] **Persistent Wishlist Context (`FR-05`)**: Global `WishlistContext` synced with header/bottom badges and `/profile`.
 
-### Phase 2: Backend Services, Auth Security & Payments
+### Phase 2: Backend Services, Auth Security & Shiprocket Checkout (Address & Payments)
 - [x] **Firebase SDK & Google Sign-In (`src/lib/firebase.ts`, `LoginPage.tsx`)**: Google OAuth popup and auth listener implemented.
 - [x] **Supabase Client & Relational Schema (`supabase.ts`, `supabase-schema.sql`)**: PostgreSQL database with products, variants, orders, coupons, and storage bucket.
 - [x] **Order & Product DB Sync**: `OrderContext` persists orders to Supabase; `ProductContext` syncs from DB.
-- [x] **Customer Address Form & Guest Checkout (`FR-10`)**: Full Indian address form with phone and PIN validation.
-- [ ] **Razorpay / Cashfree Payment Integration (`FR-11`)**: Live UPI/Card/NetBanking checkout + webhook verification.
+- [x] **Customer Address Form & Fallback (`FR-10`)**: Full Indian address form with phone and PIN validation.
+- [ ] **Shiprocket Checkout & Payments Integration (`FR-11`, `FR-10`)**: 1-click checkout with pre-filled address intelligence, UPI Intent, Cards, NetBanking, COD, and webhook verification.
 - [ ] **Contact & Newsletter Form Delivery (`FR-14`)**: Save inquiries to DB or email `support@craftyoursole.in`.
-- [ ] **Live Pincode Serviceability**: Courier pincode delivery estimation API.
+- [ ] **Shiprocket Pincode Serviceability & Delivery SLA API (`FR-04`)**: Real-time courier delivery SLA query replacing mock date math.
 
 ### Phase 3: Admin Dashboard (Sales Monitoring & Operations)
 - [x] **Clean White Redesign & Sidebar Navigation**: Dashboard, Products, and Orders sections with collapsible sidebar and official logo.
@@ -167,15 +166,15 @@ Work through each `FR-*` item below in order before switching off `PreLaunchBann
 - [x] **Product Catalog Table & CRUD (`FR-23`)**: Add, Edit, and Delete modals with 5-angle image inputs, subcategories, gender, and per-size stock matrix.
 - [x] **Per-Size Inventory Management & Stock Alerts (`FR-24`)**: Live variant low-stock detection engine (`stock <= 5`) and color-coded size pills.
 - [x] **Order Fulfillment Hub**: Advance states (`Pending` → `Packing` → `Shipped` → `Delivered`), demo order loading, and order clearing.
-- [ ] **Direct Image Upload to Supabase Storage (`FR-27`)**: File upload directly to `product-images` bucket.
+- [x] **Direct Image Upload to Supabase Storage (`FR-27`)**: Drag-and-drop file upload with Supabase bucket + local preview fallback.
 - [ ] **Storefront Maintenance Mode (`FR-26`)**: Admin toggle to put customer storefront into maintenance mode.
 - [ ] **Coupons Management Section (`FR-29`)**: Manage promo codes directly from the admin sidebar.
 
-### Phase 4: Fulfillment, Logistics & Customer Notifications
+### Phase 4: Shiprocket Logistics, Fulfillment & Customer Notifications
 - [x] **Self-Serve Size Exchange & Invoice Modals**: Live in `ProfilePage.tsx`.
-- [ ] **Shiprocket / Delhivery Integration**: Automated AWB generation and tracking webhook updates.
-- [ ] **Live `/track-order` Lookup (`FR-15`)**: Query Supabase `orders` table directly by Order ID + Phone/Email.
-- [ ] **WhatsApp / Email Transactional Alerts**: Automated order confirmations via email/WhatsApp.
+- [ ] **Shiprocket Shipping & Logistics API (`FR-15`)**: Automated AWB generation, multi-courier allocation (Bluedart, Delhivery, DTDC), pickup scheduling, and live tracking webhooks from Admin.
+- [ ] **Live `/track-order` Lookup via Shiprocket**: Query Shiprocket AWB tracking & Supabase `orders` table directly by Order ID + Phone/Email.
+- [ ] **WhatsApp & SMS Delivery Alerts**: Automated dispatch notifications via Shiprocket Engage / WhatsApp.
 
 ### Phase 5: Scale, Verification, CI/CD & Testing
 - [x] **Docker + Nginx Cloud Run Container**: Deployed on GCP Cloud Run.
@@ -188,17 +187,18 @@ Work through each `FR-*` item below in order before switching off `PreLaunchBann
 
 ## 🚀 Immediate Launch Blockers (What's Left Before Public Go-Live)
 
-1. **Payment Gateway Integration (`FR-11`)** [BLOCKER]:
-   - Replace simulated checkout in `CartPage.tsx` with Razorpay / Cashfree SDK (UPI, Cards, NetBanking, COD).
+1. **Shiprocket Checkout, Address & Payment Integration (`FR-11`, `FR-10`)** [BLOCKER]:
+   - Replace simulated checkout in `CartPage.tsx` with Shiprocket Checkout (pre-filled Indian address intelligence across 200M+ shoppers, mobile OTP, UPI, Cards, NetBanking, and verified COD).
+   - Configure webhook verification for payment confirmation before order placement in Supabase.
 2. **Contact & Newsletter Form Persistence (`FR-14`)**:
    - Wire `/contact` and footer newsletter inputs to save to Supabase or send notification emails.
-3. **Direct Image Upload in Admin (`FR-27`)**:
-   - Enable file picker in Add/Edit product modals to upload images directly to Supabase `product-images` bucket instead of pasting external URLs.
+3. **Direct Image Upload in Admin (`FR-27`)** [COMPLETED]:
+   - File drag-and-drop & Supabase Storage upload helper (`ImageUploadField.tsx`) active in Product and Hero Banner modals.
 4. **Maintenance Mode Toggle (`FR-26`)**:
    - Provide an on/off switch in `/admin` to lock storefront for updates when needed.
 5. **Coupons CMS in Admin (`FR-29`)**:
    - Add a Coupons tab in `/admin` to easily create/manage discount codes.
-6. **Live Track Order Lookup (`FR-15`)**:
-   - Connect `/track-order` to query Supabase `orders` table by Order Number + Email/Phone.
+6. **Live Track Order & Shiprocket Courier Sync (`FR-15`)**:
+   - Connect `/track-order` and `/profile` to Shiprocket Courier Tracking API and Supabase `orders` table by Order Number + Email/Phone.
 7. **Switch Off Pre-Launch Banner (`FR-19`)**:
    - Remove/hide `PreLaunchBanner` in `src/App.tsx` on official launch day.

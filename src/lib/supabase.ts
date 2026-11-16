@@ -164,3 +164,43 @@ export async function validateCouponInSupabase(
     return { valid: false, discountAmount: 0, message: 'Error checking coupon' };
   }
 }
+
+/**
+ * Upload an image file directly to Supabase Storage bucket ('product-images').
+ * Returns the public CDN URL on success, or null on error.
+ */
+export async function uploadImageToSupabase(
+  file: File,
+  folder: 'products' | 'hero' = 'products'
+): Promise<string | null> {
+  if (!supabase) return null;
+  try {
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const cleanName = file.name
+      .replace(/\.[^/.]+$/, '')
+      .replace(/[^a-zA-Z0-9_-]/g, '-')
+      .substring(0, 30);
+    const filePath = `${folder}/${cleanName}-${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('product-images')
+      .upload(filePath, file, {
+        cacheControl: '31536000',
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.warn('[Supabase Storage] Upload error:', uploadError.message);
+      return null;
+    }
+
+    const { data } = supabase.storage
+      .from('product-images')
+      .getPublicUrl(filePath);
+
+    return data?.publicUrl || null;
+  } catch (err) {
+    console.warn('[Supabase Storage] uploadImage exception:', err);
+    return null;
+  }
+}

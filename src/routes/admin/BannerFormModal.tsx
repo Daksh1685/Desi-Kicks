@@ -1,4 +1,5 @@
 import React from 'react';
+import { ImageUploadField } from './ImageUploadField';
 import { inputCls } from './adminTypes';
 
 export type BannerFormData = {
@@ -64,27 +65,27 @@ export function BannerFormModal({
               1. Imagery & Responsive Art Direction
             </p>
             <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Desktop Landscape Image URL (16:9) *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. /hero/retro-timeless-landscape.jpg or https://images.unsplash.com/..."
-                  value={bannerFormData.img}
-                  onChange={(e) => setBannerFormData({ ...bannerFormData, img: e.target.value })}
-                  className={inputCls}
-                />
-                <p className="text-[11px] text-gray-400 mt-1">
-                  Recommended: 1672 × 941px or 1920 × 1080px (16:9 ratio). Local files in <code className="bg-gray-100 px-1 py-0.5 rounded">public/hero/</code> or external CDN links.
-                </p>
-              </div>
+              <ImageUploadField
+                label="Desktop Landscape Hero Banner (16:9)"
+                value={bannerFormData.img}
+                onChange={(url) => setBannerFormData({ ...bannerFormData, img: url })}
+                folder="hero"
+                required
+                helperText="Recommended: 1672 × 941px or 1920 × 1080px (16:9 widescreen desktop ratio)."
+              />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <ImageUploadField
+                  label="Mobile Portrait Banner (9:16 Optional)"
+                  value={bannerFormData.mobileImg}
+                  onChange={(url) => setBannerFormData({ ...bannerFormData, mobileImg: url })}
+                  folder="hero"
+                  compact
+                  helperText="Recommended: 941 × 1672px or 1080 × 1920px (9:16 mobile portrait ratio)."
+                />
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Desktop WebP URL (Optional)
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Optimized WebP File Path (Optional)
                   </label>
                   <input
                     type="text"
@@ -93,32 +94,10 @@ export function BannerFormModal({
                     onChange={(e) => setBannerFormData({ ...bannerFormData, imgWebp: e.target.value })}
                     className={inputCls}
                   />
+                  <p className="text-[11px] text-gray-400 mt-1">
+                    Serving WebP alongside JPG delivers maximum PageSpeed performance.
+                  </p>
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Mobile Portrait Image URL (9:16 Optional)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. /hero/retro-timeless-portrait.jpg"
-                    value={bannerFormData.mobileImg}
-                    onChange={(e) => setBannerFormData({ ...bannerFormData, mobileImg: e.target.value })}
-                    className={inputCls}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Mobile WebP URL (Optional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. /hero/retro-timeless-portrait.webp"
-                  value={bannerFormData.mobileImgWebp}
-                  onChange={(e) => setBannerFormData({ ...bannerFormData, mobileImgWebp: e.target.value })}
-                  className={inputCls}
-                />
               </div>
 
               {/* Live preview inside modal */}

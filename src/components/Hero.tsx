@@ -24,12 +24,7 @@ export function Hero() {
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
   }, [slides.length]);
 
-  // Keep slide in bounds if total slides count changes
-  useEffect(() => {
-    if (currentSlide >= slides.length) {
-      setCurrentSlide(0);
-    }
-  }, [currentSlide, slides.length]);
+  const safeSlide = slides.length > 0 ? currentSlide % slides.length : 0;
 
   useEffect(() => {
     if (isPaused || slides.length <= 1) return;
@@ -77,7 +72,7 @@ export function Hero() {
         {/* Slides Track */}
         <div
           className="flex h-full w-full transition-transform duration-700 ease-out"
-          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+          style={{ transform: `translateX(-${safeSlide * 100}%)` }}
         >
           {slides.map((slide, idx) => (
             <div key={slide.id} className="min-w-full h-full relative shrink-0">
@@ -199,7 +194,7 @@ export function Hero() {
                   key={idx}
                   onClick={() => setCurrentSlide(idx)}
                   aria-label={`Go to slide ${idx + 1}`}
-                  className={`transition-all duration-300 rounded-full cursor-pointer ${currentSlide === idx
+                  className={`transition-all duration-300 rounded-full cursor-pointer ${safeSlide === idx
                     ? 'w-6 md:w-8 h-2 bg-white shadow-sm'
                     : 'w-2 h-2 bg-white/50 hover:bg-white/80'
                     }`}

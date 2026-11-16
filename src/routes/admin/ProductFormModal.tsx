@@ -1,5 +1,6 @@
 import React from 'react';
 import { SizeInventoryManager } from './SizeInventoryManager';
+import { ImageUploadField } from './ImageUploadField';
 import { inputCls, GENDER_SIZE_PRESETS } from './adminTypes';
 import { getAllCategories, getSubcategoriesForCategory } from '../../constants/taxonomy';
 import type { ProductGender } from '../../types/product';
@@ -161,37 +162,33 @@ export function AddProductModal({
           {/* Section 3 */}
           <div className="border-t border-gray-100 pt-5">
             <p className="text-xs font-bold text-primary uppercase tracking-wider mb-3">3. Images & Media</p>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Primary Hero Image URL *</label>
-                <input type="url" required placeholder="https://..." value={formData.img}
-                  onChange={(e) => setFormData({ ...formData, img: e.target.value })} className={inputCls} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-4">
+              <ImageUploadField
+                label="Primary Hero Product Photo"
+                value={formData.img}
+                onChange={(url) => setFormData({ ...formData, img: url })}
+                folder="products"
+                required
+                helperText="Primary photo shown on product cards, category grids, and hero displays."
+              />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 {[
-                  { label: 'Angle 2: Top View', key: 'additionalImg1' as const },
-                  { label: 'Angle 3: Sole', key: 'additionalImg2' as const },
-                  { label: 'Angle 4: Heel / Detail', key: 'additionalImg3' as const },
-                  { label: 'Angle 5: Lifestyle', key: 'additionalImg4' as const },
+                  { label: 'Angle 2: Top Profile View', key: 'additionalImg1' as const },
+                  { label: 'Angle 3: Sole & Traction Grip', key: 'additionalImg2' as const },
+                  { label: 'Angle 4: Heel & Arch Insole', key: 'additionalImg3' as const },
+                  { label: 'Angle 5: Lifestyle & Context', key: 'additionalImg4' as const },
                 ].map((f) => (
-                  <div key={f.key}>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">{f.label}</label>
-                    <input type="url" placeholder="https://..." value={formData[f.key]}
-                      onChange={(e) => setFormData({ ...formData, [f.key]: e.target.value })}
-                      className={inputCls} />
-                  </div>
+                  <ImageUploadField
+                    key={f.key}
+                    label={f.label}
+                    value={formData[f.key]}
+                    onChange={(url) => setFormData({ ...formData, [f.key]: url })}
+                    folder="products"
+                    compact
+                  />
                 ))}
               </div>
-              {formData.img && (
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
-                  <img src={formData.img} alt="Preview" className="w-14 h-14 rounded-lg object-cover border border-gray-200"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                  <div className="text-xs text-gray-500">
-                    <p className="font-semibold text-gray-800">Image Preview</p>
-                    <p>Thumbnail shown on product cards & catalog</p>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
@@ -372,37 +369,33 @@ export function EditProductModal({
           {/* Section 3 */}
           <div className="border-t border-gray-100 pt-5">
             <p className="text-xs font-bold text-primary uppercase tracking-wider mb-3">3. Images & Showcase</p>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Primary Hero Image URL *</label>
-                <input type="url" required value={formData.img}
-                  onChange={(e) => setFormData({ ...formData, img: e.target.value })} className={inputCls} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-4">
+              <ImageUploadField
+                label="Primary Hero Product Photo"
+                value={formData.img}
+                onChange={(url) => setFormData({ ...formData, img: url })}
+                folder="products"
+                required
+                helperText="Primary photo shown on product cards, category grids, and hero displays."
+              />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 {[
-                  { label: 'Angle 2: Top View', key: 'additionalImg1' as const },
-                  { label: 'Angle 3: Sole', key: 'additionalImg2' as const },
-                  { label: 'Angle 4: Heel', key: 'additionalImg3' as const },
-                  { label: 'Angle 5: Lifestyle', key: 'additionalImg4' as const },
+                  { label: 'Angle 2: Top Profile View', key: 'additionalImg1' as const },
+                  { label: 'Angle 3: Sole & Traction Grip', key: 'additionalImg2' as const },
+                  { label: 'Angle 4: Heel & Arch Insole', key: 'additionalImg3' as const },
+                  { label: 'Angle 5: Lifestyle & Context', key: 'additionalImg4' as const },
                 ].map((f) => (
-                  <div key={f.key}>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">{f.label}</label>
-                    <input type="url" placeholder="https://..." value={formData[f.key]}
-                      onChange={(e) => setFormData({ ...formData, [f.key]: e.target.value })}
-                      className={inputCls} />
-                  </div>
+                  <ImageUploadField
+                    key={f.key}
+                    label={f.label}
+                    value={formData[f.key]}
+                    onChange={(url) => setFormData({ ...formData, [f.key]: url })}
+                    folder="products"
+                    compact
+                  />
                 ))}
               </div>
-              {formData.img && (
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
-                  <img src={formData.img} alt="Preview" className="w-14 h-14 rounded-lg object-cover border border-gray-200"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                  <div className="text-xs text-gray-500">
-                    <p className="font-semibold text-gray-800">Thumbnail Preview</p>
-                    <p>Shown on product cards & checkout</p>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
