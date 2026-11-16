@@ -38,6 +38,7 @@
 - **Responsive Dual-Orientation Hero Banner**: Interactive hero showcase featuring responsive `<picture>` art direction — **16:9 widescreen landscape** on desktop and **9:16 vertical portrait** on mobile for zero-cropping visual clarity, accompanied by touch-swipe gestures, Google script typography (`Alex Brush`, `Dancing Script`), and CTA navigation.
 - **Men, Women & Kids Category Posters**: Dedicated 3-column curated poster grid (`GenderSelection.tsx`) directly below the hero banner, styled in exact 4:5 portrait aspect ratio with studio photography, hover elevation, and direct collection routing.
 - **Best Sellers Shelf with Scoring Engine**: Interactive horizontal snap carousel driven by an objective 4-pillar algorithm (`bestSellerAlgorithm.ts`) weighing sales volume, Bayesian review confidence, inventory health, and merchant tags.
+- **"Nature in Every Step" Women's Collection Feature**: Dedicated responsive editorial ribbon banner (`WomensCollection.tsx`) with 3:1 landscape on desktop & 3:4 portrait on mobile, paired with a curated Women's Collection product shelf and studio placeholders.
 - **Categorized Browsing**: Instant navigation across Men, Women, Kids, Festive Mojaris, Daily Slip-ons, Women's Heels, Heritage Sneakers, and Traditional Kolhapuris.
 - **Recommendation Carousel**: Algorithmic & curated product shelves with tag badges (*Festive Edit*, *Daily Comfort*, *Women's Pick*).
 - **Instant Search with Autocomplete**: Mobile and desktop search bars equipped with trending searches, popular tags, and quick keyword suggestions.
@@ -128,7 +129,8 @@ Desi-Kicks/
 │   │   ├── ProductDetailModal.tsx # Full product specification modal
 │   │   ├── PromoBanner.tsx # Festive discount & announcement banner
 │   │   ├── Recommendations.tsx # Curated recommendation shelf
-│   │   └── TrustBadges.tsx # Value proposition badges
+│   │   ├── TrustBadges.tsx # Value proposition badges
+│   │   └── WomensCollection.tsx # Women's feature banner & product shelf
 │   ├── constants/          # Static catalogs, image maps, search terms
 │   │   ├── images.ts
 │   │   ├── productCatalog.ts

@@ -2,6 +2,7 @@ import { MobileSearch } from '../components/MobileSearch';
 import { Hero } from '../components/Hero';
 import { GenderSelection } from '../components/GenderSelection';
 import { BestSellers } from '../components/BestSellers';
+import { WomensCollection } from '../components/WomensCollection';
 import { SeoHead } from '../components/SeoHead';
 
 export function LandingPage() {
@@ -17,6 +18,7 @@ export function LandingPage() {
         <Hero />
         <GenderSelection />
         <BestSellers />
+        <WomensCollection />
       </main>
     </div>
   );
