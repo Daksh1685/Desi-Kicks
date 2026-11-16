@@ -35,7 +35,7 @@ graph TD
         FA["Firebase Auth (Customer Google OAuth)"]
         SB["Supabase PostgreSQL (Products, Variants, Orders, Coupons)"]
         ST["Supabase Storage (product-images bucket)"]
-        REC["Recommendation & Merchandising Engine"]
+        REC["Best Seller & Merchandising Engine (bestSellerAlgorithm.ts)"]
         PAY["Payment Gateway (Razorpay / Cashfree - Next)"]
         SHIP["Logistics API (Shiprocket / Delhivery - Planned)"]
     end
@@ -102,13 +102,17 @@ Work through each `FR-*` item below in order before switching off `PreLaunchBann
 | **FR-18** | **Cloud Build & Cloud Run Region Parity** | 🟢 Implemented | ✅ `cloudbuild.yaml` `--region` aligned to `us-central1` matching Cloud Run `desi-kicks`. | Run Cloud Build pipeline and confirm container deploys directly to `us-central1`. |
 | **FR-19** | **Code Quality, Lint & Pre-Launch Removal** | 🟢 Lint Passing | ✅ `npm run lint` and `npm run build` both exit `0` cleanly. Launch-day action remaining: toggle `PreLaunchBanner` (`src/App.tsx`) off when going live. | `npm run build` and `npm run lint` both exit `0` with zero warnings or errors |
 
-### F. Landing Page, Merchandising & Recommendations (`FR-20` – `FR-22`)
+### F. Landing Page, Merchandising & Recommendations (`FR-20` – `FR-22`, `FR-31` – `FR-34`)
 
 | ID | Requirement | Current State | Gaps / Work Required | How to Verify |
 |---|---|---|---|---|
 | **FR-20** | **Landing Page Empty-State & Teaser ("Good Things Come")** | 🟢 Implemented | ✅ When catalog is empty: `Recommendations.tsx` renders a warm "SOMETHING SPECIAL IS BEING CRAFTED" showcase with teaser locked cards & "Get Notified" CTA; `NewArrivals.tsx` renders a dark "NEW SEASON DROPS INCOMING" preview with teaser cards; `LandingPage.tsx` displays launch banner. When products exist: dynamic live scroll & grids render seamlessly. | Clear catalog in `/admin` → view `/` to see teaser state. Add a product → verify normal product showcase immediately renders. |
 | **FR-21** | **Trust Badges & Promo Marquee Ticker** | 🟢 Implemented | ✅ Upgraded `TrustBadges.tsx` into a modern 4-card colored grid. Added animated live marquee ticker to `PromoBanner.tsx` ("HANDCRAFTED • PAN-INDIA DELIVERY • 7-DAY EXCHANGE • ARTISAN MADE • FREE SHIPPING • COD AVAILABLE •"). | Open `/`: verify animated ticker strip and distinct colored trust cards. |
 | **FR-22** | **Recommendation Telemetry & Smart Cross-Sell** | ⚪ Planned | Co-purchase weights ("Customers also bought") and PDP similar styles scoring based on category and style tags. | Open PDP and verify complementary shoes rank higher than distant categories. |
+| **FR-31** | **Responsive Dual-Orientation Hero Banner & Art Direction** | 🟢 Implemented | ✅ Responsive `<picture>` art direction: 16:9 widescreen landscape on desktop (`retro-timeless-landscape.webp`) and 9:16 vertical portrait on mobile (`retro-timeless-portrait.webp`). Zero cropping with dynamic `aspect-[9/16] sm:aspect-[16/9]`. Google script typography (`Alex Brush`, `Dancing Script`, `Anton`). Touch-swipe gestures on mobile. | Open `/` on desktop (1920px) and mobile viewport (390px); confirm landscape banner serves on desktop, vertical banner serves on mobile with zero text or subject clipping, and swiping works on touch screens. |
+| **FR-32** | **Gender Selection 3-Card Category Posters (`GenderSelection.tsx`)** | 🟢 Implemented | ✅ 3-column category poster grid directly below hero banner. Custom 4:5 aspect ratio artwork for Men (`category-men.webp`), Women (`category-women.webp`), and Kids (`category-kids.webp`). Interactive hover zoom (`scale-105`), subtle card elevation, and active routing to `/collections/men`, `/collections/women`, and `/collections/kids`. | Click Men, Women, or Kids cards on `/`; confirm navigation to corresponding collections page and that 4:5 images load crisply with zero distortion. |
+| **FR-33** | **Best Seller Scoring Engine & Shelf (`BestSellers.tsx`, `bestSellerAlgorithm.ts`)** | 🟢 Implemented | ✅ Dynamic 4-pillar scoring algorithm: Sales Volume (45%), Bayesian Review Confidence with logarithmic dampening (25%), Inventory Availability Penalty (15%), and Merchant Tag Boost (15%). Horizontal snap carousel with desktop circular navigation buttons `(<) (>)` and touch scrolling on mobile. Curated signature fallback items for zero-data state. | View `/` directly below Gender Selection: confirm "Best Sellers" carousel renders top-scored products, test desktop scroll buttons `(<) (>)`, quick view modal, and quick add to cart. |
+| **FR-34** | **Best Seller Database Order Aggregation (Phase 2/3 Roadmap)** | ⚪ Planned | Supabase SQL RPC view on `order_items` table calculating trailing 30-day velocity and CTR conversion rate (`Orders ÷ Product Page Views`) to feed the scoring algorithm automatically. | Execute Supabase SQL migration and verify `getBestSellerProducts()` pulls live purchase counts from `order_items`. |
 
 ### G. Admin Catalog CRUD, Inventory & Analytics (`FR-23` – `FR-26`)
 
@@ -135,6 +139,9 @@ Work through each `FR-*` item below in order before switching off `PreLaunchBann
 ### Phase 1: Customer Web App — Storefront, Routes & SEO
 - [x] **Responsive Layout & Navigation**: Sticky header with `craftyoursole_logo.svg`, bottom mobile tab bar (`BottomNav`), and mobile search bar.
 - [x] **Pre-Launch Preview Banner**: `PreLaunchBanner` in `src/App.tsx` communicating active pre-launch status.
+- [x] **Responsive Dual-Orientation Hero Banner (`FR-31`)**: 16:9 widescreen landscape for desktop + 9:16 vertical portrait for mobile via `<picture>` tag with WebP assets, Google script typography (`Alex Brush`, `Dancing Script`), and mobile touch-swipe gesture handling.
+- [x] **Men, Women & Kids Category Poster Cards (`FR-32`)**: 3-column curated poster grid in 4:5 aspect ratio with studio photography, hover zoom, and `/collections/men`, `/collections/women`, `/collections/kids` routing.
+- [x] **Best Sellers Shelf with 4-Pillar Scoring Engine (`FR-33`)**: Objective mathematical scoring model (`bestSellerAlgorithm.ts`) weighing sales volume (45%), Bayesian review confidence (25%), stock availability penalty (15%), and merchant boost (15%), coupled with a smooth horizontal snap carousel and desktop scroll buttons.
 - [x] **Hero Carousel, Categories, Recommendations & New Arrivals**: Wired to live catalog with "Good Things Come" empty-state fallbacks.
 - [x] **Modern Trust Badges & Scrolling Marquee**: Colored card grid & infinite animated ticker on landing page.
 - [x] **Dedicated Storefront & Policy Routes**: `/collections`, `/collections/:slug`, `/products/:slug`, `/about`, `/size-guide`, `/authenticity`, `/shipping-policy`, `/returns-exchange`, `/contact`, `/track-order`, `/privacy-policy`, `/terms`, and `*` 404.

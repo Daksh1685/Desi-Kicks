@@ -35,8 +35,10 @@
 ## ✨ Features
 
 ### Storefront & Discovery
-- **Dynamic Hero Banner**: Interactive hero showcase featuring promotional highlights, quick CTAs, and slide pagination.
-- **Categorized Browsing**: Instant navigation across Festive Mojaris, Daily Slip-ons, Women's Heels, Heritage Sneakers, and Traditional Kolhapuris.
+- **Responsive Dual-Orientation Hero Banner**: Interactive hero showcase featuring responsive `<picture>` art direction — **16:9 widescreen landscape** on desktop and **9:16 vertical portrait** on mobile for zero-cropping visual clarity, accompanied by touch-swipe gestures, Google script typography (`Alex Brush`, `Dancing Script`), and CTA navigation.
+- **Men, Women & Kids Category Posters**: Dedicated 3-column curated poster grid (`GenderSelection.tsx`) directly below the hero banner, styled in exact 4:5 portrait aspect ratio with studio photography, hover elevation, and direct collection routing.
+- **Best Sellers Shelf with Scoring Engine**: Interactive horizontal snap carousel driven by an objective 4-pillar algorithm (`bestSellerAlgorithm.ts`) weighing sales volume, Bayesian review confidence, inventory health, and merchant tags.
+- **Categorized Browsing**: Instant navigation across Men, Women, Kids, Festive Mojaris, Daily Slip-ons, Women's Heels, Heritage Sneakers, and Traditional Kolhapuris.
 - **Recommendation Carousel**: Algorithmic & curated product shelves with tag badges (*Festive Edit*, *Daily Comfort*, *Women's Pick*).
 - **Instant Search with Autocomplete**: Mobile and desktop search bars equipped with trending searches, popular tags, and quick keyword suggestions.
 - **Trust & Assurance Badges**: Transparent badges for Free Delivery over ₹1,999, 7-Day Easy Returns, 100% Genuine Handcrafted Leather, and 24/7 Support.
@@ -113,10 +115,12 @@ Desi-Kicks/
 │   ├── components/         # Reusable UI components
 │   │   ├── ui/
 │   │   │   └── Icon.tsx    # Centralized icon library
+│   │   ├── BestSellers.tsx # Best seller carousel with scoring engine
 │   │   ├── BottomNav.tsx   # Mobile-first app-style navigation bar
 │   │   ├── Categories.tsx  # Product category browser
 │   │   ├── Footer.tsx      # Multi-column footer & newsletter signup
-│   │   ├── Hero.tsx        # Carousel hero section
+│   │   ├── GenderSelection.tsx # 3-card Men, Women, Kids poster grid
+│   │   ├── Hero.tsx        # Responsive dual-orientation carousel hero
 │   │   ├── MobileSearch.tsx# Mobile overlay search with trending chips
 │   │   ├── Navbar.tsx      # Responsive desktop/tablet navbar
 │   │   ├── NewArrivals.tsx # New product showcase grid
@@ -133,6 +137,10 @@ Desi-Kicks/
 │   │   ├── CartContext.tsx
 │   │   └── ProductModalContext.tsx
 │   ├── hooks/              # Custom React hooks (e.g. useTypingEffect)
+│   ├── lib/                # Algorithms, Firebase & Supabase clients
+│   │   ├── bestSellerAlgorithm.ts # 4-pillar best seller scoring engine
+│   │   ├── firebase.ts
+│   │   └── supabase.ts
 │   ├── routes/             # Primary page views
 │   │   ├── CartPage.tsx
 │   │   ├── LandingPage.tsx
