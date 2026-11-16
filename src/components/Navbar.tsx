@@ -1,252 +1,196 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Icon } from './ui/Icon';
-import { useTypingEffect } from '../hooks/useTypingEffect';
-import { SEARCH_KEYWORDS } from '../constants/search';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
-import { useProductCatalog } from '../context/ProductContext';
-import { useProductModal } from '../context/ProductModalContext';
 import { useAuth } from '../context/AuthContext';
 import craftYourSoleLogo from '../assets/craftyoursole_logo.svg';
 
+interface NavLinkItem {
+  name: string;
+  path: string;
+}
+
+const NAV_LINKS: NavLinkItem[] = [
+  { name: 'Men', path: '/collections/men' },
+  { name: 'Women', path: '/collections/women' },
+  { name: 'Kids', path: '/collections/kids' },
+  { name: 'Festive & Ethnic', path: '/collections/festive-ethnic' },
+  { name: 'Daily Comfort', path: '/collections/daily-comfort' },
+  { name: 'All Collections', path: '/collections' },
+];
+
 export function Navbar() {
-  const typedText = useTypingEffect(SEARCH_KEYWORDS);
   const { totalItemsCount } = useCart();
   const { wishlistCount } = useWishlist();
-  const { activeProducts } = useProductCatalog();
-  const { openProductModal } = useProductModal();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Close search dropdown on click outside
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
-        setIsSearchFocused(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const searchResults = useMemo(() => {
-    if (!searchQuery.trim()) return [];
-    const q = searchQuery.toLowerCase();
-    return activeProducts.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q) ||
-        (p.tag && p.tag.toLowerCase().includes(q))
-    );
-  }, [searchQuery, activeProducts]);
+  const isWishlistActive = pathname === '/profile' && search.includes('tab=wishlist');
+  const isProfileActive = (pathname === '/profile' && !search.includes('tab=wishlist')) || pathname === '/login';
 
   return (
-    <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        <Link
-          to="/"
-          aria-label="CraftYourSole Home"
-          className="flex items-center shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
-        >
-          <img
-            src={craftYourSoleLogo}
-            alt="CraftYourSole"
-            className="h-7 sm:h-8 w-auto"
-          />
-        </Link>
-        <nav className="hidden lg:flex items-center gap-6 xl:gap-8 font-medium text-gray-700 text-sm">
-          <Link to="/collections/men" className="hover:text-primary transition-colors">Men</Link>
-          <Link to="/collections/women" className="hover:text-primary transition-colors">Women</Link>
-          <Link to="/collections/festive-ethnic" className="hover:text-primary transition-colors font-semibold text-primary">Festive &amp; Ethnic</Link>
-          <Link to="/collections/daily-comfort" className="hover:text-primary transition-colors">Daily Comfort</Link>
-          <Link to="/collections/gym-sports" className="hover:text-primary transition-colors">Gym &amp; Sports</Link>
-          <Link to="/collections/sale" className="hover:text-primary text-red-600 font-bold transition-colors">Sale</Link>
-        </nav>
-        <div ref={searchContainerRef} className="hidden md:flex relative flex-1 max-w-md">
-          <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onFocus={() => setIsSearchFocused(true)}
-            placeholder={`Search for ${typedText}|`}
-            className="w-full h-10 pl-10 pr-10 rounded-full bg-gray-100 border-none text-sm focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 transition-all placeholder:transition-all"
-          />
-          {searchQuery ? (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer p-1"
-            >
-              <Icon name="close" className="w-4 h-4" />
-            </button>
-          ) : (
-            <Icon name="photo_camera" className="absolute right-3 top-1/2 -translate-y-1/2 text-primary cursor-pointer w-5 h-5 hover:scale-110 transition-transform" />
-          )}
-
-          {/* Live Search Results Dropdown */}
-          {isSearchFocused && (
-            <div className="absolute top-12 inset-x-0 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-40 max-h-96 overflow-y-auto animate-fade-in">
-              {searchQuery.trim() ? (
-                searchResults.length > 0 ? (
-                  <div className="p-2 space-y-1">
-                    <div className="px-3 py-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-                      Footwear Matches ({searchResults.length})
-                    </div>
-                    {searchResults.map((item) => (
-                      <div
-                        key={item.name}
-                        onClick={() => {
-                          openProductModal({
-                            id: item.id,
-                            name: item.name,
-                            category: item.category,
-                            price: `₹${item.price.toLocaleString('en-IN')}`,
-                            originalPrice: item.originalPrice ? `₹${item.originalPrice.toLocaleString('en-IN')}` : undefined,
-                            tag: item.tag,
-                            rating: item.rating,
-                            reviewsCount: item.reviewsCount,
-                            img: item.img,
-                            additionalImages: item.additionalImages,
-                            description: item.description,
-                            story: item.story,
-                            upperMaterial: item.upperMaterial,
-                            soleMaterial: item.soleMaterial,
-                            insoleType: item.insoleType,
-                            idealFor: item.idealFor,
-                            sizes: item.sizes,
-                            slug: item.slug,
-                          });
-                          setIsSearchFocused(false);
-                          setSearchQuery('');
-                        }}
-                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"
-                      >
-                        <img src={item.img} alt={item.name} className="w-12 h-12 object-cover rounded-lg shrink-0 border border-gray-100" />
-                        <div className="flex-1 min-w-0">
-                          <h5 className="font-semibold text-xs text-gray-900 truncate">{item.name}</h5>
-                          <span className="text-[10px] text-gray-400 block">{item.category}</span>
-                        </div>
-                        <div className="text-right">
-                          <span className="font-bold text-xs text-primary">₹{item.price.toLocaleString('en-IN')}</span>
-                          <div className="flex items-center gap-0.5 text-[10px] text-amber-500 font-bold justify-end">
-                            <Icon name="star" className="w-3 h-3 fill-amber-500 text-amber-500" filled />
-                            <span>{item.rating}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-6 text-center text-xs text-gray-500">
-                    <p>No footwear found matching "{searchQuery}".</p>
-                    <p className="text-[11px] text-gray-400 mt-1">Try "mojari", "loafer", "heel", or "sports".</p>
-                  </div>
-                )
-              ) : (
-                <div className="p-4">
-                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">
-                    Popular Footwear Searches
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {SEARCH_KEYWORDS.slice(0, 6).map((kw) => (
-                      <button
-                        key={kw}
-                        onClick={() => setSearchQuery(kw)}
-                        className="bg-gray-100 hover:bg-primary/10 hover:text-primary text-gray-700 text-xs px-2.5 py-1 rounded-full transition-colors cursor-pointer"
-                      >
-                        {kw}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-        <div className="flex items-center gap-1 md:gap-3 text-gray-700">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-2xs transition-all">
+      <div className="w-full px-3 sm:px-6 md:px-8 lg:px-10 xl:px-12 h-18 sm:h-20 flex items-center justify-between md:grid md:grid-cols-[1fr_auto_1fr] gap-4">
+        
+        {/* Left End: Mobile Toggle & Brand Logo */}
+        <div className="flex items-center justify-start gap-3 shrink-0">
           <button
-            onClick={() => navigate('/profile?tab=wishlist')}
-            title="Wishlist"
-            className="p-2 hover:text-primary transition-colors cursor-pointer relative"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 -ml-2 text-gray-700 hover:text-primary hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+            aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
           >
-            <Icon name="favorite" className="w-6 h-6" />
-            {wishlistCount > 0 && (
-              <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                {wishlistCount}
-              </span>
+            {mobileMenuOpen ? (
+              <Icon name="close" className="w-6 h-6" />
+            ) : (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              </svg>
             )}
           </button>
+
+          <Link
+            to="/"
+            aria-label="CraftYourSole Home"
+            className="flex items-center cursor-pointer hover:opacity-90 transition-opacity"
+          >
+            <img
+              src={craftYourSoleLogo}
+              alt="CraftYourSole"
+              className="h-8 sm:h-9 w-auto"
+            />
+          </Link>
+        </div>
+
+        {/* Middle: Centered Category Navigation Links */}
+        <nav className="hidden md:flex items-center justify-center gap-6 lg:gap-8 xl:gap-10 text-sm font-semibold tracking-wide">
+          {NAV_LINKS.map((link) => {
+            const isActive = pathname === link.path;
+            return (
+              <Link
+                key={link.name}
+                to={link.path}
+                className={`relative py-2 transition-colors duration-200 cursor-pointer ${
+                  isActive
+                    ? 'text-primary font-bold'
+                    : 'text-gray-700 hover:text-primary font-medium'
+                }`}
+              >
+                {link.name}
+                {isActive && (
+                  <span className="absolute bottom-0 inset-x-0 h-0.5 bg-primary rounded-full" />
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Right End: Profile, Cart, Like (in exact requested order) */}
+        <div className="flex items-center justify-end gap-1.5 sm:gap-2.5 text-gray-700 shrink-0">
+          
+          {/* 1. Profile */}
           <button
-            onClick={() => navigate('/cart')}
-            className={`p-2 transition-colors relative cursor-pointer rounded-full ${
-              pathname === '/cart'
-                ? 'text-primary bg-primary/10'
+            onClick={() => navigate(currentUser ? '/profile' : '/login')}
+            title={currentUser?.displayName || 'My Profile / Sign In'}
+            aria-label="Account Profile"
+            className={`p-2 rounded-full transition-all duration-200 cursor-pointer relative flex items-center justify-center ${
+              isProfileActive
+                ? 'text-primary bg-primary/10 ring-1 ring-primary/30'
                 : 'hover:text-primary hover:bg-gray-100'
             }`}
-            title="Shopping Bag"
           >
-            <Icon name="shopping_bag" className="w-6 h-6" filled={pathname === '/cart'} />
+            {currentUser?.photoURL ? (
+              <img
+                src={currentUser.photoURL}
+                alt={currentUser.displayName || 'Profile'}
+                className="w-6 h-6 rounded-full object-cover ring-1 ring-primary/40"
+              />
+            ) : (
+              <Icon
+                name="person"
+                className="w-5 h-5 sm:w-6 sm:h-6"
+                filled={isProfileActive}
+              />
+            )}
+          </button>
+
+          {/* 2. Cart */}
+          <button
+            onClick={() => navigate('/cart')}
+            title="Shopping Bag"
+            aria-label={`Shopping Bag (${totalItemsCount} items)`}
+            className={`p-2 rounded-full transition-all duration-200 cursor-pointer relative flex items-center justify-center ${
+              pathname === '/cart'
+                ? 'text-primary bg-primary/10 ring-1 ring-primary/30'
+                : 'hover:text-primary hover:bg-gray-100'
+            }`}
+          >
+            <Icon
+              name="shopping_bag"
+              className="w-5 h-5 sm:w-6 sm:h-6"
+              filled={pathname === '/cart'}
+            />
             {totalItemsCount > 0 && (
-              <span className="absolute top-1 right-1 bg-primary text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+              <span className="absolute -top-0.5 -right-0.5 bg-primary text-white text-[10px] font-bold rounded-full min-w-4 h-4 px-1 flex items-center justify-center shadow-xs">
                 {totalItemsCount}
               </span>
             )}
           </button>
-          {currentUser ? (
-            <button
-              onClick={() => navigate('/profile')}
-              title={currentUser.displayName || 'My Account'}
-              className={`p-1.5 transition-colors cursor-pointer rounded-full ${
-                pathname === '/profile'
-                  ? 'text-primary bg-primary/10'
-                  : 'hover:text-primary hover:bg-gray-100'
-              }`}
-            >
-              {currentUser.photoURL ? (
-                <img
-                  src={currentUser.photoURL}
-                  alt={currentUser.displayName || 'Profile'}
-                  className="w-7 h-7 rounded-full object-cover border border-primary/40 shadow-xs"
-                />
-              ) : (
-                <Icon name="person" className="w-6 h-6" filled={pathname === '/profile'} />
-              )}
-            </button>
-          ) : (
-            <button
-              onClick={() => navigate('/login')}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border border-gray-200 text-gray-700 hover:text-primary hover:border-primary hover:bg-orange-50/50 transition-all cursor-pointer shadow-xs"
-              title="Sign in with Google"
-            >
-              <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24">
-                <path
-                  fill="#4285F4"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                />
-              </svg>
-              <span>Sign In</span>
-            </button>
-          )}
+
+          {/* 3. Like (Wishlist) */}
+          <button
+            onClick={() => navigate('/profile?tab=wishlist')}
+            title="Wishlist"
+            aria-label={`Wishlist (${wishlistCount} items)`}
+            className={`p-2 rounded-full transition-all duration-200 cursor-pointer relative flex items-center justify-center ${
+              isWishlistActive
+                ? 'text-red-500 bg-red-50 ring-1 ring-red-200'
+                : 'hover:text-red-500 hover:bg-gray-100'
+            }`}
+          >
+            <Icon
+              name="favorite"
+              className="w-5 h-5 sm:w-6 sm:h-6"
+              filled={isWishlistActive}
+            />
+            {wishlistCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-4 h-4 px-1 flex items-center justify-center shadow-xs">
+                {wishlistCount}
+              </span>
+            )}
+          </button>
         </div>
       </div>
+
+      {/* Mobile Slide-Down Navigation Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-gray-100 bg-white/98 backdrop-blur-md px-4 py-4 space-y-1 shadow-lg animate-fade-in">
+          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider px-3 pb-1">
+            Collections &amp; Categories
+          </p>
+          {NAV_LINKS.map((link) => {
+            const isActive = pathname === link.path;
+            return (
+              <Link
+                key={link.name}
+                to={link.path}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                  isActive
+                    ? 'bg-primary/10 text-primary font-bold'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-primary'
+                }`}
+              >
+                <span>{link.name}</span>
+                <span className="text-xs text-gray-400">→</span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </header>
   );
 }
