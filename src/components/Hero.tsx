@@ -199,11 +199,10 @@ export function Hero() {
                   key={idx}
                   onClick={() => setCurrentSlide(idx)}
                   aria-label={`Go to slide ${idx + 1}`}
-                  className={`transition-all duration-300 rounded-full cursor-pointer ${
-                    currentSlide === idx
-                      ? 'w-6 md:w-8 h-2 bg-white shadow-sm'
-                      : 'w-2 h-2 bg-white/50 hover:bg-white/80'
-                  }`}
+                  className={`transition-all duration-300 rounded-full cursor-pointer ${currentSlide === idx
+                    ? 'w-6 md:w-8 h-2 bg-white shadow-sm'
+                    : 'w-2 h-2 bg-white/50 hover:bg-white/80'
+                    }`}
                 />
               ))}
             </div>
