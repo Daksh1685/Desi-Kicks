@@ -1,9 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Anton&family=Dancing+Script:wght@600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
   --color-primary: #AA3000;
   --font-anton: 'Anton', sans-serif;
+  --font-script: 'Alex Brush', 'Dancing Script', cursive;
 }
 
 :root {
