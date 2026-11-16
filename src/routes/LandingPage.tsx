@@ -1,6 +1,7 @@
 import { MobileSearch } from '../components/MobileSearch';
 import { Recommendations } from '../components/Recommendations';
 import { Hero } from '../components/Hero';
+import { GenderSelection } from '../components/GenderSelection';
 import { TrustBadges } from '../components/TrustBadges';
 import { Categories } from '../components/Categories';
 import { PromoBanner } from '../components/PromoBanner';
@@ -34,6 +35,7 @@ export function LandingPage() {
       <MobileSearch />
       <main>
         <Hero />
+        <GenderSelection />
         <TrustBadges />
         <StoreLaunchTeaser />
         <Recommendations />

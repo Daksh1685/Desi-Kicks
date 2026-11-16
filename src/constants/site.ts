@@ -64,6 +64,21 @@ export const COLLECTIONS_CONFIG: CollectionMeta[] = [
       'New women-exclusive jutti embroidery drops, kitten heels, and wide-fit ethnic wedges are currently in active development.',
   },
   {
+    slug: 'kids',
+    name: 'Kids',
+    headline: "Boys, Girls & Kids' Comfortable Footwear",
+    description:
+      'Lightweight, breathable sneakers, easy-on hook-and-loop straps, and durable play-proof everyday shoes for active kids.',
+    seoTitle: "Kids' Sneakers, Sandals & Casual Shoes | CraftYourSole",
+    seoDescription:
+      "Explore CraftYourSole kids' footwear: featherlight sneakers, anti-slip playground shoes, and festive ethnic footwear for boys and girls.",
+    countLabel: '60+ Planned Styles',
+    img: '/hero/category-kids-ref.jpg',
+    categoryKeywords: ['kid', 'boy', 'girl', 'junior', 'youth', 'child'],
+    roadmapNote:
+      'Growing-feet sizing guidance and high-durability school & sports collections are currently under development.',
+  },
+  {
     slug: 'daily-comfort',
     name: 'Daily Comfort',
     headline: 'Daily Comfort Slip-Ons & Ortho Slides',

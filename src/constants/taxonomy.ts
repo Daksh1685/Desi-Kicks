@@ -52,6 +52,19 @@ export const PRODUCT_TAXONOMY: CategoryTaxonomy[] = [
     description: "Women's cushioned block heels, metallic evening sandals, and festive flats.",
   },
   {
+    id: 'kids',
+    name: "Kids' Footwear",
+    slug: 'kids',
+    targetGender: 'Unisex',
+    subcategories: [
+      'Casual Sneakers',
+      'School & Sports Shoes',
+      'Comfort Sandals & Chappals',
+      'Ethnic & Festive Shoes',
+    ],
+    description: "Lightweight, shock-absorbing sneakers and durable footwear for boys and girls.",
+  },
+  {
     id: 'work-formal',
     name: 'Work & Formal',
     slug: 'work-formal',
