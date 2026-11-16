@@ -2,7 +2,7 @@ export interface CategoryTaxonomy {
   id: string;
   name: string;
   slug: string;
-  targetGender: 'Men' | 'Women' | 'Unisex';
+  targetGender: 'Men' | 'Women' | 'Kids' | 'Unisex';
   subcategories: string[];
   description: string;
 }
@@ -55,7 +55,7 @@ export const PRODUCT_TAXONOMY: CategoryTaxonomy[] = [
     id: 'kids',
     name: "Kids' Footwear",
     slug: 'kids',
-    targetGender: 'Unisex',
+    targetGender: 'Kids',
     subcategories: [
       'Casual Sneakers',
       'School & Sports Shoes',
@@ -105,7 +105,14 @@ export const PRODUCT_TAXONOMY: CategoryTaxonomy[] = [
 ];
 
 export const STANDARD_UK_SIZES = ['UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11'] as const;
-export const EXTENDED_UK_SIZES = ['UK 4', 'UK 5', 'UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11', 'UK 12'] as const;
+export const EXTENDED_UK_SIZES = ['UK 3', 'UK 4', 'UK 5', 'UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11', 'UK 12'] as const;
+
+export const SIZES_BY_GENDER: Record<'Men' | 'Women' | 'Kids' | 'Unisex', readonly string[]> = {
+  Men: ['UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11', 'UK 12'],
+  Women: ['UK 3', 'UK 4', 'UK 5', 'UK 6', 'UK 7', 'UK 8'],
+  Kids: ['UK 1', 'UK 2', 'UK 3', 'UK 4', 'UK 5'],
+  Unisex: ['UK 4', 'UK 5', 'UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11'],
+};
 
 export const PRICE_RANGES = [
   { id: 'all', label: 'All Prices', min: 0, max: Infinity },

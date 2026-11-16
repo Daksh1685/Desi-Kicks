@@ -3,13 +3,15 @@ export interface ProductVariant {
   stock: number;
 }
 
+export type ProductGender = 'Men' | 'Women' | 'Kids' | 'Unisex';
+
 export interface Product {
   id: string;
   slug: string;
   name: string;
   category: string;
   subcategory?: string;
-  gender?: 'Men' | 'Women' | 'Unisex';
+  gender?: ProductGender;
   tag?: string;
   price: number;
   originalPrice: number;

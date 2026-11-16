@@ -48,7 +48,7 @@
 - **Quick-View & Deep-Dive Modal**: Inspect any shoe without leaving your browsing position.
 - **Multi-Angle Gallery**: High-resolution image preview with thumbnail switching.
 - **Artisan Stories & Specs**: Details on upper fabrics, sole materials (buff-tanned leather, EVA flex), insole ergonomics (ortho-cushion memory foam), and occasion suitability.
-- **Interactive Size Selector**: UK 6 to UK 11 sizing with instant stock validation.
+- **Interactive Size Selector**: Expanded UK 1 to UK 12 sizing matrix (with dedicated Women's UK 3–8, Men's UK 6–12, and Kids' UK 1–5 ranges) with instant stock validation.
 
 ### Cart & Checkout
 - **Persistent Cart State**: Cart automatically syncs to `localStorage` through `CartContext`.

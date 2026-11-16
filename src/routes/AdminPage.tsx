@@ -5,13 +5,187 @@ import { SeoHead } from '../components/SeoHead';
 import craftYourSoleLogo from '../assets/craftyoursole_logo.svg';
 import { useProductCatalog } from '../context/ProductContext';
 import { useOrders } from '../context/OrderContext';
-import type { Product, NewProductInput } from '../types/product';
+import type { Product, NewProductInput, ProductGender } from '../types/product';
 import {
   getAllCategories,
   getSubcategoriesForCategory,
 } from '../constants/taxonomy';
 
 const CATEGORIES = getAllCategories();
+
+export const ALL_ADMIN_SIZES = [
+  'UK 1',
+  'UK 2',
+  'UK 3',
+  'UK 4',
+  'UK 5',
+  'UK 6',
+  'UK 7',
+  'UK 8',
+  'UK 9',
+  'UK 10',
+  'UK 11',
+  'UK 12',
+] as const;
+
+export const GENDER_SIZE_PRESETS: Record<ProductGender, readonly string[]> = {
+  Women: ['UK 3', 'UK 4', 'UK 5', 'UK 6', 'UK 7', 'UK 8'],
+  Men: ['UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11', 'UK 12'],
+  Kids: ['UK 1', 'UK 2', 'UK 3', 'UK 4', 'UK 5'],
+  Unisex: ['UK 4', 'UK 5', 'UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11'],
+};
+
+interface SizeInventoryManagerProps {
+  gender: ProductGender;
+  selectedSizes: string[];
+  onChangeSelectedSizes: (sizes: string[]) => void;
+  sizeStocks: Record<string, number>;
+  onChangeStock: (size: string, stock: number) => void;
+  onApplyStockToAll: (stock: number) => void;
+}
+
+function SizeInventoryManager({
+  gender,
+  selectedSizes,
+  onChangeSelectedSizes,
+  sizeStocks,
+  onChangeStock,
+  onApplyStockToAll,
+}: SizeInventoryManagerProps) {
+  const toggleSize = (size: string) => {
+    if (selectedSizes.includes(size)) {
+      onChangeSelectedSizes(selectedSizes.filter((s) => s !== size));
+    } else {
+      onChangeSelectedSizes([...selectedSizes, size]);
+    }
+  };
+
+  const applyPreset = (presetSizes: readonly string[]) => {
+    onChangeSelectedSizes([...presetSizes]);
+  };
+
+  return (
+    <div className="space-y-3">
+      {/* Quick Presets Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-1">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs">
+          <span className="text-gray-400 font-semibold mr-1">Presets:</span>
+          <button
+            type="button"
+            onClick={() => applyPreset(GENDER_SIZE_PRESETS.Women)}
+            className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer border ${gender === 'Women'
+                ? 'bg-pink-50 border-pink-200 text-pink-700'
+                : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+              }`}
+          >
+            Women (UK 3–8)
+          </button>
+          <button
+            type="button"
+            onClick={() => applyPreset(GENDER_SIZE_PRESETS.Men)}
+            className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer border ${gender === 'Men'
+                ? 'bg-blue-50 border-blue-200 text-blue-700'
+                : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+              }`}
+          >
+            Men (UK 6–12)
+          </button>
+          <button
+            type="button"
+            onClick={() => applyPreset(GENDER_SIZE_PRESETS.Kids)}
+            className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer border ${gender === 'Kids'
+                ? 'bg-amber-50 border-amber-200 text-amber-800'
+                : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+              }`}
+          >
+            Kids (UK 1–5)
+          </button>
+          <button
+            type="button"
+            onClick={() => applyPreset(ALL_ADMIN_SIZES)}
+            className="px-2.5 py-1 rounded-lg font-semibold bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition cursor-pointer"
+          >
+            All Sizes (UK 1–12)
+          </button>
+        </div>
+
+        {/* Quick Batch Actions */}
+        <div className="flex items-center gap-2 text-xs">
+          <button
+            type="button"
+            onClick={() => onApplyStockToAll(20)}
+            className="text-primary hover:underline font-bold cursor-pointer"
+          >
+            Set 20 to all
+          </button>
+          <span className="text-gray-300">•</span>
+          <button
+            type="button"
+            onClick={() => onChangeSelectedSizes([])}
+            className="text-gray-400 hover:text-red-500 transition cursor-pointer"
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+
+      {/* Dynamic Size Cards Grid */}
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+        {ALL_ADMIN_SIZES.map((sz) => {
+          const isSelected = selectedSizes.includes(sz);
+          const stock = sizeStocks[sz] ?? 0;
+          return (
+            <div
+              key={sz}
+              className={`rounded-xl border p-2 transition-all ${isSelected
+                  ? 'bg-white border-primary/40 shadow-2xs ring-1 ring-primary/20'
+                  : 'bg-gray-50/70 border-gray-200 opacity-60 hover:opacity-100'
+                }`}
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <button
+                  type="button"
+                  onClick={() => toggleSize(sz)}
+                  className="flex items-center gap-1.5 cursor-pointer text-left"
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleSize(sz)}
+                    className="w-3.5 h-3.5 rounded text-primary focus:ring-primary cursor-pointer accent-primary"
+                  />
+                  <span className={`text-xs font-bold ${isSelected ? 'text-gray-900' : 'text-gray-500'}`}>
+                    {sz}
+                  </span>
+                </button>
+              </div>
+
+              <div className="mt-1">
+                <label className="block text-[10px] text-gray-400 mb-0.5 font-medium">Pairs:</label>
+                <input
+                  type="number"
+                  min={0}
+                  disabled={!isSelected}
+                  value={isSelected ? stock : ''}
+                  placeholder={isSelected ? '0' : '—'}
+                  onChange={(e) => onChangeStock(sz, Math.max(0, Number(e.target.value) || 0))}
+                  className={`w-full text-center rounded-md py-1 text-xs font-bold transition ${isSelected
+                      ? 'bg-gray-50 border border-gray-200 text-gray-900 focus:outline-none focus:ring-1 focus:ring-primary focus:bg-white'
+                      : 'bg-gray-100 border border-transparent text-gray-400 cursor-not-allowed'
+                    }`}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="text-[11px] text-gray-500 pt-1">
+        Selected: <strong className="text-gray-800">{selectedSizes.length} sizes active</strong> · Only checked sizes will be shown to customers on the storefront.
+      </p>
+    </div>
+  );
+}
 
 type AdminSection = 'dashboard' | 'catalog' | 'orders';
 
@@ -114,6 +288,7 @@ export function AdminPage() {
   const [productSearch, setProductSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [subcategoryFilter, setSubcategoryFilter] = useState('All');
+  const [genderFilter, setGenderFilter] = useState<'All' | ProductGender>('All');
 
   // Order filters
   const [orderSearch, setOrderSearch] = useState('');
@@ -124,7 +299,7 @@ export function AdminPage() {
     name: '',
     category: CATEGORIES[0],
     subcategory: getSubcategoriesForCategory(CATEGORIES[0])[0] || '',
-    gender: 'Unisex' as 'Men' | 'Women' | 'Unisex',
+    gender: 'Unisex' as ProductGender,
     tag: 'New Drop',
     price: 2995,
     originalPrice: 4495,
@@ -140,12 +315,24 @@ export function AdminPage() {
     additionalImg2: '',
     additionalImg3: '',
     additionalImg4: '',
-    stockUK6: 0,
-    stockUK7: 0,
-    stockUK8: 0,
-    stockUK9: 0,
-    stockUK10: 0,
-    stockUK11: 0,
+  });
+
+  const [addSelectedSizes, setAddSelectedSizes] = useState<string[]>([
+    'UK 4',
+    'UK 5',
+    'UK 6',
+    'UK 7',
+    'UK 8',
+    'UK 9',
+    'UK 10',
+    'UK 11',
+  ]);
+  const [addSizeStocks, setAddSizeStocks] = useState<Record<string, number>>(() => {
+    const init: Record<string, number> = {};
+    ALL_ADMIN_SIZES.forEach((s) => {
+      init[s] = 15;
+    });
+    return init;
   });
 
   // ─── Edit Product ────────────────────────────────────────────────────────────
@@ -155,7 +342,7 @@ export function AdminPage() {
     name: '',
     category: CATEGORIES[0],
     subcategory: '',
-    gender: 'Unisex' as 'Men' | 'Women' | 'Unisex',
+    gender: 'Unisex' as ProductGender,
     tag: '',
     price: 0,
     originalPrice: 0,
@@ -171,18 +358,26 @@ export function AdminPage() {
     additionalImg2: '',
     additionalImg3: '',
     additionalImg4: '',
-    stockUK6: 0,
-    stockUK7: 0,
-    stockUK8: 0,
-    stockUK9: 0,
-    stockUK10: 0,
-    stockUK11: 0,
   });
+  const [editSelectedSizes, setEditSelectedSizes] = useState<string[]>([]);
+  const [editSizeStocks, setEditSizeStocks] = useState<Record<string, number>>({});
 
   const handleOpenEditModal = (prod: Product) => {
     setEditingProductId(prod.id);
-    const vStock = (size: string) => prod.variants?.find((v) => v.size === size)?.stock ?? 0;
     const addImages = prod.additionalImages || [];
+    const existingSizes =
+      prod.sizes && prod.sizes.length > 0
+        ? prod.sizes
+        : prod.variants?.map((v) => v.size) || (GENDER_SIZE_PRESETS[prod.gender || 'Unisex'] as string[]);
+    setEditSelectedSizes(existingSizes);
+
+    const stocks: Record<string, number> = {};
+    ALL_ADMIN_SIZES.forEach((sz) => {
+      const match = prod.variants?.find((v) => v.size === sz);
+      stocks[sz] = match ? match.stock : 0;
+    });
+    setEditSizeStocks(stocks);
+
     setEditFormData({
       name: prod.name,
       category: prod.category,
@@ -203,12 +398,6 @@ export function AdminPage() {
       additionalImg2: addImages[1] || '',
       additionalImg3: addImages[2] || '',
       additionalImg4: addImages[3] || '',
-      stockUK6: vStock('UK 6'),
-      stockUK7: vStock('UK 7'),
-      stockUK8: vStock('UK 8'),
-      stockUK9: vStock('UK 9'),
-      stockUK10: vStock('UK 10'),
-      stockUK11: vStock('UK 11'),
     });
     setIsEditModalOpen(true);
   };
@@ -219,15 +408,14 @@ export function AdminPage() {
       alert('Please provide product name and image URL.');
       return;
     }
-    const sizes = ['UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11'];
-    const variants = [
-      { size: 'UK 6', stock: Number(editFormData.stockUK6) || 0 },
-      { size: 'UK 7', stock: Number(editFormData.stockUK7) || 0 },
-      { size: 'UK 8', stock: Number(editFormData.stockUK8) || 0 },
-      { size: 'UK 9', stock: Number(editFormData.stockUK9) || 0 },
-      { size: 'UK 10', stock: Number(editFormData.stockUK10) || 0 },
-      { size: 'UK 11', stock: Number(editFormData.stockUK11) || 0 },
-    ];
+    const finalSizes =
+      editSelectedSizes.length > 0
+        ? editSelectedSizes
+        : (GENDER_SIZE_PRESETS[editFormData.gender] as string[]);
+    const variants = finalSizes.map((size) => ({
+      size,
+      stock: Math.max(0, Number(editSizeStocks[size]) || 0),
+    }));
     const additionalImages = [
       editFormData.additionalImg1,
       editFormData.additionalImg2,
@@ -254,7 +442,7 @@ export function AdminPage() {
       artisanRegion: editFormData.artisanRegion.trim(),
       img: editFormData.img.trim(),
       additionalImages,
-      sizes,
+      sizes: finalSizes,
       variants,
     });
     setIsEditModalOpen(false);
@@ -276,9 +464,10 @@ export function AdminPage() {
         (p.subcategory && p.subcategory.toLowerCase().includes(productSearch.toLowerCase()));
       const matchesCat = categoryFilter === 'All' || p.category === categoryFilter;
       const matchesSubcat = subcategoryFilter === 'All' || p.subcategory === subcategoryFilter;
-      return matchesSearch && matchesCat && matchesSubcat;
+      const matchesGender = genderFilter === 'All' || p.gender === genderFilter;
+      return matchesSearch && matchesCat && matchesSubcat && matchesGender;
     });
-  }, [products, productSearch, categoryFilter, subcategoryFilter]);
+  }, [products, productSearch, categoryFilter, subcategoryFilter, genderFilter]);
 
   const filteredOrders = useMemo(() => {
     return orders.filter((o) => {
@@ -345,8 +534,8 @@ export function AdminPage() {
         totalRev > 0
           ? Math.round((data.revenue / totalRev) * 100)
           : products.length > 0
-          ? Math.round((data.skus / products.length) * 100)
-          : 0;
+            ? Math.round((data.skus / products.length) * 100)
+            : 0;
       return { name, revenue: data.revenue, units: data.units, skus: data.skus, share, color: colors[idx % colors.length] };
     });
   }, [orders, products, metrics.totalRevenue]);
@@ -391,15 +580,14 @@ export function AdminPage() {
       alert('Please provide at least a Product Name and Image URL.');
       return;
     }
-    const sizes = ['UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11'];
-    const variants = [
-      { size: 'UK 6', stock: Number(formData.stockUK6) || 0 },
-      { size: 'UK 7', stock: Number(formData.stockUK7) || 0 },
-      { size: 'UK 8', stock: Number(formData.stockUK8) || 0 },
-      { size: 'UK 9', stock: Number(formData.stockUK9) || 0 },
-      { size: 'UK 10', stock: Number(formData.stockUK10) || 0 },
-      { size: 'UK 11', stock: Number(formData.stockUK11) || 0 },
-    ];
+    const finalSizes =
+      addSelectedSizes.length > 0
+        ? addSelectedSizes
+        : (GENDER_SIZE_PRESETS[formData.gender] as string[]);
+    const variants = finalSizes.map((size) => ({
+      size,
+      stock: Math.max(0, Number(addSizeStocks[size]) || 0),
+    }));
     const additionalImages: string[] = [
       formData.additionalImg1,
       formData.additionalImg2,
@@ -430,7 +618,7 @@ export function AdminPage() {
       insoleType: formData.insoleType.trim() || 'Ortho-Cushion Double Memory Foam',
       idealFor: formData.idealFor.trim() || 'Daily Wear, Celebrations & Festive Events',
       artisanRegion: formData.artisanRegion.trim() || 'Jaipur, Rajasthan',
-      sizes,
+      sizes: finalSizes,
       variants,
       isActive: true,
     };
@@ -458,12 +646,6 @@ export function AdminPage() {
       additionalImg2: '',
       additionalImg3: '',
       additionalImg4: '',
-      stockUK6: 0,
-      stockUK7: 0,
-      stockUK8: 0,
-      stockUK9: 0,
-      stockUK10: 0,
-      stockUK11: 0,
     });
   };
 
@@ -489,10 +671,6 @@ export function AdminPage() {
                 className="h-8 sm:h-9 w-auto mx-auto"
               />
             </Link>
-            <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-bold uppercase tracking-wider">
-              <Icon name="lock" className="w-3.5 h-3.5" />
-              <span>Admin Portal</span>
-            </div>
           </div>
 
           {/* Card */}
@@ -611,17 +789,15 @@ export function AdminPage() {
 
       {/* ── Sidebar ─────────────────────────────────────────────────────────── */}
       <aside
-        className={`bg-white border-r border-gray-200 flex flex-col shrink-0 transition-all duration-300 ${
-          sidebarCollapsed ? 'w-16' : 'w-56'
-        } sticky top-0 h-screen overflow-hidden`}
+        className={`bg-white border-r border-gray-200 flex flex-col shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-56'
+          } sticky top-0 h-screen overflow-hidden`}
       >
         {/* Brand */}
         <div
-          className={`flex items-center border-b border-gray-100 min-h-[58px] ${
-            sidebarCollapsed
+          className={`flex items-center border-b border-gray-100 min-h-[58px] ${sidebarCollapsed
               ? 'flex-col justify-center py-3 px-2 gap-2'
               : 'justify-between px-4 py-3'
-          }`}
+            }`}
         >
           {!sidebarCollapsed ? (
             <Link
@@ -666,11 +842,10 @@ export function AdminPage() {
                 key={item.id}
                 onClick={() => setActiveSection(item.id)}
                 title={sidebarCollapsed ? item.label : undefined}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors cursor-pointer group ${
-                  isActive
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors cursor-pointer group ${isActive
                     ? 'bg-primary/10 text-primary'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }`}
+                  }`}
               >
                 <Icon
                   name={item.icon as IconName}
@@ -681,9 +856,8 @@ export function AdminPage() {
                     <span className="flex-1 text-left truncate">{item.label}</span>
                     {item.count !== undefined && (
                       <span
-                        className={`text-[11px] font-bold px-1.5 py-0.5 rounded-md ${
-                          isActive ? 'bg-primary/20 text-primary' : 'bg-gray-100 text-gray-500'
-                        }`}
+                        className={`text-[11px] font-bold px-1.5 py-0.5 rounded-md ${isActive ? 'bg-primary/20 text-primary' : 'bg-gray-100 text-gray-500'
+                          }`}
                       >
                         {item.count}
                       </span>
@@ -699,9 +873,8 @@ export function AdminPage() {
             <button
               onClick={() => { setActiveSection('catalog'); setIsAddModalOpen(true); }}
               title={sidebarCollapsed ? 'Add New Product' : undefined}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold bg-primary text-white hover:bg-[#8a2600] transition-colors cursor-pointer shadow-sm ${
-                sidebarCollapsed ? 'justify-center' : ''
-              }`}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold bg-primary text-white hover:bg-[#8a2600] transition-colors cursor-pointer shadow-sm ${sidebarCollapsed ? 'justify-center' : ''
+                }`}
             >
               <span className="text-lg leading-none font-black shrink-0">+</span>
               {!sidebarCollapsed && <span>Add Product</span>}
@@ -725,9 +898,8 @@ export function AdminPage() {
           <button
             onClick={handleAdminLogout}
             title="Sign out"
-            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors cursor-pointer ${
-              sidebarCollapsed ? 'justify-center' : ''
-            }`}
+            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors cursor-pointer ${sidebarCollapsed ? 'justify-center' : ''
+              }`}
           >
             <Icon name="lock" className="w-4 h-4 shrink-0" />
             {!sidebarCollapsed && 'Sign Out'}
@@ -744,8 +916,8 @@ export function AdminPage() {
               {activeSection === 'dashboard'
                 ? 'Dashboard'
                 : activeSection === 'catalog'
-                ? 'Product Catalog'
-                : 'Orders & Shipping'}
+                  ? 'Product Catalog'
+                  : 'Orders & Shipping'}
             </h1>
             <p className="text-xs text-gray-400">
               {activeSection === 'dashboard' && 'Sales overview and key metrics'}
@@ -876,9 +1048,8 @@ export function AdminPage() {
                             <div
                               style={{ height: `${pct}%` }}
                               title={`${bar.day}: ₹${bar.val.toLocaleString('en-IN')} (${bar.count} orders)`}
-                              className={`w-full rounded-t-md transition-all duration-500 ${
-                                isToday ? 'bg-primary' : bar.val > 0 ? 'bg-gray-300 hover:bg-gray-400' : 'bg-gray-200'
-                              }`}
+                              className={`w-full rounded-t-md transition-all duration-500 ${isToday ? 'bg-primary' : bar.val > 0 ? 'bg-gray-300 hover:bg-gray-400' : 'bg-gray-200'
+                                }`}
                             />
                           </div>
                           <span className="text-[11px] font-medium text-gray-500">{bar.day}</span>
@@ -974,11 +1145,10 @@ export function AdminPage() {
                             {unitsSold > 0 ? `${unitsSold} pairs` : `${prod.totalSold || 0} pairs`}
                           </td>
                           <td className="px-6 py-3.5">
-                            <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-bold ${
-                              totalStock > 20 ? 'bg-emerald-50 text-emerald-700' :
-                              totalStock > 0 ? 'bg-amber-50 text-amber-700' :
-                              'bg-red-50 text-red-700'
-                            }`}>
+                            <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-bold ${totalStock > 20 ? 'bg-emerald-50 text-emerald-700' :
+                                totalStock > 0 ? 'bg-amber-50 text-amber-700' :
+                                  'bg-red-50 text-red-700'
+                              }`}>
                               {totalStock > 0 ? `${totalStock} in stock` : 'Out of Stock'}
                             </span>
                           </td>
@@ -1037,6 +1207,19 @@ export function AdminPage() {
                     {getSubcategoriesForCategory(categoryFilter).map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 )}
+
+                {/* Gender */}
+                <select
+                  value={genderFilter}
+                  onChange={(e) => setGenderFilter(e.target.value as 'All' | ProductGender)}
+                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer bg-white"
+                >
+                  <option value="All">All Genders</option>
+                  <option value="Men">Men's</option>
+                  <option value="Women">Women's</option>
+                  <option value="Kids">Kids'</option>
+                  <option value="Unisex">Unisex</option>
+                </select>
 
                 <div className="flex items-center gap-2 ml-auto">
                   <button
@@ -1104,8 +1287,12 @@ export function AdminPage() {
                                     {prod.subcategory}
                                   </span>
                                 )}
-                                {prod.gender && prod.gender !== 'Unisex' && (
-                                  <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200/60 rounded text-[10px] font-semibold">
+                                {prod.gender && (
+                                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border ${prod.gender === 'Women' ? 'bg-pink-50 text-pink-700 border-pink-200/60' :
+                                      prod.gender === 'Kids' ? 'bg-amber-50 text-amber-800 border-amber-200/60' :
+                                        prod.gender === 'Men' ? 'bg-blue-50 text-blue-700 border-blue-200/60' :
+                                          'bg-gray-100 text-gray-600 border-gray-200/60'
+                                    }`}>
                                     {prod.gender}
                                   </span>
                                 )}
@@ -1129,13 +1316,12 @@ export function AdminPage() {
                                   <span
                                     key={v.size}
                                     title={`${v.size}: ${v.stock} in stock`}
-                                    className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
-                                      v.stock === 0
+                                    className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${v.stock === 0
                                         ? 'bg-red-50 text-red-600 border border-red-200'
                                         : v.stock <= 5
-                                        ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                                        : 'bg-gray-100 text-gray-600'
-                                    }`}
+                                          ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                          : 'bg-gray-100 text-gray-600'
+                                      }`}
                                   >
                                     {v.size.replace('UK ', '')}:{v.stock}
                                   </span>
@@ -1146,11 +1332,10 @@ export function AdminPage() {
                             <td className="px-5 py-4">
                               <button
                                 onClick={() => toggleProductStatus(prod.id)}
-                                className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition cursor-pointer ${
-                                  prod.isActive
+                                className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition cursor-pointer ${prod.isActive
                                     ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
                                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
+                                  }`}
                               >
                                 {prod.isActive ? '● Live' : '○ Draft'}
                               </button>
@@ -1258,19 +1443,17 @@ export function AdminPage() {
                     <div className="flex-1 space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-black text-gray-900 tracking-wide">{ord.orderNumber}</span>
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                          ord.orderStatus === 'DELIVERED' ? 'bg-emerald-100 text-emerald-800' :
-                          ord.orderStatus === 'SHIPPED' ? 'bg-blue-100 text-blue-800' :
-                          ord.orderStatus === 'PACKING' ? 'bg-amber-100 text-amber-800' :
-                          'bg-gray-100 text-gray-700'
-                        }`}>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${ord.orderStatus === 'DELIVERED' ? 'bg-emerald-100 text-emerald-800' :
+                            ord.orderStatus === 'SHIPPED' ? 'bg-blue-100 text-blue-800' :
+                              ord.orderStatus === 'PACKING' ? 'bg-amber-100 text-amber-800' :
+                                'bg-gray-100 text-gray-700'
+                          }`}>
                           {ord.orderStatus}
                         </span>
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${
-                          ord.paymentStatus === 'PAID'
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${ord.paymentStatus === 'PAID'
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                             : 'bg-amber-50 text-amber-700 border-amber-200'
-                        }`}>
+                          }`}>
                           {ord.paymentMethod} · {ord.paymentStatus}
                         </span>
                       </div>
@@ -1392,10 +1575,19 @@ export function AdminPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1.5">Gender</label>
-                    <select value={formData.gender} onChange={(e) => setFormData({ ...formData, gender: e.target.value as 'Men' | 'Women' | 'Unisex' })} className={inputCls + ' cursor-pointer'}>
+                    <select
+                      value={formData.gender}
+                      onChange={(e) => {
+                        const nextGender = e.target.value as ProductGender;
+                        setFormData({ ...formData, gender: nextGender });
+                        setAddSelectedSizes([...GENDER_SIZE_PRESETS[nextGender]]);
+                      }}
+                      className={inputCls + ' cursor-pointer'}
+                    >
                       <option value="Unisex">Unisex</option>
                       <option value="Men">Men's</option>
                       <option value="Women">Women's</option>
+                      <option value="Kids">Kids'</option>
                     </select>
                   </div>
                   <div>
@@ -1488,25 +1680,30 @@ export function AdminPage() {
 
               {/* Section 4 */}
               <div className="border-t border-gray-100 pt-5">
-                <p className="text-xs font-bold text-primary uppercase tracking-wider mb-1">4. Stock by UK Size</p>
-                <p className="text-xs text-gray-400 mb-3">Set initial inventory per size variant:</p>
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                  {([
-                    { label: 'UK 6', key: 'stockUK6' },
-                    { label: 'UK 7', key: 'stockUK7' },
-                    { label: 'UK 8', key: 'stockUK8' },
-                    { label: 'UK 9', key: 'stockUK9' },
-                    { label: 'UK 10', key: 'stockUK10' },
-                    { label: 'UK 11', key: 'stockUK11' },
-                  ] as const).map((s) => (
-                    <div key={s.label} className="bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-center">
-                      <span className="block text-[11px] font-bold text-gray-600 mb-1.5">{s.label}</span>
-                      <input type="number" min={0} value={formData[s.key]}
-                        onChange={(e) => setFormData({ ...formData, [s.key]: Number(e.target.value) })}
-                        className="w-full text-center bg-white border border-gray-200 rounded-lg py-1 text-sm font-bold text-gray-900 focus:outline-none focus:border-primary" />
-                    </div>
-                  ))}
-                </div>
+                <p className="text-xs font-bold text-primary uppercase tracking-wider mb-1">
+                  4. Available Sizes & Stock Matrix (UK 1 – UK 12)
+                </p>
+                <p className="text-xs text-gray-400 mb-3">
+                  Toggle active sizes for this footwear model and set starting pair inventory:
+                </p>
+                <SizeInventoryManager
+                  gender={formData.gender}
+                  selectedSizes={addSelectedSizes}
+                  onChangeSelectedSizes={setAddSelectedSizes}
+                  sizeStocks={addSizeStocks}
+                  onChangeStock={(size, stock) =>
+                    setAddSizeStocks((prev) => ({ ...prev, [size]: stock }))
+                  }
+                  onApplyStockToAll={(stock) =>
+                    setAddSizeStocks((prev) => {
+                      const next = { ...prev };
+                      addSelectedSizes.forEach((s) => {
+                        next[s] = stock;
+                      });
+                      return next;
+                    })
+                  }
+                />
               </div>
 
               {/* Footer */}
@@ -1567,10 +1764,18 @@ export function AdminPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1.5">Gender</label>
-                    <select value={editFormData.gender} onChange={(e) => setEditFormData({ ...editFormData, gender: e.target.value as 'Men' | 'Women' | 'Unisex' })} className={inputCls + ' cursor-pointer'}>
+                    <select
+                      value={editFormData.gender}
+                      onChange={(e) => {
+                        const nextGender = e.target.value as ProductGender;
+                        setEditFormData({ ...editFormData, gender: nextGender });
+                      }}
+                      className={inputCls + ' cursor-pointer'}
+                    >
                       <option value="Unisex">Unisex</option>
                       <option value="Men">Men's</option>
                       <option value="Women">Women's</option>
+                      <option value="Kids">Kids'</option>
                     </select>
                   </div>
                   <div>
@@ -1663,25 +1868,30 @@ export function AdminPage() {
 
               {/* Section 4 */}
               <div className="border-t border-gray-100 pt-5">
-                <p className="text-xs font-bold text-primary uppercase tracking-wider mb-1">4. Stock per UK Size</p>
-                <p className="text-xs text-gray-400 mb-3">Adjust current inventory per size:</p>
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                  {([
-                    { label: 'UK 6', key: 'stockUK6' },
-                    { label: 'UK 7', key: 'stockUK7' },
-                    { label: 'UK 8', key: 'stockUK8' },
-                    { label: 'UK 9', key: 'stockUK9' },
-                    { label: 'UK 10', key: 'stockUK10' },
-                    { label: 'UK 11', key: 'stockUK11' },
-                  ] as const).map((s) => (
-                    <div key={s.label} className="bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-center">
-                      <span className="block text-[11px] font-bold text-gray-600 mb-1.5">{s.label}</span>
-                      <input type="number" min={0} value={editFormData[s.key]}
-                        onChange={(e) => setEditFormData({ ...editFormData, [s.key]: Number(e.target.value) })}
-                        className="w-full text-center bg-white border border-gray-200 rounded-lg py-1 text-sm font-bold text-gray-900 focus:outline-none focus:border-primary" />
-                    </div>
-                  ))}
-                </div>
+                <p className="text-xs font-bold text-primary uppercase tracking-wider mb-1">
+                  4. Available Sizes & Stock Matrix (UK 1 – UK 12)
+                </p>
+                <p className="text-xs text-gray-400 mb-3">
+                  Adjust active sizes and current inventory pairs for this shoe:
+                </p>
+                <SizeInventoryManager
+                  gender={editFormData.gender}
+                  selectedSizes={editSelectedSizes}
+                  onChangeSelectedSizes={setEditSelectedSizes}
+                  sizeStocks={editSizeStocks}
+                  onChangeStock={(size, stock) =>
+                    setEditSizeStocks((prev) => ({ ...prev, [size]: stock }))
+                  }
+                  onApplyStockToAll={(stock) =>
+                    setEditSizeStocks((prev) => {
+                      const next = { ...prev };
+                      editSelectedSizes.forEach((s) => {
+                        next[s] = stock;
+                      });
+                      return next;
+                    })
+                  }
+                />
               </div>
 
               {/* Footer */}

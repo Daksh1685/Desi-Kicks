@@ -21,7 +21,7 @@ export function CollectionsPage() {
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>('All');
   const [selectedSize, setSelectedSize] = useState<string>('All');
   const [selectedPriceRange, setSelectedPriceRange] = useState<string>('all');
-  const [selectedGender, setSelectedGender] = useState<'All' | 'Men' | 'Women' | 'Unisex'>('All');
+  const [selectedGender, setSelectedGender] = useState<'All' | 'Men' | 'Women' | 'Kids' | 'Unisex'>('All');
   const [inStockOnly, setInStockOnly] = useState<boolean>(false);
   const [sortBy, setSortBy] = useState<'featured' | 'price-asc' | 'price-desc' | 'rating'>('featured');
 
@@ -346,13 +346,14 @@ export function CollectionsPage() {
                   <select
                     value={selectedGender}
                     onChange={(e) =>
-                      setSelectedGender(e.target.value as 'All' | 'Men' | 'Women' | 'Unisex')
+                      setSelectedGender(e.target.value as 'All' | 'Men' | 'Women' | 'Kids' | 'Unisex')
                     }
                     className="bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
                   >
                     <option value="All">All Genders</option>
                     <option value="Men">Men</option>
                     <option value="Women">Women</option>
+                    <option value="Kids">Kids</option>
                     <option value="Unisex">Unisex</option>
                   </select>
                 </div>
