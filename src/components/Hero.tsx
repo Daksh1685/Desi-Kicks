@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from './ui/Icon';
 import { useHero } from '../context/HeroContext';
@@ -7,33 +7,116 @@ export function Hero() {
   const { activeSlides } = useHero();
   const slides = activeSlides;
 
-  const [currentSlide, setCurrentSlide] = useState(0);
+  // Single slide view: no carousel needed
+  const isSingleSlide = slides.length <= 1;
+
+  // Virtual track padding: [cloneLast, ...slides, cloneFirst]
+  // Virtual index 1 corresponds to real slide 0
+  const [currentIndex, setCurrentIndex] = useState(isSingleSlide ? 0 : 1);
+  const [withAnimation, setWithAnimation] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
 
-  // Touch swipe support for mobile
+  const isAnimatingRef = useRef(false);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
 
+  // Build extended slides array for infinite queue looping
+  const extendedSlides = useMemo(() => {
+    if (isSingleSlide) return slides;
+    const last = slides[slides.length - 1];
+    const first = slides[0];
+    return [
+      { ...last, id: `clone-head-${last.id}` },
+      ...slides,
+      { ...first, id: `clone-tail-${first.id}` },
+    ];
+  }, [slides, isSingleSlide]);
+
+  const totalTrackItems = extendedSlides.length;
+
+  // Re-enable animation after instantaneous snap
+  useEffect(() => {
+    if (!withAnimation) {
+      const raf = requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setWithAnimation(true);
+        });
+      });
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [withAnimation]);
+
+  // Seamless snap on transition end
+  const handleTransitionEnd = useCallback((e?: React.TransitionEvent<HTMLDivElement>) => {
+    // Ignore bubbling transition events from children
+    if (e && e.target !== e.currentTarget) return;
+
+    isAnimatingRef.current = false;
+
+    if (isSingleSlide) return;
+
+    // Slid forward into cloned first slide at tail -> snap back to real first slide (index 1)
+    if (currentIndex >= slides.length + 1) {
+      setWithAnimation(false);
+      setCurrentIndex(1);
+    }
+    // Slid backward into cloned last slide at head -> snap back to real last slide (index N)
+    else if (currentIndex <= 0) {
+      setWithAnimation(false);
+      setCurrentIndex(slides.length);
+    }
+  }, [currentIndex, slides.length, isSingleSlide]);
+
+  // Safety timer to prevent animation lock if browser drops transitionEnd event
+  useEffect(() => {
+    if (isAnimatingRef.current) {
+      const timeout = setTimeout(() => {
+        handleTransitionEnd();
+      }, 700);
+      return () => clearTimeout(timeout);
+    }
+  }, [currentIndex, handleTransitionEnd]);
+
   const nextSlide = useCallback(() => {
-    if (slides.length <= 1) return;
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
-  }, [slides.length]);
+    if (isSingleSlide || isAnimatingRef.current) return;
+    isAnimatingRef.current = true;
+    setWithAnimation(true);
+    setCurrentIndex((prev) => prev + 1);
+  }, [isSingleSlide]);
 
   const prevSlide = useCallback(() => {
-    if (slides.length <= 1) return;
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
-  }, [slides.length]);
+    if (isSingleSlide || isAnimatingRef.current) return;
+    isAnimatingRef.current = true;
+    setWithAnimation(true);
+    setCurrentIndex((prev) => prev - 1);
+  }, [isSingleSlide]);
 
-  const safeSlide = slides.length > 0 ? currentSlide % slides.length : 0;
+  // Active dot indicator calculation
+  const activeDotIndex = useMemo(() => {
+    if (isSingleSlide) return 0;
+    if (currentIndex <= 0) return slides.length - 1;
+    if (currentIndex >= slides.length + 1) return 0;
+    return currentIndex - 1;
+  }, [currentIndex, slides.length, isSingleSlide]);
 
+  const goToSlide = (dotIdx: number) => {
+    if (isSingleSlide || isAnimatingRef.current || dotIdx === activeDotIndex) return;
+    isAnimatingRef.current = true;
+    setWithAnimation(true);
+    setCurrentIndex(dotIdx + 1);
+  };
+
+  // Autoplay timer (2 seconds)
   useEffect(() => {
-    if (isPaused || slides.length <= 1) return;
-    const interval = setInterval(nextSlide, 4000);
+    if (isPaused || isSingleSlide) return;
+    const interval = setInterval(nextSlide, 2000);
     return () => clearInterval(interval);
-  }, [isPaused, nextSlide, slides.length, currentSlide]);
+  }, [isPaused, nextSlide, isSingleSlide, currentIndex]);
 
+  // Touch gesture support
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
+    touchEndX.current = null;
     setIsPaused(false);
   };
 
@@ -42,9 +125,9 @@ export function Hero() {
   };
 
   const handleTouchEnd = () => {
-    if (!touchStartX.current || !touchEndX.current) return;
+    if (touchStartX.current === null || touchEndX.current === null) return;
     const diff = touchStartX.current - touchEndX.current;
-    const minSwipeDistance = 45;
+    const minSwipeDistance = 40;
 
     if (diff > minSwipeDistance) {
       nextSlide();
@@ -59,12 +142,21 @@ export function Hero() {
     return null;
   }
 
+  // Exact mathematical percentage offset for the track
+  const trackTranslatePercent = isSingleSlide
+    ? 0
+    : (currentIndex * 100) / totalTrackItems;
+
+  const slideWidthPercent = isSingleSlide
+    ? 100
+    : 100 / totalTrackItems;
+
   return (
     <div className="w-full max-w-[1600px] mx-auto px-2 sm:px-4 md:px-6 pt-2 pb-3">
       <section
+        key={slides.map((s) => s.id).join('-')}
         className="relative w-full aspect-[9/16] sm:aspect-[16/9] max-h-[85vh] sm:max-h-none overflow-hidden rounded-xl sm:rounded-2xl md:rounded-3xl shadow-sm bg-neutral-900 group select-none"
         onMouseEnter={() => {
-          // Pause only for real mouse pointers, not simulated touch taps
           if (window.matchMedia('(hover: hover)').matches) {
             setIsPaused(true);
           }
@@ -75,13 +167,25 @@ export function Hero() {
         onTouchEnd={handleTouchEnd}
         aria-label="Featured Releases Carousel"
       >
-        {/* Slides Track */}
+        {/* Slides Track - Mathematically constrained width and translate */}
         <div
-          className="flex h-full w-full transition-transform duration-700 ease-out"
-          style={{ transform: `translateX(-${safeSlide * 100}%)` }}
+          className="flex h-full"
+          style={{
+            width: isSingleSlide ? '100%' : `${totalTrackItems * 100}%`,
+            transform: `translateX(-${trackTranslatePercent}%)`,
+            transition: withAnimation ? 'transform 600ms cubic-bezier(0.25, 1, 0.5, 1)' : 'none',
+          }}
+          onTransitionEnd={handleTransitionEnd}
         >
-          {slides.map((slide, idx) => (
-            <div key={slide.id} className="min-w-full h-full relative shrink-0">
+          {extendedSlides.map((slide, idx) => (
+            <div
+              key={`${slide.id}-${idx}`}
+              className="h-full relative shrink-0"
+              style={{
+                width: `${slideWidthPercent}%`,
+                flex: `0 0 ${slideWidthPercent}%`,
+              }}
+            >
               {slide.isFullBanner ? (
                 /* Full Graphic Creative Banner with Responsive Art Direction */
                 <Link
@@ -122,7 +226,7 @@ export function Hero() {
                       className="w-full h-full object-cover object-center"
                       src={slide.img}
                       alt={slide.alt || slide.title || 'Hero Banner'}
-                      loading={idx === 0 ? 'eager' : 'lazy'}
+                      loading={idx <= 2 ? 'eager' : 'lazy'}
                     />
                   </picture>
                   {/* Subtle edge vignette for smooth transition */}
@@ -135,7 +239,7 @@ export function Hero() {
                     className="w-full h-full object-cover object-[75%_center] md:object-center brightness-90"
                     src={slide.img}
                     alt={slide.alt || slide.title || 'Hero Banner'}
-                    loading={idx === 0 ? 'eager' : 'lazy'}
+                    loading={idx <= 2 ? 'eager' : 'lazy'}
                   />
 
                   {/* Gradient & Walkaroo-inspired Typography Overlay */}
@@ -178,7 +282,7 @@ export function Hero() {
         </div>
 
         {/* Navigation Arrows (Visible when more than 1 slide) */}
-        {slides.length > 1 && (
+        {!isSingleSlide && (
           <>
             <button
               onClick={prevSlide}
@@ -200,12 +304,13 @@ export function Hero() {
               {slides.map((_, idx) => (
                 <button
                   key={idx}
-                  onClick={() => setCurrentSlide(idx)}
+                  onClick={() => goToSlide(idx)}
                   aria-label={`Go to slide ${idx + 1}`}
-                  className={`transition-all duration-300 rounded-full cursor-pointer ${safeSlide === idx
-                    ? 'w-6 md:w-8 h-2 bg-white shadow-sm'
-                    : 'w-2 h-2 bg-white/50 hover:bg-white/80'
-                    }`}
+                  className={`transition-all duration-300 rounded-full cursor-pointer ${
+                    activeDotIndex === idx
+                      ? 'w-6 md:w-8 h-2 bg-white shadow-sm'
+                      : 'w-2 h-2 bg-white/50 hover:bg-white/80'
+                  }`}
                 />
               ))}
             </div>
