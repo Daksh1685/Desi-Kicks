@@ -88,6 +88,26 @@ export function ReturnsSection({ showToast }: ReturnsSectionProps) {
 
   return (
     <div className="space-y-6 max-w-6xl">
+      {/* Policy Notice Card */}
+      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-xs shrink-0">
+            36h
+          </div>
+          <div>
+            <h3 className="text-xs font-bold text-amber-950 uppercase tracking-wide">
+              Storefront Policy: Exchange-Only (Valid within 36 Hours of Delivery)
+            </h3>
+            <p className="text-[11px] text-amber-800">
+              Monetary returns are disabled across CraftYourSole. All requests below represent replacement size swap logistics.
+            </p>
+          </div>
+        </div>
+        <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 shrink-0">
+          Exchange Only
+        </span>
+      </div>
+
       {/* Search & Filter Bar */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[240px]">
@@ -117,7 +137,7 @@ export function ReturnsSection({ showToast }: ReturnsSectionProps) {
       <div className="space-y-4">
         {filteredRequests.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center text-gray-400 text-sm">
-            {loading ? 'Loading return & exchange requests...' : 'No size exchange requests found.'}
+            {loading ? 'Loading size exchange requests...' : 'No 36-hour size exchange requests found.'}
           </div>
         ) : (
           filteredRequests.map((req) => (

@@ -112,7 +112,7 @@ export function LoginPage() {
               <div className="w-6 h-6 rounded-lg bg-orange-100 text-primary flex items-center justify-center shrink-0">
                 <Icon name="package" className="w-3.5 h-3.5" />
               </div>
-              <span><strong>Live Order Tracking</strong> and 7-day doorstep size exchanges</span>
+              <span><strong>Live Order Tracking</strong> and 36-hour doorstep size exchanges</span>
             </div>
             <div className="flex items-center gap-2.5">
               <div className="w-6 h-6 rounded-lg bg-red-100 text-red-500 flex items-center justify-center shrink-0">

@@ -134,7 +134,7 @@ function ProductDetailContent({ product }: { product: Product }) {
     const dateStr = date.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' });
     setPincodeStatus({
       valid: true,
-      message: `FREE Delivery by ${dateStr} • Cash on Delivery & Doorstep Exchange Available`,
+      message: `FREE Delivery by ${dateStr} • Cash on Delivery & 36-Hr Doorstep Size Exchange`,
     });
   };
 
@@ -588,8 +588,8 @@ function ProductDetailContent({ product }: { product: Product }) {
                 </div>
                 <div className="p-2">
                   <Icon name="refresh" className="w-5 h-5 mx-auto text-primary mb-1" />
-                  <p className="text-[11px] font-bold text-gray-900">7-Day Swap</p>
-                  <p className="text-[10px] text-gray-500">Doorstep size exchange</p>
+                  <p className="text-[11px] font-bold text-gray-900">36-Hr Swap</p>
+                  <p className="text-[10px] text-gray-500">Exchange only · No returns</p>
                 </div>
                 <div className="p-2">
                   <Icon name="shield" className="w-5 h-5 mx-auto text-primary mb-1" />

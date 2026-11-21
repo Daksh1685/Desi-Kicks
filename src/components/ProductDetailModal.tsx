@@ -325,7 +325,7 @@ function ProductDetailModalInner({
               <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-gray-100 text-center text-[10px] text-gray-600">
                 <div className="p-2 rounded-lg bg-gray-50 flex flex-col items-center gap-1">
                   <Icon name="refresh" className="w-4 h-4 text-primary" />
-                  <span className="font-semibold">7-Day Exchange</span>
+                  <span className="font-semibold">36-Hr Exchange Only</span>
                 </div>
                 <div className="p-2 rounded-lg bg-gray-50 flex flex-col items-center gap-1">
                   <Icon name="truck" className="w-4 h-4 text-primary" />

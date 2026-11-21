@@ -19,8 +19,8 @@ const PERKS = [
   },
   {
     icon: 'refresh' as const,
-    title: '7-Day Easy Size Exchange',
-    subtitle: 'Hassle-free doorstep pickup & replacement',
+    title: '36-Hour Size Exchange',
+    subtitle: 'Exchange only · Doorstep size swap within 36 hrs',
     bg: 'bg-green-50',
     border: 'border-green-100',
     iconBg: 'bg-green-100',

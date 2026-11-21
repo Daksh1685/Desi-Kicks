@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { IMG } from '../constants/images';
 
-const MARQUEE_TEXT = 'HANDCRAFTED • PAN-INDIA DELIVERY • 7-DAY EXCHANGE • ARTISAN MADE • FREE SHIPPING • COD AVAILABLE • ';
+const MARQUEE_TEXT = 'HANDCRAFTED • PAN-INDIA DELIVERY • 36-HR EXCHANGE ONLY • ARTISAN MADE • FREE SHIPPING • COD AVAILABLE • ';
 
 export function PromoBanner() {
   return (

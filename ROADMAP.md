@@ -145,9 +145,10 @@ flowchart TD
 - [x] **Coupons CMS in Admin (`CouponsSection.tsx`, `supabase.ts`, `CartPage.tsx`)**:
   - Create, view, search, and toggle active status for percentage and flat discount promo codes.
   - Real-time synchronization with Supabase `coupons` table and live storefront validation in `CartPage.tsx`.
-- [x] **Size Exchange & Returns Admin Queue (`ReturnsSection.tsx`, `ProfilePage.tsx`, `supabase.ts`)**:
-  - Full queue displaying customer size exchange requests submitted from `ProfilePage.tsx`.
+- [x] **Size Exchange Admin Queue (`ReturnsSection.tsx`, `ProfilePage.tsx`, `supabase.ts`)**:
+  - Full queue displaying customer size exchange requests submitted from `ProfilePage.tsx` under the 36-hour exchange-only policy.
   - Step-by-step return state pipeline (`REQUESTED` → `APPROVED` → `SCHEDULED_PICKUP` → `IN_TRANSIT` → `REPLACED_DELIVERED` / `REJECTED`).
+  - Storefront enforces strict Exchange-Only policy with zero monetary returns/refunds.
 - [x] **Storefront Maintenance Mode Switch (`AdminHeader.tsx`, `AdminPage.tsx`, `MaintenanceScreen.tsx`, `App.tsx`)**:
   - Instant one-click toggle in Admin header to lock customer storefront during catalog restocking or upgrades.
   - Displays a high-converting, branded maintenance announcement with customer support contacts and admin bypass link.

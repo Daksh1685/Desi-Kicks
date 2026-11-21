@@ -796,7 +796,7 @@ export function ProfilePage({ onBackToHome, onNavigateToCart }: ProfilePageProps
                             }}
                             className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer"
                           >
-                            Size Exchange or Return
+                            Request Size Exchange (36h)
                           </button>
                           <button
                             onClick={() => setInvoiceOrder(ord)}
@@ -1520,7 +1520,7 @@ export function ProfilePage({ onBackToHome, onNavigateToCart }: ProfilePageProps
       )}
 
       {/* =========================================================================
-          MODAL 2: SIZE EXCHANGE & RETURN MODAL
+          MODAL 2: 36-HOUR SIZE EXCHANGE MODAL (EXCHANGE ONLY)
          ========================================================================= */}
       {exchangeOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -1532,7 +1532,7 @@ export function ProfilePage({ onBackToHome, onNavigateToCart }: ProfilePageProps
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div>
                 <span className="text-[10px] font-bold text-primary uppercase tracking-wider block">
-                  7-Day Doorstep Fit Guarantee
+                  36-Hour Doorstep Fit Guarantee (Exchange Only)
                 </span>
                 <h3 className="font-anton text-xl text-gray-900 uppercase">
                   Size Exchange for #{exchangeOrder.orderNumber}
@@ -1605,8 +1605,14 @@ export function ProfilePage({ onBackToHome, onNavigateToCart }: ProfilePageProps
                 </select>
               </div>
 
-              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-950">
-                <strong>How it works:</strong> Our delivery executive will bring your replacement size ({exchangeSize}) right to your doorstep and collect your current pair simultaneously. 100% free of charge.
+              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-950 space-y-1">
+                <p className="font-bold text-amber-900">⚠️ Exchange-Only Policy (Valid within 36 Hours of Delivery)</p>
+                <p>
+                  CraftYourSole accepts size exchanges strictly within <strong>36 hours of delivery</strong>. We operate on an <strong>Exchange-Only policy</strong>; returns and monetary refunds are not offered.
+                </p>
+                <p className="text-[10px] text-amber-800 pt-0.5">
+                  Our courier executive will deliver your replacement size ({exchangeSize}) right to your doorstep and collect your current pair simultaneously. 100% free of charge.
+                </p>
               </div>
 
               <div className="pt-2 flex justify-end gap-2">
@@ -1621,7 +1627,7 @@ export function ProfilePage({ onBackToHome, onNavigateToCart }: ProfilePageProps
                   type="submit"
                   className="px-5 py-2.5 text-xs font-bold text-white bg-primary hover:bg-[#8A2600] rounded-xl shadow-xs cursor-pointer"
                 >
-                  Confirm Free Exchange
+                  Confirm 36-Hr Size Exchange
                 </button>
               </div>
             </form>

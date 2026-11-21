@@ -213,9 +213,9 @@ export function SizeGuidePage() {
             </p>
           </div>
           <div className="p-4 rounded-2xl bg-gray-50 border border-gray-200">
-            <h2 className="font-bold text-sm text-gray-900 mb-1">3. Free 7-Day Swap</h2>
+            <h2 className="font-bold text-sm text-gray-900 mb-1">3. Free 36-Hour Size Swap</h2>
             <p className="text-xs text-gray-600 leading-relaxed">
-              Every order includes a free doorstep adjacent-size exchange within 7 days of delivery.
+              Every order includes a free doorstep adjacent-size exchange requested within 36 hours of delivery.
             </p>
           </div>
         </div>
@@ -270,35 +270,73 @@ export function ReturnsExchangePage() {
   return (
     <>
       <SeoHead
-        title={`7-Day Size Exchanges & Returns Policy | ${SITE_NAME}`}
-        description="Worried about shoe sizing? CraftYourSole offers a 7-day free doorstep size exchange and hassle-free return policy across India."
+        title={`36-Hour Size Exchange Policy (Exchange Only) | ${SITE_NAME}`}
+        description="CraftYourSole operates on an Exchange-Only policy. We offer free doorstep size swaps within 36 hours of delivery. No returns or monetary refunds."
         canonicalPath="/returns-exchange"
       />
       <InfoPageShell
-        badge="100% Fit Guarantee"
-        title="7-Day Size Exchanges & Returns"
-        subtitle="Hassle-free doorstep pickup and adjacent-size replacement within 7 days of delivery."
-        breadcrumb="Returns & Exchanges"
-        devBanner={{
-          title: 'One-Click Self-Serve Exchange Portal Under Development',
-          detail:
-            'Automated self-serve doorstep pickup scheduling is currently under development. Email your order ID to support@craftyoursole.in and our team will arrange pickup manually.',
-        }}
+        badge="Exchange-Only Policy"
+        title="36-Hour Doorstep Size Exchange Policy"
+        subtitle="Hassle-free doorstep size swap within 36 hours of delivery. We operate strictly on an Exchange-Only basis — no monetary returns or refunds."
+        breadcrumb="Size Exchange Policy"
       >
-        <div className="space-y-4 text-sm text-gray-600">
-          <div className="p-5 rounded-2xl border border-gray-200 space-y-2">
-            <h2 className="font-bold text-gray-900 text-base">Eligibility Checklist</h2>
-            <ul className="space-y-2 text-xs sm:text-sm list-disc pl-5">
-              <li>Request initiated within 7 calendar days of order delivery.</li>
-              <li>Footwear must be unworn outdoors with clean soles, original box, and tags intact.</li>
-              <li>First size exchange per order is completely free of pickup or re-dispatch charges.</li>
-            </ul>
-          </div>
-          <div className="p-5 rounded-2xl border border-gray-200 space-y-2">
-            <h2 className="font-bold text-gray-900 text-base">Refund Timelines</h2>
+        <div className="space-y-5 text-sm text-gray-600">
+          {/* Policy Overview Callout */}
+          <div className="p-5 rounded-2xl bg-amber-50/70 border border-amber-200 text-amber-950 space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="text-base">⚠️</span>
+              <h2 className="font-bold text-amber-900 text-base">Exchange-Only Notice</h2>
+            </div>
             <p className="text-xs sm:text-sm leading-relaxed">
-              Prepaid orders returned in unused condition are refunded to the original UPI, card, or
-              bank source within 5–7 business days after quality inspection at our hub.
+              Because all CraftYourSole footwear is meticulously handcrafted in limited artisanal batches with authentic materials, <strong>we maintain a strict Exchange-Only policy. We do NOT accept returns or provide cash/bank refunds.</strong>
+            </p>
+            <p className="text-xs text-amber-800">
+              If your footwear does not fit perfectly, we are happy to exchange it for your preferred adjacent UK size free of charge, provided the exchange is requested within <strong>36 hours of delivery</strong>.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="p-5 rounded-2xl border border-gray-200 space-y-3">
+              <h2 className="font-bold text-gray-900 text-base">36-Hour Eligibility Rules</h2>
+              <ul className="space-y-2 text-xs sm:text-sm list-disc pl-5">
+                <li>
+                  <strong>Strict 36-Hour Window:</strong> The exchange request must be submitted within 36 hours of carrier-marked delivery.
+                </li>
+                <li>
+                  <strong>Unworn Indoors-Only:</strong> Footwear must be in pristine condition with zero outdoor dirt, scuffs, or sole wear. We advise trying on shoes over clean carpets.
+                </li>
+                <li>
+                  <strong>Original Packaging:</strong> Original shoebox, fabric dust bags, tags, and shoe trees must remain intact.
+                </li>
+                <li>
+                  <strong>First Swap Free:</strong> Your initial size exchange per order is completely free of courier pickup or re-dispatch charges.
+                </li>
+              </ul>
+            </div>
+
+            <div className="p-5 rounded-2xl border border-gray-200 space-y-3">
+              <h2 className="font-bold text-gray-900 text-base">How Doorstep Exchange Works</h2>
+              <ol className="space-y-2 text-xs sm:text-sm list-decimal pl-5">
+                <li>
+                  Log in and visit your <Link to="/profile" className="text-primary font-bold hover:underline">Customer Profile Orders tab</Link> within 36 hours of delivery.
+                </li>
+                <li>
+                  Click <strong>&quot;Request Size Exchange (36h)&quot;</strong> on your delivered order, select your desired replacement size, and state your reason.
+                </li>
+                <li>
+                  Our logistics partner will arrive at your doorstep with the replacement pair and collect your original pair simultaneously.
+                </li>
+                <li>
+                  Need urgent help? Reach our team at <a href="mailto:support@craftyoursole.in" className="text-primary font-bold hover:underline">support@craftyoursole.in</a>.
+                </li>
+              </ol>
+            </div>
+          </div>
+
+          <div className="p-5 rounded-2xl border border-gray-200 space-y-2">
+            <h2 className="font-bold text-gray-900 text-base">Damaged or Defective Items</h2>
+            <p className="text-xs sm:text-sm leading-relaxed">
+              In the rare event of transit damage or a manufacturing defect, please notify us within 36 hours of delivery with unboxing photos at <a href="mailto:support@craftyoursole.in" className="text-primary font-bold hover:underline">support@craftyoursole.in</a>. We will dispatch an express replacement immediately at no extra cost.
             </p>
           </div>
         </div>
@@ -613,9 +651,9 @@ export function TermsPage() {
           <section className="space-y-1.5">
             <h2 className="font-bold text-base text-gray-900">3. Exchanges & Support</h2>
             <p>
-              Exchanges and returns follow our{' '}
+              Exchanges follow our{' '}
               <Link to="/returns-exchange" className="text-primary font-semibold hover:underline">
-                7-Day Size Exchanges & Returns Policy
+                36-Hour Size Exchange Policy (Exchange Only; No Returns)
               </Link>
               . Questions can be sent to{' '}
               <a href={`mailto:${SUPPORT_EMAIL}`} className="text-primary font-semibold hover:underline">

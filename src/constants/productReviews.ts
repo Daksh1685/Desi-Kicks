@@ -38,7 +38,7 @@ export const SAMPLE_PRODUCT_REVIEWS: Record<string, ProductReview[]> = {
       date: 'Oct 15, 2026',
       title: 'Great craftsmanship, order 1 size up if broad feet',
       comment:
-        'The shoe is handcrafted beautifully. Since I have wider feet, I initially tried UK 9 but exchanged for UK 10 which fit like a glove. Customer support handled the doorstep size swap within 48 hours.',
+        'The shoe is handcrafted beautifully. Since I have wider feet, I initially tried UK 9 but exchanged for UK 10 which fit like a glove. Customer support handled the doorstep size swap within 36 hours.',
       fitFeedback: 'Runs Small',
       verifiedBuyer: true,
       sizePurchased: 'UK 10',

@@ -35,7 +35,7 @@ export function AdminHeader({
               : activeSection === 'orders'
                 ? 'Orders & Shipping'
                 : activeSection === 'returns'
-                  ? 'Exchanges & Returns'
+                  ? 'Size Exchanges (36h Window)'
                   : activeSection === 'coupons'
                     ? 'Coupons & Promotions'
                     : 'Hero Banners & Carousel'}
@@ -44,7 +44,7 @@ export function AdminHeader({
           {activeSection === 'dashboard' && 'Sales overview and key metrics'}
           {activeSection === 'catalog' && `${productsCount} products · manage your storefront`}
           {activeSection === 'orders' && `${ordersCount} orders total`}
-          {activeSection === 'returns' && 'Customer size swaps and return requests'}
+          {activeSection === 'returns' && 'Customer 36-hour size exchange requests (Exchange-only policy)'}
           {activeSection === 'coupons' && 'Manage promotional discount codes & minimum order rules'}
           {activeSection === 'banners' && `${heroSlidesCount} banners (${activeHeroSlidesCount} live on homepage)`}
         </p>

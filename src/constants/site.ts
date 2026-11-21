@@ -71,7 +71,7 @@ export const COLLECTIONS_CONFIG: CollectionMeta[] = [
       'Handcrafted Zari mojaris, royal velvet juttis, and wedding-ready ethnic footwear built with double-padded orthopedic memory foam.',
     seoTitle: 'Festive Juttis & Embroidered Mojaris | CraftYourSole',
     seoDescription:
-      'Shop handcrafted Indian festive mojaris and embroidered juttis with double-padded arch support at CraftYourSole. Pan-India delivery & 7-day size exchange.',
+      'Shop handcrafted Indian festive mojaris and embroidered juttis with double-padded arch support at CraftYourSole. Pan-India delivery & 36-hour size exchange.',
     countLabel: '120+ Planned Styles',
     img: 'https://images.unsplash.com/photo-1535043934128-cf0b28d52f95?q=80&w=800&auto=format&fit=crop',
     categoryKeywords: ['festive', 'ethnic', 'mojari', 'jutti'],

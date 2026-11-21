@@ -495,7 +495,7 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
                   🎉 Free Pan-India Express Delivery Unlocked!
                 </h4>
                 <p className="text-[11px] text-emerald-700 mt-0.5">
-                  Delivered straight to your doorstep with 100% free doorstep size exchange.
+                  Delivered straight to your doorstep with 100% free doorstep size exchange within 36 hours of delivery (Exchange-only policy).
                 </p>
               </div>
             </div>
@@ -596,7 +596,7 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
                           Save ₹{((item.originalPrice - item.price) * item.quantity).toLocaleString('en-IN')}
                         </span>
                       </div>
-                      <span className="text-[11px] text-gray-400">7-Day Free Exchange</span>
+                      <span className="text-[11px] text-gray-400">36-Hr Free Size Exchange</span>
                     </div>
                   </div>
                 </div>
@@ -790,7 +790,7 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
               <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-around text-[10px] text-gray-500 font-medium">
                 <span className="flex items-center gap-1">🔒 256-bit Secure</span>
                 <span>•</span>
-                <span className="flex items-center gap-1">🔄 7-Day Exchange</span>
+                <span className="flex items-center gap-1">🔄 36-Hr Exchange Only</span>
                 <span>•</span>
                 <span className="flex items-center gap-1">🇮🇳 COD Available</span>
               </div>

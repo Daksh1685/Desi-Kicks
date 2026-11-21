@@ -61,7 +61,7 @@ export function BannerFormModal({
           { label: 'Our Heritage Story', value: '/about', description: '/about' },
           { label: 'Contact Support & Concierge', value: '/contact', description: '/contact' },
           { label: 'Shipping & Delivery Policy', value: '/shipping-policy', description: '/shipping-policy' },
-          { label: '7-Day Return & Size Exchange', value: '/returns-exchange', description: '/returns-exchange' },
+          { label: '36-Hour Size Exchange Policy (Exchange Only)', value: '/returns-exchange', description: '/returns-exchange' },
           { label: 'Privacy Policy', value: '/privacy-policy', description: '/privacy-policy' },
           { label: 'Terms of Service', value: '/terms', description: '/terms' },
         ],

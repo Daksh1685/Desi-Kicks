@@ -41,7 +41,7 @@ export function Footer() {
             </div>
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span>100% Handcrafted • 7-Day Easy Exchange</span>
+              <span>100% Handcrafted • 36-Hour Size Exchange</span>
             </div>
           </div>
 
@@ -174,7 +174,7 @@ export function Footer() {
             </li>
             <li>
               <Link to="/returns-exchange" className="hover:text-primary transition-colors">
-                7-Day Doorstep Size Exchange
+                36-Hour Doorstep Size Exchange
               </Link>
             </li>
             <li>

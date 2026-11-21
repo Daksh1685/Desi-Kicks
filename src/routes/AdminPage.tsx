@@ -520,7 +520,7 @@ export function AdminPage() {
     { id: 'dashboard', label: 'Dashboard', icon: 'briefcase', path: '/admin/dashboard' },
     { id: 'catalog', label: 'Products', icon: 'running', path: '/admin/products', count: products.length },
     { id: 'orders', label: 'Orders', icon: 'shopping_bag', path: '/admin/orders', count: orders.length },
-    { id: 'returns', label: 'Returns & Exchanges', icon: 'package', path: '/admin/returns' },
+    { id: 'returns', label: 'Size Exchanges (36h)', icon: 'package', path: '/admin/returns' },
     { id: 'coupons', label: 'Coupons', icon: 'tag', path: '/admin/coupons' },
     { id: 'banners', label: 'Hero Banners', icon: 'lifestyle', path: '/admin/banners', count: heroSlides.length },
   ];

@@ -55,7 +55,7 @@ From royal velvet Zari-embroidered mojaris and Agra full-grain leather loafers t
 - **Curated Multi-Faceted Collections**: Dynamic collection pages supporting filtering across subcategories, target gender, UK sizing, live stock availability, price range brackets, and sorting (Featured, Price Low-to-High, Price High-to-Low, Top Customer Rating).
 - **Instant Search with Autocomplete**: Multi-device predictive search dropdown highlighting trending searches, tag suggestions, and direct SKU routing.
 - **SEO & Social Share Ready**: Automated dynamic XML sitemap generation (`scripts/generate-sitemap.mjs`), Open Graph / Twitter Card tags, and canonical URL synchronization (`SeoHead.tsx`).
-- **Trust & Assurance Badges**: Transparent value propositions—Free Pan-India Delivery above ₹1,999, 7-Day Hassle-Free Size Exchange, Handcrafted Authenticity, and Dedicated WhatsApp Support.
+- **Trust & Assurance Badges**: Transparent value propositions—Free Pan-India Delivery above ₹1,999, 36-Hour Doorstep Size Exchange (Exchange-Only Policy), Handcrafted Authenticity, and Dedicated WhatsApp Support.
 
 ### Curated Collection Showcases
 - **Men's Showcase (`MenCollectionShowcase.tsx`)**: Dedicated promotional banner slider with auto-advance, touch swipe, and a category quick-scroll carousel covering Casual Loafers, Rain-Ready Clogs, Contoured Slides, Casual Sneakers, and Agra Formals.
@@ -356,7 +356,7 @@ For the detailed, phased feature implementation plan, current delivery status, a
 ### Summary of Phases:
 - ✅ **Phase 1: Core Storefront & Algorithmic Discovery** (Infinite Hero, Showcases, Best Seller Engine, Multi-Filter Collections, Sizing Matrix).
 - ✅ **Phase 2: Full-Stack Persistence, Auth & Relational Catalog** (Supabase schema, live product & inventory mutations, multi-device order sync, dynamic coupon validation, Firebase Google Auth, LocalStorage resilience).
-- ✅ **Phase 3: Admin Operations Portal & Merchandising CMS** (Executive KPI dashboard, Catalog CRUD forms, Variant size inventory, Cloud Hero Banner CMS, Coupons CMS, Returns & Exchanges review queue, Storefront Maintenance Mode, Supabase storage image upload).
+- ✅ **Phase 3: Admin Operations Portal & Merchandising CMS** (Executive KPI dashboard, Catalog CRUD forms, Variant size inventory, Cloud Hero Banner CMS, Coupons CMS, 36-Hour Size Exchanges review queue, Storefront Maintenance Mode, Supabase storage image upload).
 - 📋 **Phase 4: Shiprocket 1-Click Checkout & Payment Gateway** (Shiprocket headless checkout, UPI Intent, Webhook verification, Courier allocation).
 - 📋 **Phase 5: Automated Customer Engagement & Tracking** (WhatsApp delivery alerts, real-time AWB tracking lookup, verified customer reviews).
 - 📋 **Phase 6: Customization Studio & Omnichannel Expansion** (3D custom sole builder, offline pop-up store inventory sync).

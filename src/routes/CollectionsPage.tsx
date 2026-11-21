@@ -590,7 +590,7 @@ export function CollectionsPage() {
                 )}
               </div>
               <span className="text-xs text-gray-500 hidden sm:inline">
-                Pan-India Free Delivery • 7-Day Doorstep Replacement
+                Pan-India Free Delivery • 36-Hour Doorstep Size Exchange
               </span>
             </div>
 
