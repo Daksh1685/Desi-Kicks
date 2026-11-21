@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/ui/Icon';
 import type { IconName } from '../components/ui/Icon';
@@ -8,6 +8,7 @@ import { useCart } from '../context/CartContext';
 import { useOrders } from '../context/OrderContext';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist, type WishlistItem } from '../context/WishlistContext';
+import { createReturnExchangeInSupabase, isSupabaseConfigured } from '../lib/supabase';
 import type { Order } from '../types/order';
 
 interface ProfilePageProps {
@@ -77,9 +78,16 @@ export function ProfilePage({ onBackToHome, onNavigateToCart }: ProfilePageProps
   const [savedFeedback, setSavedFeedback] = useState(false);
   const [bagFeedback, setBagFeedback] = useState<string | null>(null);
   const { addToCart } = useCart();
-  const { orders } = useOrders();
+  const { orders, syncCustomerOrders } = useOrders();
   const { currentUser, signInWithGoogle, logOut } = useAuth();
   const { wishlist, removeFromWishlist } = useWishlist();
+
+  // Sync customer's past orders across devices from Supabase
+  useEffect(() => {
+    if (currentUser?.email) {
+      syncCustomerOrders(currentUser.email);
+    }
+  }, [currentUser?.email, syncCustomerOrders]);
 
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -396,6 +404,19 @@ export function ProfilePage({ onBackToHome, onNavigateToCart }: ProfilePageProps
       localStorage.setItem(SAVED_EXCHANGES_KEY, JSON.stringify([newRequest, ...existing]));
     } catch {
       // ignore
+    }
+
+    if (isSupabaseConfigured) {
+      createReturnExchangeInSupabase({
+        orderNumber: exchangeOrder.orderNumber,
+        productName: targetItem.productName,
+        oldSize: targetItem.size,
+        requestedSize: exchangeSize,
+        reason: exchangeReason,
+        customerEmail: exchangeOrder.customerEmail || currentUser?.email || undefined,
+      }).catch((err) => {
+        console.warn('[ProfilePage] Return exchange sync skipped:', err);
+      });
     }
 
     setExchangeToast(

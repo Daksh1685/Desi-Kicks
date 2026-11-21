@@ -30,14 +30,14 @@ This document outlines the strategic product vision, technical architecture mile
 
 ```mermaid
 flowchart TD
-    P1["Phase 1: Storefront & Discovery (Complete)"] --> P2["Phase 2: Relational DB & Auth (In Progress)"]
+    P1["Phase 1: Storefront & Discovery (Complete)"] --> P2["Phase 2: Relational DB & Auth (Complete)"]
     P2 --> P3["Phase 3: Admin Portal & CMS (In Progress)"]
     P3 --> P4["Phase 4: Checkout, Payments & Logistics (Planned)"]
     P4 --> P5["Phase 5: Real-time Tracking & Alerts (Planned)"]
     P5 --> P6["Phase 6: Custom Soles & Omnichannel Scale (Planned)"]
 
     style P1 fill:#dcfce7,stroke:#16a34a,stroke-width:2px;
-    style P2 fill:#fef3c7,stroke:#d97706,stroke-width:2px;
+    style P2 fill:#dcfce7,stroke:#16a34a,stroke-width:2px;
     style P3 fill:#fef3c7,stroke:#d97706,stroke-width:2px;
     style P4 fill:#e0f2fe,stroke:#0284c7,stroke-width:2px;
     style P5 fill:#f3e8ff,stroke:#9333ea,stroke-width:2px;
@@ -85,38 +85,36 @@ flowchart TD
 
 ---
 
-### Phase 2: Full-Stack Persistence, Auth & Relational Catalog (🚧 In Progress)
+### Phase 2: Full-Stack Persistence, Auth & Relational Catalog (✅ Completed)
 *Goal: Establish robust database schemas, secure authentication, and offline-first client resilience.*
 
-#### ✅ Completed in Phase 2:
 - [x] **Supabase PostgreSQL Relational Schema (`supabase-schema.sql`)**:
   - `products`: Catalog items, pricing, specs, tags, and multi-angle image arrays.
   - `product_variants`: Granular stock inventory per shoe size with cascade foreign keys.
   - `orders`: Structured order records with JSONB items and shipping addresses.
   - `coupons`: Promotional discount rules and minimum order values.
+  - `hero_slides` & `returns_exchanges`: Tables for banner CMS and self-serve size exchange requests.
   - `product-images`: Public Supabase Storage bucket with upload policies.
 - [x] **Catalog Read Queries (`getProductsFromSupabase` in `supabase.ts`)**:
   - Hydrates active products and variant sizes into the customer storefront on mount.
-- [x] **Initial Order Insertion (`saveOrderToSupabase` in `supabase.ts`)**:
-  - Asynchronously writes customer order records to Supabase `orders` table.
-- [x] **Firebase Google Authentication (`AuthContext.tsx`, `LoginPage.tsx`)**:
-  - Google OAuth popup flow with persistent session storage.
-- [x] **Offline-First Client Fallback**:
-  - Graceful fallback to `localStorage` and curated catalog mocks if database connection is interrupted.
-- [x] **Cart & Pricing Engine (`CartContext.tsx`)**:
-  - Persistent cart state, dynamic MRP calculations, free delivery threshold (₹1,999+), and shoe care kit add-on.
-
-#### 🚧 Pending Gaps to Fully Complete Phase 2:
 - [x] **Catalog Mutations Sync to Supabase (`ProductContext.tsx`, `supabase.ts`)**:
-  - `createProductInSupabase`, `updateProductInSupabase`, `deleteProductInSupabase`, and `toggleProductStatusInSupabase` write directly to Supabase `products` and `product_variants`. Local state updates optimistically and seamlessly reconciles server-generated UUIDs.
+  - `createProductInSupabase`, `updateProductInSupabase`, `deleteProductInSupabase`, and `toggleProductStatusInSupabase` write directly to Supabase `products` and `product_variants`.
 - [x] **Real-Time Variant Stock Decrement in Database (`ProductContext.tsx`, `supabase.ts`)**:
   - On checkout, `deductVariantStockInSupabase` decrements size variant stock in `product_variants` and increments `total_sold` on `products` in Supabase.
-- [x] **Admin Order Status Updates to Database (`OrdersSection.tsx`, `OrderContext.tsx`, `supabase.ts`)**:
-  - When an admin advances order status (`Pending` → `Packing` → `Shipped` → `Delivered`), `updateOrderStatusInSupabase` updates the order record in Supabase.
-- [ ] **Live Coupon Validation (`CartPage.tsx`)**:
-  - `validateCouponInSupabase()` exists in `src/lib/supabase.ts` but is not invoked in `CartPage.tsx`. The checkout page currently uses client-side hardcoded codes (`FESTIVE500`, `SOLEFIRST`). Must connect to Supabase `coupons`.
-- [ ] **Multi-Device Order History Sync (`OrderContext.tsx`, `ProfilePage.tsx`)**:
-  - Order history in `ProfilePage.tsx` currently only reads from the local browser's `localStorage`. Needs a query to Supabase: `supabase.from('orders').select().eq('customer_email', currentUser.email)` so orders sync across mobile and desktop.
+- [x] **Initial Order Insertion & Status Updates (`saveOrderToSupabase`, `updateOrderStatusInSupabase`)**:
+  - Asynchronously writes customer order records to Supabase `orders` table and syncs admin status updates.
+- [x] **Multi-Device Order History Sync (`OrderContext.tsx`, `ProfilePage.tsx`)**:
+  - Customer orders are fetched from Supabase by `customer_email` upon authentication, ensuring order histories are synced across all devices.
+- [x] **Live Coupon Validation Engine (`CartPage.tsx`, `supabase.ts`)**:
+  - Connects `validateCouponInSupabase()` and `getActiveCouponsFromSupabase()` to live database promos with fallback rules.
+- [x] **Self-Serve Size Exchange Sync (`ProfilePage.tsx`, `supabase.ts`)**:
+  - Customer size exchange requests are inserted into the Supabase `returns_exchanges` table.
+- [x] **Firebase Google Authentication (`AuthContext.tsx`, `LoginPage.tsx`)**:
+  - Google OAuth popup flow with persistent session storage.
+- [x] **Cart & Pricing Engine (`CartContext.tsx`)**:
+  - Persistent cart state, dynamic MRP calculations, free delivery threshold (₹1,999+), and shoe care kit add-on.
+- [x] **Offline-First Client Fallback**:
+  - Graceful fallback to `localStorage` and curated catalog mocks if database connection is interrupted.
 
 ---
 

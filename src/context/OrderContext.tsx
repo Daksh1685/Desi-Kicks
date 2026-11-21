@@ -1,7 +1,13 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import type { Order, OrderStatus, OrderItem } from '../types/order';
-import { saveOrderToSupabase, updateOrderStatusInSupabase, isSupabaseConfigured } from '../lib/supabase';
+import {
+  saveOrderToSupabase,
+  updateOrderStatusInSupabase,
+  getAllOrdersFromSupabase,
+  getCustomerOrdersFromSupabase,
+  isSupabaseConfigured,
+} from '../lib/supabase';
 
 const INITIAL_ORDERS: Order[] = [];
 
@@ -28,6 +34,7 @@ interface OrderContextType {
   createOrder: (input: CreateOrderInput) => Order;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
   getOrderById: (orderId: string) => Order | undefined;
+  syncCustomerOrders: (email: string) => Promise<void>;
   metrics: {
     totalRevenue: number;
     totalOrdersCount: number;
@@ -65,6 +72,7 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
     return INITIAL_ORDERS;
   });
 
+  // Persist orders to localStorage
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
@@ -72,6 +80,45 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       console.warn('Failed to save orders to localStorage', e);
     }
   }, [orders]);
+
+  // Sync initial orders from Supabase on mount
+  useEffect(() => {
+    let mounted = true;
+    if (isSupabaseConfigured) {
+      getAllOrdersFromSupabase()
+        .then((remoteOrders) => {
+          if (mounted && remoteOrders && remoteOrders.length > 0) {
+            setOrders((prev) => {
+              const remoteNumbers = new Set(remoteOrders.map((o) => o.orderNumber));
+              const localOnly = prev.filter((o) => !remoteNumbers.has(o.orderNumber));
+              return [...remoteOrders, ...localOnly];
+            });
+          }
+        })
+        .catch((err) => {
+          console.warn('[OrderContext] Supabase initial orders sync skipped:', err);
+        });
+    }
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const syncCustomerOrders = useCallback(async (email: string) => {
+    if (!isSupabaseConfigured || !email) return;
+    try {
+      const remote = await getCustomerOrdersFromSupabase(email);
+      if (remote && remote.length > 0) {
+        setOrders((prev) => {
+          const remoteNumbers = new Set(remote.map((o) => o.orderNumber));
+          const unaffected = prev.filter((o) => !remoteNumbers.has(o.orderNumber));
+          return [...remote, ...unaffected];
+        });
+      }
+    } catch (err) {
+      console.warn('[OrderContext] syncCustomerOrders error:', err);
+    }
+  }, []);
 
   const createOrder = useCallback((input: CreateOrderInput): Order => {
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
@@ -156,11 +203,12 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       createOrder,
       updateOrderStatus,
       getOrderById,
+      syncCustomerOrders,
       metrics,
       resetOrders,
       clearAllOrders,
     }),
-    [orders, createOrder, updateOrderStatus, getOrderById, metrics, resetOrders, clearAllOrders]
+    [orders, createOrder, updateOrderStatus, getOrderById, syncCustomerOrders, metrics, resetOrders, clearAllOrders]
   );
 
   return <OrderContext.Provider value={value}>{children}</OrderContext.Provider>;

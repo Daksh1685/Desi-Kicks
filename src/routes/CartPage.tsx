@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useOrders } from '../context/OrderContext';
@@ -6,6 +6,11 @@ import { useProductCatalog } from '../context/ProductContext';
 import { useAuth } from '../context/AuthContext';
 import { Icon } from '../components/ui/Icon';
 import { SeoHead } from '../components/SeoHead';
+import {
+  validateCouponInSupabase,
+  getActiveCouponsFromSupabase,
+  isSupabaseConfigured,
+} from '../lib/supabase';
 
 interface CartPageProps {
   onContinueShopping?: () => void;
@@ -115,25 +120,103 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
     })} (2-3 Days)`;
   });
 
-  const availableCoupons = [
-    { code: 'FESTIVE500', label: '₹500 OFF on Festive Footwear', discount: 500 },
-    { code: 'SOLEFIRST', label: '10% OFF on First Footwear Order', discount: Math.round(subtotal * 0.1) },
+  const DEFAULT_COUPONS = [
+    { code: 'FESTIVE500', label: '₹500 OFF (Min ₹2,500)' },
+    { code: 'SOLEFIRST', label: '10% OFF (Min ₹1,500)' },
+    { code: 'WELCOME10', label: '10% OFF (Min ₹999)' },
+    { code: 'FESTIVE20', label: '20% OFF (Min ₹2,000)' },
   ];
 
-  const handleApplyCoupon = (codeToApply?: string) => {
+  const [availableCoupons, setAvailableCoupons] = useState(DEFAULT_COUPONS);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    if (isSupabaseConfigured) {
+      getActiveCouponsFromSupabase()
+        .then((coupons) => {
+          if (mounted && coupons && coupons.length > 0) {
+            setAvailableCoupons(coupons);
+          }
+        })
+        .catch(() => {
+          // Keep defaults
+        });
+    }
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleApplyCoupon = async (codeToApply?: string) => {
     const code = (codeToApply || couponCode).trim().toUpperCase();
     if (!code) return;
 
-    if (code === 'FESTIVE500') {
-      setAppliedCoupon({ code: 'FESTIVE500', discount: 500 });
-      setCouponError('');
-      setCouponCode('');
-    } else if (code === 'SOLEFIRST' || code === 'DESIFIRST') {
-      setAppliedCoupon({ code: 'SOLEFIRST', discount: Math.round(subtotal * 0.1) });
-      setCouponError('');
-      setCouponCode('');
-    } else {
-      setCouponError('Invalid coupon code. Try FESTIVE500 or SOLEFIRST.');
+    setIsValidatingCoupon(true);
+    setCouponError('');
+
+    try {
+      if (isSupabaseConfigured) {
+        const result = await validateCouponInSupabase(code, subtotal);
+        if (result.valid) {
+          setAppliedCoupon({ code, discount: result.discountAmount });
+          setCouponError('');
+          setCouponCode('');
+          return;
+        } else if (result.message && !result.message.includes('not connected')) {
+          setCouponError(result.message);
+          return;
+        }
+      }
+
+      // Offline / fallback coupon rules
+      if (code === 'FESTIVE500') {
+        if (subtotal < 2500) {
+          setCouponError('Requires minimum order of ₹2,500');
+        } else {
+          setAppliedCoupon({ code: 'FESTIVE500', discount: 500 });
+          setCouponError('');
+          setCouponCode('');
+        }
+      } else if (code === 'SOLEFIRST' || code === 'DESIFIRST') {
+        if (subtotal < 1500) {
+          setCouponError('Requires minimum order of ₹1,500');
+        } else {
+          setAppliedCoupon({ code: 'SOLEFIRST', discount: Math.round(subtotal * 0.1) });
+          setCouponError('');
+          setCouponCode('');
+        }
+      } else if (code === 'WELCOME10') {
+        if (subtotal < 999) {
+          setCouponError('Requires minimum order of ₹999');
+        } else {
+          setAppliedCoupon({ code: 'WELCOME10', discount: Math.round(subtotal * 0.1) });
+          setCouponError('');
+          setCouponCode('');
+        }
+      } else if (code === 'FESTIVE20') {
+        if (subtotal < 2000) {
+          setCouponError('Requires minimum order of ₹2,000');
+        } else {
+          setAppliedCoupon({ code: 'FESTIVE20', discount: Math.round(subtotal * 0.2) });
+          setCouponError('');
+          setCouponCode('');
+        }
+      } else if (code === 'DIWALI500') {
+        if (subtotal < 3000) {
+          setCouponError('Requires minimum order of ₹3,000');
+        } else {
+          setAppliedCoupon({ code: 'DIWALI500', discount: 500 });
+          setCouponError('');
+          setCouponCode('');
+        }
+      } else {
+        setCouponError(`Invalid coupon code "${code}". Try FESTIVE500, SOLEFIRST or WELCOME10.`);
+      }
+    } catch {
+      setCouponError('Error verifying coupon. Please try again.');
+    } finally {
+      setIsValidatingCoupon(false);
     }
   };
 
@@ -589,9 +672,10 @@ export function CartPage({ onContinueShopping, onViewOrders }: CartPageProps = {
                     />
                     <button
                       onClick={() => handleApplyCoupon()}
-                      className="bg-gray-900 hover:bg-black text-white text-xs font-bold px-4 rounded-xl transition-colors cursor-pointer"
+                      disabled={isValidatingCoupon}
+                      className="bg-gray-900 hover:bg-black text-white text-xs font-bold px-4 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
                     >
-                      Apply
+                      {isValidatingCoupon ? 'Verifying...' : 'Apply'}
                     </button>
                   </div>
                   {couponError && (

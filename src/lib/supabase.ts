@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import type { Order } from '../types/order';
+import type { Order, OrderItem } from '../types/order';
 import type { Product, NewProductInput, ProductGender } from '../types/product';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -534,6 +534,143 @@ export async function uploadImageToSupabase(
     return data?.publicUrl || null;
   } catch (err) {
     console.warn('[Supabase Storage] uploadImage exception:', err);
+    return null;
+  }
+}
+
+function mapRowToOrder(row: Record<string, unknown>): Order {
+  return {
+    id: String(row.id),
+    orderNumber: String(row.order_number),
+    customerName: String(row.customer_name),
+    customerEmail: String(row.customer_email),
+    customerPhone: String(row.customer_phone),
+    shippingAddress: (row.shipping_address as Order['shippingAddress']) || {
+      street: '',
+      city: '',
+      state: '',
+      pincode: '',
+    },
+    items: Array.isArray(row.items) ? (row.items as OrderItem[]) : [],
+    subtotal: Number(row.subtotal),
+    discount: Number(row.discount || 0),
+    shippingFee: Number(row.shipping_fee || 0),
+    totalAmount: Number(row.total_amount),
+    paymentMethod: (row.payment_method as Order['paymentMethod']) || 'UPI',
+    paymentStatus: (row.payment_status as Order['paymentStatus']) || 'PENDING',
+    orderStatus: (row.order_status as Order['orderStatus']) || 'PENDING',
+    createdAt: String(row.created_at || new Date().toISOString()),
+    estimatedDelivery: row.estimated_delivery ? String(row.estimated_delivery) : '3-5 Business Days',
+  };
+}
+
+/**
+ * Fetch all customer orders from Supabase (for Admin)
+ */
+export async function getAllOrdersFromSupabase(): Promise<Order[]> {
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error || !data) return [];
+    return data.map(mapRowToOrder);
+  } catch (err) {
+    console.warn('[Supabase] getAllOrders exception:', err);
+    return [];
+  }
+}
+
+/**
+ * Fetch orders for a specific customer email from Supabase (for customer Profile)
+ */
+export async function getCustomerOrdersFromSupabase(email: string): Promise<Order[]> {
+  if (!supabase || !email) return [];
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .ilike('customer_email', email.trim())
+      .order('created_at', { ascending: false });
+
+    if (error || !data) return [];
+    return data.map(mapRowToOrder);
+  } catch (err) {
+    console.warn('[Supabase] getCustomerOrders exception:', err);
+    return [];
+  }
+}
+
+/**
+ * Fetch all active coupons from Supabase
+ */
+export async function getActiveCouponsFromSupabase(): Promise<
+  { code: string; label: string; discountType: string; value: number; minOrderValue: number }[]
+> {
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase
+      .from('coupons')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+
+    if (error || !data) return [];
+
+    return data.map((c) => {
+      const isPercent = c.discount_type === 'PERCENT';
+      const label = isPercent
+        ? `${c.value}% OFF (Min ₹${c.min_order_value || 0})`
+        : `₹${c.value} FLAT OFF (Min ₹${c.min_order_value || 0})`;
+      return {
+        code: String(c.code),
+        label,
+        discountType: String(c.discount_type),
+        value: Number(c.value),
+        minOrderValue: Number(c.min_order_value || 0),
+      };
+    });
+  } catch (err) {
+    console.warn('[Supabase] getActiveCoupons exception:', err);
+    return [];
+  }
+}
+
+/**
+ * Record a size exchange / return request into Supabase 'returns_exchanges'
+ */
+export async function createReturnExchangeInSupabase(exchange: {
+  orderNumber: string;
+  productName: string;
+  oldSize: string;
+  requestedSize: string;
+  reason: string;
+  customerEmail?: string;
+}): Promise<string | null> {
+  if (!supabase) return null;
+  try {
+    const requestNumber = `EX-${Math.floor(100000 + Math.random() * 900000)}`;
+    const { error } = await supabase.from('returns_exchanges').insert([
+      {
+        request_number: requestNumber,
+        order_number: exchange.orderNumber,
+        product_name: exchange.productName,
+        old_size: exchange.oldSize,
+        requested_size: exchange.requestedSize,
+        reason: exchange.reason,
+        status: 'SCHEDULED_PICKUP',
+        customer_email: exchange.customerEmail || null,
+      },
+    ]);
+    if (error) {
+      console.warn('[Supabase] Create return exchange error:', error.message);
+      return null;
+    }
+    return requestNumber;
+  } catch (err) {
+    console.warn('[Supabase] createReturnExchange exception:', err);
     return null;
   }
 }
