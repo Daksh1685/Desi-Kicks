@@ -8,6 +8,8 @@ interface AdminHeaderProps {
   heroSlidesCount: number;
   activeHeroSlidesCount: number;
   totalRevenue: number;
+  maintenanceMode?: boolean;
+  onToggleMaintenanceMode?: () => void;
   onNavigateHome: () => void;
 }
 
@@ -18,6 +20,8 @@ export function AdminHeader({
   heroSlidesCount,
   activeHeroSlidesCount,
   totalRevenue,
+  maintenanceMode = false,
+  onToggleMaintenanceMode,
   onNavigateHome,
 }: AdminHeaderProps) {
   return (
@@ -30,22 +34,43 @@ export function AdminHeader({
               ? 'Product Catalog'
               : activeSection === 'orders'
                 ? 'Orders & Shipping'
-                : 'Hero Banners & Carousel'}
+                : activeSection === 'returns'
+                  ? 'Exchanges & Returns'
+                  : activeSection === 'coupons'
+                    ? 'Coupons & Promotions'
+                    : 'Hero Banners & Carousel'}
         </h1>
         <p className="text-xs text-gray-400">
           {activeSection === 'dashboard' && 'Sales overview and key metrics'}
           {activeSection === 'catalog' && `${productsCount} products · manage your storefront`}
           {activeSection === 'orders' && `${ordersCount} orders total`}
+          {activeSection === 'returns' && 'Customer size swaps and return requests'}
+          {activeSection === 'coupons' && 'Manage promotional discount codes & minimum order rules'}
           {activeSection === 'banners' && `${heroSlidesCount} banners (${activeHeroSlidesCount} live on homepage)`}
         </p>
       </div>
 
-      {/* Quick stats */}
+      {/* Quick stats & Maintenance Mode */}
       <div className="flex items-center gap-4 text-xs">
-        <div className="hidden md:flex items-center gap-1.5 text-gray-500">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="font-medium">Live</span>
-        </div>
+        {onToggleMaintenanceMode && (
+          <button
+            onClick={onToggleMaintenanceMode}
+            title={maintenanceMode ? 'Storefront is currently locked in Maintenance Mode' : 'Storefront is Live'}
+            className={`hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full border text-xs font-bold transition cursor-pointer ${
+              maintenanceMode
+                ? 'bg-amber-50 border-amber-300 text-amber-800'
+                : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+            }`}
+          >
+            <span
+              className={`w-2 h-2 rounded-full ${
+                maintenanceMode ? 'bg-amber-500 animate-bounce' : 'bg-emerald-500 animate-pulse'
+              }`}
+            />
+            <span>{maintenanceMode ? 'Maintenance Mode ON' : 'Storefront Live'}</span>
+          </button>
+        )}
+
         <div className="hidden sm:block text-right">
           <p className="text-[11px] text-gray-400">Gross Revenue</p>
           <p className="font-extrabold text-gray-900 text-sm">

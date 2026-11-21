@@ -1,6 +1,31 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Order, OrderItem } from '../types/order';
 import type { Product, NewProductInput, ProductGender } from '../types/product';
+import type { HeroSlide } from '../context/HeroContext';
+
+export interface AdminCoupon {
+  id: string;
+  code: string;
+  discountType: 'PERCENT' | 'FLAT';
+  value: number;
+  minOrderValue: number;
+  isActive: boolean;
+  expiryDate?: string | null;
+  createdAt: string;
+}
+
+export interface ReturnExchangeItem {
+  id: string;
+  requestNumber: string;
+  orderNumber: string;
+  productName: string;
+  oldSize: string;
+  requestedSize: string;
+  reason: string;
+  status: 'SCHEDULED_PICKUP' | 'IN_TRANSIT' | 'COMPLETED' | 'REJECTED';
+  customerEmail?: string | null;
+  createdAt: string;
+}
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -672,5 +697,258 @@ export async function createReturnExchangeInSupabase(exchange: {
   } catch (err) {
     console.warn('[Supabase] createReturnExchange exception:', err);
     return null;
+  }
+}
+
+/**
+ * Fetch all coupons from Supabase (for Admin)
+ */
+export async function getAllCouponsFromSupabase(): Promise<AdminCoupon[]> {
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase
+      .from('coupons')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error || !data) return [];
+    return data.map((c) => ({
+      id: String(c.id),
+      code: String(c.code),
+      discountType: (c.discount_type as 'PERCENT' | 'FLAT') || 'FLAT',
+      value: Number(c.value),
+      minOrderValue: Number(c.min_order_value || 0),
+      isActive: Boolean(c.is_active),
+      expiryDate: c.expiry_date ? String(c.expiry_date) : null,
+      createdAt: String(c.created_at || new Date().toISOString()),
+    }));
+  } catch (err) {
+    console.warn('[Supabase] getAllCoupons exception:', err);
+    return [];
+  }
+}
+
+/**
+ * Create a new coupon in Supabase
+ */
+export async function createCouponInSupabase(coupon: {
+  code: string;
+  discountType: 'PERCENT' | 'FLAT';
+  value: number;
+  minOrderValue?: number;
+  expiryDate?: string | null;
+  isActive?: boolean;
+}): Promise<AdminCoupon | null> {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from('coupons')
+      .insert([
+        {
+          code: coupon.code.toUpperCase().trim(),
+          discount_type: coupon.discountType,
+          value: coupon.value,
+          min_order_value: coupon.minOrderValue || 0,
+          is_active: coupon.isActive ?? true,
+          expiry_date: coupon.expiryDate || null,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error || !data) {
+      console.warn('[Supabase] Create coupon error:', error?.message);
+      return null;
+    }
+
+    return {
+      id: String(data.id),
+      code: String(data.code),
+      discountType: data.discount_type,
+      value: Number(data.value),
+      minOrderValue: Number(data.min_order_value || 0),
+      isActive: Boolean(data.is_active),
+      expiryDate: data.expiry_date ? String(data.expiry_date) : null,
+      createdAt: String(data.created_at),
+    };
+  } catch (err) {
+    console.warn('[Supabase] createCoupon exception:', err);
+    return null;
+  }
+}
+
+/**
+ * Toggle a coupon's active status in Supabase
+ */
+export async function toggleCouponStatusInSupabase(
+  id: string,
+  newStatus: boolean
+): Promise<boolean> {
+  if (!supabase) return false;
+  try {
+    const { error } = await supabase
+      .from('coupons')
+      .update({ is_active: newStatus })
+      .eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Delete a coupon from Supabase
+ */
+export async function deleteCouponInSupabase(id: string): Promise<boolean> {
+  if (!supabase) return false;
+  try {
+    const { error } = await supabase.from('coupons').delete().eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Fetch all size return & exchange requests from Supabase (for Admin)
+ */
+export async function getAllReturnExchangesFromSupabase(): Promise<ReturnExchangeItem[]> {
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase
+      .from('returns_exchanges')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error || !data) return [];
+    return data.map((r) => ({
+      id: String(r.id),
+      requestNumber: String(r.request_number),
+      orderNumber: String(r.order_number),
+      productName: String(r.product_name),
+      oldSize: String(r.old_size),
+      requestedSize: String(r.requested_size),
+      reason: String(r.reason),
+      status: (r.status as ReturnExchangeItem['status']) || 'SCHEDULED_PICKUP',
+      customerEmail: r.customer_email ? String(r.customer_email) : null,
+      createdAt: String(r.created_at || new Date().toISOString()),
+    }));
+  } catch (err) {
+    console.warn('[Supabase] getAllReturnExchanges exception:', err);
+    return [];
+  }
+}
+
+/**
+ * Update the status of a size exchange request in Supabase
+ */
+export async function updateReturnExchangeStatusInSupabase(
+  id: string,
+  status: string
+): Promise<boolean> {
+  if (!supabase) return false;
+  try {
+    const { error } = await supabase
+      .from('returns_exchanges')
+      .update({ status })
+      .eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Fetch hero slides from Supabase
+ */
+export async function getHeroSlidesFromSupabase(): Promise<HeroSlide[]> {
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase
+      .from('hero_slides')
+      .select('*')
+      .order('display_order', { ascending: true });
+
+    if (error || !data || data.length === 0) return [];
+
+    return data.map((s) => ({
+      id: String(s.id),
+      isFullBanner: true,
+      scriptText: s.tag ? String(s.tag) : undefined,
+      title: String(s.title),
+      subtitle: String(s.subtitle),
+      ctaText: s.button_label ? String(s.button_label) : 'Explore Collection',
+      to: String(s.target_path || '/collections'),
+      img: String(s.desktop_img),
+      mobileImg: String(s.mobile_img || s.desktop_img),
+      alt: `${s.title} - ${s.subtitle}`,
+      isActive: Boolean(s.is_active),
+    }));
+  } catch (err) {
+    console.warn('[Supabase] getHeroSlides exception:', err);
+    return [];
+  }
+}
+
+/**
+ * Save or update a hero slide in Supabase
+ */
+export async function saveHeroSlideToSupabase(
+  slide: HeroSlide,
+  displayOrder: number = 1
+): Promise<boolean> {
+  if (!supabase) return false;
+  try {
+    const { error } = await supabase.from('hero_slides').upsert(
+      {
+        id: slide.id,
+        title: slide.title || 'STEP INTO TIMELESS STYLE',
+        subtitle: slide.subtitle || 'RETRO SNEAKERS. EVERYDAY CHARACTER.',
+        tag: slide.scriptText || null,
+        desktop_img: slide.img,
+        mobile_img: slide.mobileImg || slide.img,
+        target_path: slide.to || '/collections',
+        button_label: slide.ctaText || 'Explore Collection',
+        is_active: slide.isActive ?? true,
+        display_order: displayOrder,
+      },
+      { onConflict: 'id' }
+    );
+    return !error;
+  } catch (err) {
+    console.warn('[Supabase] saveHeroSlide exception:', err);
+    return false;
+  }
+}
+
+/**
+ * Delete a hero slide from Supabase
+ */
+export async function deleteHeroSlideFromSupabase(id: string): Promise<boolean> {
+  if (!supabase) return false;
+  try {
+    const { error } = await supabase.from('hero_slides').delete().eq('id', id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Toggle active status of a hero slide in Supabase
+ */
+export async function toggleHeroSlideStatusInSupabase(
+  id: string,
+  isActive: boolean
+): Promise<boolean> {
+  if (!supabase) return false;
+  try {
+    const { error } = await supabase
+      .from('hero_slides')
+      .update({ is_active: isActive })
+      .eq('id', id);
+    return !error;
+  } catch {
+    return false;
   }
 }

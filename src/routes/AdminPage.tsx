@@ -24,6 +24,8 @@ import { DashboardSection } from './admin/DashboardSection';
 import { CatalogSection } from './admin/CatalogSection';
 import { OrdersSection } from './admin/OrdersSection';
 import { BannersSection } from './admin/BannersSection';
+import { CouponsSection } from './admin/CouponsSection';
+import { ReturnsSection } from './admin/ReturnsSection';
 import {
   AddProductModal,
   EditProductModal,
@@ -141,12 +143,39 @@ export function AdminPage() {
     const path = location.pathname.toLowerCase();
     if (path.includes('/admin/products') || path.includes('/admin/catalog')) return 'catalog';
     if (path.includes('/admin/orders')) return 'orders';
+    if (path.includes('/admin/returns')) return 'returns';
+    if (path.includes('/admin/coupons')) return 'coupons';
     if (path.includes('/admin/banners')) return 'banners';
     return 'dashboard';
   }, [location.pathname]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [successToast, setSuccessToast] = useState<string | null>(null);
+
+  // Storefront Maintenance Mode Toggle
+  const [maintenanceMode, setMaintenanceMode] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('craftyoursole_maintenance_mode') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const handleToggleMaintenanceMode = () => {
+    const next = !maintenanceMode;
+    setMaintenanceMode(next);
+    try {
+      localStorage.setItem('craftyoursole_maintenance_mode', String(next));
+      window.dispatchEvent(new Event('storage'));
+    } catch {
+      // ignore
+    }
+    showToast(
+      next
+        ? 'Storefront Maintenance Mode ENABLED. Customer storefront is now offline.'
+        : 'Storefront Maintenance Mode DISABLED. Storefront is now live.'
+    );
+  };
 
   const showToast = (message: string) => {
     setSuccessToast(message);
@@ -491,6 +520,8 @@ export function AdminPage() {
     { id: 'dashboard', label: 'Dashboard', icon: 'briefcase', path: '/admin/dashboard' },
     { id: 'catalog', label: 'Products', icon: 'running', path: '/admin/products', count: products.length },
     { id: 'orders', label: 'Orders', icon: 'shopping_bag', path: '/admin/orders', count: orders.length },
+    { id: 'returns', label: 'Returns & Exchanges', icon: 'package', path: '/admin/returns' },
+    { id: 'coupons', label: 'Coupons', icon: 'tag', path: '/admin/coupons' },
     { id: 'banners', label: 'Hero Banners', icon: 'lifestyle', path: '/admin/banners', count: heroSlides.length },
   ];
 
@@ -526,6 +557,8 @@ export function AdminPage() {
           heroSlidesCount={heroSlides.length}
           activeHeroSlidesCount={activeHeroSlides.length}
           totalRevenue={metrics.totalRevenue}
+          maintenanceMode={maintenanceMode}
+          onToggleMaintenanceMode={handleToggleMaintenanceMode}
           onNavigateHome={() => navigate('/')}
         />
 
@@ -599,6 +632,14 @@ export function AdminPage() {
                   showToast={showToast}
                 />
               }
+            />
+            <Route
+              path="returns"
+              element={<ReturnsSection showToast={showToast} />}
+            />
+            <Route
+              path="coupons"
+              element={<CouponsSection showToast={showToast} />}
             />
             <Route
               path="banners"

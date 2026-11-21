@@ -1,4 +1,4 @@
-import { useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import './App.css';
 import { LandingPage } from './routes/LandingPage';
@@ -23,6 +23,7 @@ import {
   TrackOrderPage,
 } from './routes/StorefrontInfoPages';
 import { NotFoundPage } from './routes/NotFoundPage';
+import { MaintenanceScreen } from './components/MaintenanceScreen';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { BottomNav } from './components/BottomNav';
@@ -70,6 +71,30 @@ function ScrollAndHashRedirectHandler() {
 }
 
 function CustomerLayout({ children }: { children: React.ReactNode }) {
+  const [isMaintenance, setIsMaintenance] = useState(() => {
+    try {
+      return localStorage.getItem('craftyoursole_maintenance_mode') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    const checkMode = () => {
+      try {
+        setIsMaintenance(localStorage.getItem('craftyoursole_maintenance_mode') === 'true');
+      } catch {
+        // ignore
+      }
+    };
+    window.addEventListener('storage', checkMode);
+    return () => window.removeEventListener('storage', checkMode);
+  }, []);
+
+  if (isMaintenance) {
+    return <MaintenanceScreen />;
+  }
+
   return (
     <div className="min-h-screen bg-white flex flex-col justify-between">
       <Navbar />

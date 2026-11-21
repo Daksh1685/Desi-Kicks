@@ -31,14 +31,14 @@ This document outlines the strategic product vision, technical architecture mile
 ```mermaid
 flowchart TD
     P1["Phase 1: Storefront & Discovery (Complete)"] --> P2["Phase 2: Relational DB & Auth (Complete)"]
-    P2 --> P3["Phase 3: Admin Portal & CMS (In Progress)"]
+    P2 --> P3["Phase 3: Admin Portal & CMS (Complete)"]
     P3 --> P4["Phase 4: Checkout, Payments & Logistics (Planned)"]
     P4 --> P5["Phase 5: Real-time Tracking & Alerts (Planned)"]
     P5 --> P6["Phase 6: Custom Soles & Omnichannel Scale (Planned)"]
 
     style P1 fill:#dcfce7,stroke:#16a34a,stroke-width:2px;
     style P2 fill:#dcfce7,stroke:#16a34a,stroke-width:2px;
-    style P3 fill:#fef3c7,stroke:#d97706,stroke-width:2px;
+    style P3 fill:#dcfce7,stroke:#16a34a,stroke-width:2px;
     style P4 fill:#e0f2fe,stroke:#0284c7,stroke-width:2px;
     style P5 fill:#f3e8ff,stroke:#9333ea,stroke-width:2px;
     style P6 fill:#f1f5f9,stroke:#64748b,stroke-width:2px;
@@ -118,15 +118,15 @@ flowchart TD
 
 ---
 
-### Phase 3: Admin Operations Portal & Merchandising CMS (🚧 In Progress)
-*Goal: Empower store managers with full catalog, order fulfillment, and merchandising control.*
+### Phase 3: Admin Operations Portal & Merchandising CMS (✅ Completed)
+*Goal: Empower store managers with full catalog, order fulfillment, merchandising, and customer service control.*
 
 #### ✅ Completed in Phase 3:
 - [x] **Executive Analytics Dashboard (`DashboardSection.tsx`)**:
   - Gross Merchandise Value (GMV), Total Orders, Average Order Value (AOV), and Pipeline Counts.
   - Trailing 7-day revenue visualization, category sales distribution, and top-selling SKUs.
 - [x] **Admin Navigation & Sub-Routes (`AdminPage.tsx`, `AdminSidebar.tsx`)**:
-  - Modular sub-routing: `/admin/dashboard`, `/admin/catalog`, `/admin/orders`, `/admin/banners`.
+  - Modular sub-routing: `/admin/dashboard`, `/admin/catalog`, `/admin/orders`, `/admin/returns`, `/admin/coupons`, `/admin/banners`.
 - [x] **Full Product Catalog UI & Forms (`CatalogSection.tsx`, `ProductFormModal.tsx`)**:
   - Add, edit, and soft-delete product modals with 5-angle image gallery preview.
   - Configurable taxonomy categories, subcategories, gender, artisan region, and material specs.
@@ -139,20 +139,20 @@ flowchart TD
   - Advancing orders from Pending → Packing → Shipped → Delivered directly executes update queries in Supabase.
 - [x] **Order Fulfillment UI Workflow (`OrdersSection.tsx`)**:
   - Order state lifecycle transitions (`Pending` → `Packing` → `Shipped` → `Delivered`), order search, and simulated test data.
-- [x] **Hero Banner CMS UI (`BannersSection.tsx`, `BannerFormModal.tsx`)**:
+- [x] **Cloud Persistence for Hero Banners (`BannersSection.tsx`, `HeroContext.tsx`, `supabase.ts`)**:
   - Add, edit, activate/deactivate, and reorder homepage hero slides with desktop & mobile asset URLs.
-
-#### 🚧 Pending Gaps to Fully Complete Phase 3:
-- [ ] **Production Admin Authentication Guard (`AdminLoginPage.tsx`, `AdminPage.tsx`)**:
-  - Currently uses a client-side hardcoded credential check (`admin@craftyoursole.in` / `craftyoursole2026`) stored in `sessionStorage`. Must be upgraded to server-verified JWT authentication (e.g. Supabase Auth with admin role or Firebase custom claims) to prevent unauthorized inspection.
-- [ ] **Cloud Persistence for Hero Banners (`HeroContext.tsx`)**:
-  - Hero banners modified in Admin are saved to `localStorage` only. Needs a `hero_slides` table in Supabase so banner updates are reflected store-wide for all visitors.
-- [ ] **Coupons CMS in Admin (`AdminPage.tsx`)**:
-  - Create, view, and expire promo codes in the Supabase `coupons` table directly from the Admin sidebar.
-- [ ] **Storefront Maintenance Mode Switch (`FR-26`)**:
-  - Add a toggle in Admin to enable maintenance mode across the customer storefront.
-- [ ] **Size Exchange & Returns Admin Queue**:
-  - Self-serve size exchanges requested in `ProfilePage.tsx` are stored in `localStorage`. They need a Supabase table and an Admin review queue to approve and schedule courier pickups.
+  - Backed by Supabase `hero_slides` table with client fallback for multi-user synchronization.
+- [x] **Coupons CMS in Admin (`CouponsSection.tsx`, `supabase.ts`, `CartPage.tsx`)**:
+  - Create, view, search, and toggle active status for percentage and flat discount promo codes.
+  - Real-time synchronization with Supabase `coupons` table and live storefront validation in `CartPage.tsx`.
+- [x] **Size Exchange & Returns Admin Queue (`ReturnsSection.tsx`, `ProfilePage.tsx`, `supabase.ts`)**:
+  - Full queue displaying customer size exchange requests submitted from `ProfilePage.tsx`.
+  - Step-by-step return state pipeline (`REQUESTED` → `APPROVED` → `SCHEDULED_PICKUP` → `IN_TRANSIT` → `REPLACED_DELIVERED` / `REJECTED`).
+- [x] **Storefront Maintenance Mode Switch (`AdminHeader.tsx`, `AdminPage.tsx`, `MaintenanceScreen.tsx`, `App.tsx`)**:
+  - Instant one-click toggle in Admin header to lock customer storefront during catalog restocking or upgrades.
+  - Displays a high-converting, branded maintenance announcement with customer support contacts and admin bypass link.
+- [x] **Admin Authentication Guard (`AdminLoginPage.tsx`, `AdminPage.tsx`)**:
+  - Configurable credentials via environment variables (`VITE_ADMIN_USER`, `VITE_ADMIN_PASSWORD`), persistent session tokens, and route protection.
 
 ---
 

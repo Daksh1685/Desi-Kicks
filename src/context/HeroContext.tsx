@@ -1,5 +1,12 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import {
+  getHeroSlidesFromSupabase,
+  saveHeroSlideToSupabase,
+  deleteHeroSlideFromSupabase,
+  toggleHeroSlideStatusInSupabase,
+  isSupabaseConfigured,
+} from '../lib/supabase';
 
 export interface HeroSlide {
   id: string;
@@ -103,6 +110,25 @@ export function HeroProvider({ children }: { children: React.ReactNode }) {
     }
   }, [slides]);
 
+  // Sync hero slides from Supabase on mount
+  useEffect(() => {
+    let mounted = true;
+    if (isSupabaseConfigured) {
+      getHeroSlidesFromSupabase()
+        .then((remoteSlides) => {
+          if (mounted && remoteSlides && remoteSlides.length > 0) {
+            setSlides(remoteSlides);
+          }
+        })
+        .catch((err) => {
+          console.warn('[HeroContext] Supabase hero slides sync skipped:', err);
+        });
+    }
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   // Active slides only for storefront
   const activeSlides = useMemo(() => {
     const list = slides.filter((s) => s.isActive !== false);
@@ -115,13 +141,32 @@ export function HeroProvider({ children }: { children: React.ReactNode }) {
       id: `hero-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       isActive: input.isActive ?? true,
     };
-    setSlides((prev) => [...prev, newSlide]);
+    setSlides((prev) => {
+      const next = [...prev, newSlide];
+      if (isSupabaseConfigured) {
+        saveHeroSlideToSupabase(newSlide, next.length).catch((err) => {
+          console.warn('[HeroContext] Error saving hero slide to Supabase:', err);
+        });
+      }
+      return next;
+    });
     return newSlide;
   }, []);
 
   const updateSlide = useCallback((id: string, updates: Partial<HeroSlide>) => {
     setSlides((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, ...updates } : s))
+      prev.map((s, idx) => {
+        if (s.id === id) {
+          const updated = { ...s, ...updates };
+          if (isSupabaseConfigured) {
+            saveHeroSlideToSupabase(updated, idx + 1).catch((err) => {
+              console.warn('[HeroContext] Error updating hero slide in Supabase:', err);
+            });
+          }
+          return updated;
+        }
+        return s;
+      })
     );
   }, []);
 
@@ -130,6 +175,11 @@ export function HeroProvider({ children }: { children: React.ReactNode }) {
       const filtered = prev.filter((s) => s.id !== id);
       return filtered.length > 0 ? filtered : DEFAULT_HERO_SLIDES.slice(0, 1);
     });
+    if (isSupabaseConfigured) {
+      deleteHeroSlideFromSupabase(id).catch((err) => {
+        console.warn('[HeroContext] Error deleting hero slide in Supabase:', err);
+      });
+    }
   }, []);
 
   const moveSlide = useCallback((index: number, direction: 'up' | 'down') => {
@@ -139,13 +189,30 @@ export function HeroProvider({ children }: { children: React.ReactNode }) {
       const copy = [...prev];
       const [moved] = copy.splice(index, 1);
       copy.splice(targetIndex, 0, moved);
+
+      if (isSupabaseConfigured) {
+        copy.forEach((slide, idx) => {
+          saveHeroSlideToSupabase(slide, idx + 1).catch(() => {});
+        });
+      }
       return copy;
     });
   }, []);
 
   const toggleSlideActive = useCallback((id: string) => {
     setSlides((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, isActive: !s.isActive } : s))
+      prev.map((s) => {
+        if (s.id === id) {
+          const nextActive = !s.isActive;
+          if (isSupabaseConfigured) {
+            toggleHeroSlideStatusInSupabase(id, nextActive).catch((err) => {
+              console.warn('[HeroContext] Error toggling slide status in Supabase:', err);
+            });
+          }
+          return { ...s, isActive: nextActive };
+        }
+        return s;
+      })
     );
   }, []);
 

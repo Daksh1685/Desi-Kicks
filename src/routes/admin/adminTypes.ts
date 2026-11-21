@@ -1,7 +1,7 @@
 import type { ProductGender } from '../../types/product';
 import type { IconName } from '../../components/ui/Icon';
 
-export type AdminSection = 'dashboard' | 'catalog' | 'orders' | 'banners';
+export type AdminSection = 'dashboard' | 'catalog' | 'orders' | 'returns' | 'coupons' | 'banners';
 
 export interface AdminNavItem {
   id: AdminSection;
