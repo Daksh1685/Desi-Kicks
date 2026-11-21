@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import type { Order, OrderStatus, OrderItem } from '../types/order';
-import { saveOrderToSupabase } from '../lib/supabase';
+import { saveOrderToSupabase, updateOrderStatusInSupabase, isSupabaseConfigured } from '../lib/supabase';
 
 const INITIAL_ORDERS: Order[] = [];
 
@@ -98,11 +98,18 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
   const updateOrderStatus = useCallback((orderId: string, status: OrderStatus) => {
     setOrders((prev) =>
       prev.map((ord) => {
-        if (ord.id === orderId) {
+        if (ord.id === orderId || ord.orderNumber === orderId) {
           const updatedPayment =
             status === 'DELIVERED' && ord.paymentMethod === 'COD'
               ? 'PAID'
               : ord.paymentStatus;
+
+          if (isSupabaseConfigured) {
+            updateOrderStatusInSupabase(ord.orderNumber, status, updatedPayment).catch((err) => {
+              console.warn('[OrderContext] Error updating order status in Supabase:', err);
+            });
+          }
+
           return { ...ord, orderStatus: status, paymentStatus: updatedPayment };
         }
         return ord;

@@ -107,14 +107,16 @@ flowchart TD
   - Persistent cart state, dynamic MRP calculations, free delivery threshold (₹1,999+), and shoe care kit add-on.
 
 #### 🚧 Pending Gaps to Fully Complete Phase 2:
-- [ ] **Catalog Mutations Sync to Supabase (`ProductContext.tsx`)**:
-  - `addProduct`, `updateProduct`, `deleteProduct`, and `toggleProductStatus` currently ONLY update local React state and `localStorage`. They need live SQL `INSERT`, `UPDATE`, and `DELETE` queries to Supabase `products` and `product_variants`.
+- [x] **Catalog Mutations Sync to Supabase (`ProductContext.tsx`, `supabase.ts`)**:
+  - `createProductInSupabase`, `updateProductInSupabase`, `deleteProductInSupabase`, and `toggleProductStatusInSupabase` write directly to Supabase `products` and `product_variants`. Local state updates optimistically and seamlessly reconciles server-generated UUIDs.
+- [x] **Real-Time Variant Stock Decrement in Database (`ProductContext.tsx`, `supabase.ts`)**:
+  - On checkout, `deductVariantStockInSupabase` decrements size variant stock in `product_variants` and increments `total_sold` on `products` in Supabase.
+- [x] **Admin Order Status Updates to Database (`OrdersSection.tsx`, `OrderContext.tsx`, `supabase.ts`)**:
+  - When an admin advances order status (`Pending` → `Packing` → `Shipped` → `Delivered`), `updateOrderStatusInSupabase` updates the order record in Supabase.
 - [ ] **Live Coupon Validation (`CartPage.tsx`)**:
   - `validateCouponInSupabase()` exists in `src/lib/supabase.ts` but is not invoked in `CartPage.tsx`. The checkout page currently uses client-side hardcoded codes (`FESTIVE500`, `SOLEFIRST`). Must connect to Supabase `coupons`.
 - [ ] **Multi-Device Order History Sync (`OrderContext.tsx`, `ProfilePage.tsx`)**:
   - Order history in `ProfilePage.tsx` currently only reads from the local browser's `localStorage`. Needs a query to Supabase: `supabase.from('orders').select().eq('customer_email', currentUser.email)` so orders sync across mobile and desktop.
-- [ ] **Real-Time Variant Stock Decrement in Database (`ProductContext.tsx`)**:
-  - When an order is placed, `deductVariantStock` only decrements local state. Needs an atomic RPC or SQL update to decrement stock in the Supabase `product_variants` table.
 
 ---
 
@@ -135,6 +137,8 @@ flowchart TD
   - Visual low-stock alert badges (`stock <= 5`) and quick gender presets (Men UK 6-12, Women UK 3-8, Kids UK 1-5).
 - [x] **Direct Image Uploads (`ImageUploadField.tsx`)**:
   - Drag-and-drop file upload directly to Supabase Storage (`product-images`) with automatic public URL generation.
+- [x] **Admin Order Status Updates to Database (`OrdersSection.tsx`, `OrderContext.tsx`, `supabase.ts`)**:
+  - Advancing orders from Pending → Packing → Shipped → Delivered directly executes update queries in Supabase.
 - [x] **Order Fulfillment UI Workflow (`OrdersSection.tsx`)**:
   - Order state lifecycle transitions (`Pending` → `Packing` → `Shipped` → `Delivered`), order search, and simulated test data.
 - [x] **Hero Banner CMS UI (`BannersSection.tsx`, `BannerFormModal.tsx`)**:
@@ -143,8 +147,6 @@ flowchart TD
 #### 🚧 Pending Gaps to Fully Complete Phase 3:
 - [ ] **Production Admin Authentication Guard (`AdminLoginPage.tsx`, `AdminPage.tsx`)**:
   - Currently uses a client-side hardcoded credential check (`admin@craftyoursole.in` / `craftyoursole2026`) stored in `sessionStorage`. Must be upgraded to server-verified JWT authentication (e.g. Supabase Auth with admin role or Firebase custom claims) to prevent unauthorized inspection.
-- [ ] **Admin Order Status Updates to Database (`OrdersSection.tsx`, `OrderContext.tsx`)**:
-  - When an admin updates an order status (`Pending` → `Packing` → `Shipped` → `Delivered`), the change only updates local state. Needs an `UPDATE orders SET order_status = ... WHERE id = ...` call to Supabase.
 - [ ] **Cloud Persistence for Hero Banners (`HeroContext.tsx`)**:
   - Hero banners modified in Admin are saved to `localStorage` only. Needs a `hero_slides` table in Supabase so banner updates are reflected store-wide for all visitors.
 - [ ] **Coupons CMS in Admin (`AdminPage.tsx`)**:

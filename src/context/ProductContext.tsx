@@ -1,7 +1,15 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import type { Product, NewProductInput } from '../types/product';
-import { getProductsFromSupabase, isSupabaseConfigured } from '../lib/supabase';
+import {
+  getProductsFromSupabase,
+  createProductInSupabase,
+  updateProductInSupabase,
+  deleteProductInSupabase,
+  toggleProductStatusInSupabase,
+  deductVariantStockInSupabase,
+  isSupabaseConfigured,
+} from '../lib/supabase';
 
 const INITIAL_PRODUCTS: Product[] = [];
 const MOCK_IDS = new Set(['prod-1', 'prod-2', 'prod-3', 'prod-4', 'prod-5', 'prod-6']);
@@ -44,7 +52,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     return INITIAL_PRODUCTS;
   });
 
-  // Persist catalog updates
+  // Persist catalog updates to localStorage
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
@@ -53,7 +61,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     }
   }, [products]);
 
-  // Sync products from Supabase if available
+  // Sync products from Supabase on mount if configured
   useEffect(() => {
     let mounted = true;
     if (isSupabaseConfigured) {
@@ -81,10 +89,11 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
 
+    const tempId = `prod-${Date.now()}`;
     const newProduct: Product = {
       ...input,
-      id: `prod-${Date.now()}`,
-      slug: `${slug}-${Math.floor(Math.random() * 1000)}`,
+      id: tempId,
+      slug: `${slug}-${Math.floor(1000 + Math.random() * 9000)}`,
       rating: 5.0,
       reviewsCount: 0,
       totalSold: 0,
@@ -92,26 +101,68 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       variants: input.variants || input.sizes.map((s) => ({ size: s, stock: 20 })),
     };
 
+    // Optimistically update local state & localStorage
     setProducts((prev) => [newProduct, ...prev]);
+
+    // Persist to Supabase and reconcile the server-assigned UUID
+    if (isSupabaseConfigured) {
+      createProductInSupabase(input, newProduct.slug)
+        .then((remoteProduct) => {
+          if (remoteProduct) {
+            setProducts((prev) =>
+              prev.map((p) => (p.id === tempId ? remoteProduct : p))
+            );
+          }
+        })
+        .catch((err) => {
+          console.warn('[ProductContext] Error saving product to Supabase:', err);
+        });
+    }
+
     return newProduct;
   }, []);
 
   const updateProduct = useCallback((id: string, updates: Partial<Product>) => {
+    // Optimistically update local state & localStorage
     setProducts((prev) =>
       prev.map((item) => (item.id === id ? { ...item, ...updates } : item))
     );
+
+    // Persist to Supabase
+    if (isSupabaseConfigured) {
+      updateProductInSupabase(id, updates).catch((err) => {
+        console.warn('[ProductContext] Error updating product in Supabase:', err);
+      });
+    }
   }, []);
 
   const deleteProduct = useCallback((id: string) => {
+    // Optimistically update local state & localStorage
     setProducts((prev) => prev.filter((item) => item.id !== id));
+
+    // Delete in Supabase
+    if (isSupabaseConfigured) {
+      deleteProductInSupabase(id).catch((err) => {
+        console.warn('[ProductContext] Error deleting product from Supabase:', err);
+      });
+    }
   }, []);
 
   const toggleProductStatus = useCallback((id: string) => {
-    setProducts((prev) =>
-      prev.map((item) =>
+    setProducts((prev) => {
+      const target = prev.find((item) => item.id === id);
+      const nextStatus = target ? !target.isActive : true;
+
+      if (isSupabaseConfigured) {
+        toggleProductStatusInSupabase(id, nextStatus).catch((err) => {
+          console.warn('[ProductContext] Error toggling status in Supabase:', err);
+        });
+      }
+
+      return prev.map((item) =>
         item.id === id ? { ...item, isActive: !item.isActive } : item
-      )
-    );
+      );
+    });
   }, []);
 
   const getProductById = useCallback(
@@ -158,6 +209,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
 
   const deductVariantStock = useCallback(
     (items: { productId: string; size: string; quantity: number }[]) => {
+      // 1. Optimistic deduction in state & localStorage
       setProducts((prev) =>
         prev.map((prod) => {
           const matchingItems = items.filter((item) => {
@@ -191,6 +243,14 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
           };
         })
       );
+
+      // 2. Persist inventory decrement to Supabase
+      if (isSupabaseConfigured) {
+        deductVariantStockInSupabase(items).catch((err) => {
+          console.warn('[ProductContext] Error deducting stock in Supabase:', err);
+        });
+      }
+
       return true;
     },
     []
@@ -235,4 +295,3 @@ export function useProductCatalog() {
   }
   return context;
 }
-
