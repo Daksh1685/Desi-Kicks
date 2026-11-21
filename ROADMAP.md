@@ -137,8 +137,10 @@ flowchart TD
   - Drag-and-drop file upload directly to Supabase Storage (`product-images`) with automatic public URL generation.
 - [x] **Admin Order Status Updates to Database (`OrdersSection.tsx`, `OrderContext.tsx`, `supabase.ts`)**:
   - Advancing orders from Pending → Packing → Shipped → Delivered directly executes update queries in Supabase.
-- [x] **Order Fulfillment UI Workflow (`OrdersSection.tsx`)**:
-  - Order state lifecycle transitions (`Pending` → `Packing` → `Shipped` → `Delivered`), order search, and simulated test data.
+- [x] **Order Fulfillment & Approval Workflow (`OrdersSection.tsx`, `ShippingLabelModal.tsx`, `DeclineOrderModal.tsx`)**:
+  - Accept & Decline merchant controls for incoming orders (`PENDING`).
+  - Accepting an order automatically transitions status to `SHIPPED` and triggers instant carrier shipping label generation (AWB barcode, consignee & RTO hub details, COD/prepaid billing indicators, print-ready 4"x6" layout).
+  - Declining an order cancels the transaction with merchant reason logging and automated refund processing for prepaid orders.
 - [x] **Cloud Persistence for Hero Banners (`BannersSection.tsx`, `HeroContext.tsx`, `supabase.ts`)**:
   - Add, edit, activate/deactivate, and reorder homepage hero slides with desktop & mobile asset URLs.
   - Backed by Supabase `hero_slides` table with client fallback for multi-user synchronization.

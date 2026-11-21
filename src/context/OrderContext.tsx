@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
-import type { Order, OrderStatus, OrderItem } from '../types/order';
+import type { Order, OrderStatus, OrderItem, ShippingLabelData } from '../types/order';
 import {
   saveOrderToSupabase,
   updateOrderStatusInSupabase,
@@ -9,7 +9,90 @@ import {
   isSupabaseConfigured,
 } from '../lib/supabase';
 
-const INITIAL_ORDERS: Order[] = [];
+const INITIAL_ORDERS: Order[] = [
+  {
+    id: 'ord-demo-1',
+    orderNumber: 'CYS-2026-4891',
+    customerName: 'Aarav Sharma',
+    customerEmail: 'aarav.sharma@example.com',
+    customerPhone: '+91 98765 43210',
+    shippingAddress: {
+      street: '42, Shanti Kunj, Civil Lines',
+      city: 'Jaipur',
+      state: 'Rajasthan',
+      pincode: '302001',
+    },
+    items: [
+      {
+        id: 'item-1',
+        productId: 'royal-velvet-embroidered-mojari',
+        productName: 'Royal Velvet Embroidered Mojari',
+        size: 'UK 9',
+        price: 2995,
+        quantity: 1,
+        img: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=800&auto=format&fit=crop',
+      },
+    ],
+    subtotal: 2995,
+    discount: 500,
+    shippingFee: 0,
+    totalAmount: 2495,
+    paymentMethod: 'UPI',
+    paymentStatus: 'PAID',
+    orderStatus: 'PENDING',
+    createdAt: new Date().toISOString(),
+    estimatedDelivery: '3-4 Business Days',
+  },
+  {
+    id: 'ord-demo-2',
+    orderNumber: 'CYS-2026-8123',
+    customerName: 'Priya Sundaram',
+    customerEmail: 'priya.s@example.com',
+    customerPhone: '+91 98112 34567',
+    shippingAddress: {
+      street: '15th Cross, Indiranagar',
+      city: 'Bengaluru',
+      state: 'Karnataka',
+      pincode: '560038',
+    },
+    items: [
+      {
+        id: 'item-2',
+        productId: 'cloudknit-daily-slip-on-loafer',
+        productName: "Women's In Bloom Pastel Sneaker",
+        size: 'UK 6',
+        price: 2495,
+        quantity: 1,
+        img: 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=800&auto=format&fit=crop',
+      },
+    ],
+    subtotal: 2495,
+    discount: 0,
+    shippingFee: 0,
+    totalAmount: 2495,
+    paymentMethod: 'COD',
+    paymentStatus: 'PENDING',
+    orderStatus: 'SHIPPED',
+    createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
+    estimatedDelivery: '2-3 Business Days',
+    shippingLabel: {
+      awbNumber: 'AWB-SR-948201948',
+      courierName: 'BlueDart Air Express',
+      serviceType: 'Surface Direct Air Cargo',
+      routingCode: 'DEL / JPR / SOUTH-02',
+      weightKg: 0.85,
+      dimensionsCm: '32 x 20 x 12 cm',
+      generatedAt: new Date(Date.now() - 3600000 * 20).toISOString(),
+      dispatchHub: {
+        name: 'CraftYourSole Central Artisan Fulfillment Hub',
+        address: 'Plot 14, Leather Artisan Zone, Sitapura',
+        city: 'Jaipur',
+        state: 'Rajasthan',
+        pincode: '302022',
+      },
+    },
+  },
+];
 
 interface CreateOrderInput {
   customerName: string;
@@ -32,7 +115,14 @@ interface CreateOrderInput {
 interface OrderContextType {
   orders: Order[];
   createOrder: (input: CreateOrderInput) => Order;
-  updateOrderStatus: (orderId: string, status: OrderStatus) => void;
+  updateOrderStatus: (
+    orderId: string,
+    status: OrderStatus,
+    metadata?: {
+      shippingLabel?: ShippingLabelData;
+      cancellationReason?: string;
+    }
+  ) => void;
   getOrderById: (orderId: string) => Order | undefined;
   syncCustomerOrders: (email: string) => Promise<void>;
   metrics: {
@@ -142,27 +232,45 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
     return newOrder;
   }, []);
 
-  const updateOrderStatus = useCallback((orderId: string, status: OrderStatus) => {
-    setOrders((prev) =>
-      prev.map((ord) => {
-        if (ord.id === orderId || ord.orderNumber === orderId) {
-          const updatedPayment =
-            status === 'DELIVERED' && ord.paymentMethod === 'COD'
-              ? 'PAID'
-              : ord.paymentStatus;
+  const updateOrderStatus = useCallback(
+    (
+      orderId: string,
+      status: OrderStatus,
+      metadata?: {
+        shippingLabel?: ShippingLabelData;
+        cancellationReason?: string;
+      }
+    ) => {
+      setOrders((prev) =>
+        prev.map((ord) => {
+          if (ord.id === orderId || ord.orderNumber === orderId) {
+            const updatedPayment =
+              status === 'DELIVERED' && ord.paymentMethod === 'COD'
+                ? 'PAID'
+                : status === 'CANCELLED' && ord.paymentStatus === 'PAID'
+                ? 'REFUNDED'
+                : ord.paymentStatus;
 
-          if (isSupabaseConfigured) {
-            updateOrderStatusInSupabase(ord.orderNumber, status, updatedPayment).catch((err) => {
-              console.warn('[OrderContext] Error updating order status in Supabase:', err);
-            });
+            if (isSupabaseConfigured) {
+              updateOrderStatusInSupabase(ord.orderNumber, status, updatedPayment).catch((err) => {
+                console.warn('[OrderContext] Error updating order status in Supabase:', err);
+              });
+            }
+
+            return {
+              ...ord,
+              orderStatus: status,
+              paymentStatus: updatedPayment,
+              shippingLabel: metadata?.shippingLabel || ord.shippingLabel,
+              cancellationReason: metadata?.cancellationReason || ord.cancellationReason,
+            };
           }
-
-          return { ...ord, orderStatus: status, paymentStatus: updatedPayment };
-        }
-        return ord;
-      })
-    );
-  }, []);
+          return ord;
+        })
+      );
+    },
+    []
+  );
 
   const getOrderById = useCallback(
     (orderId: string) => orders.find((o) => o.id === orderId),

@@ -12,6 +12,23 @@ export type OrderStatus = 'PENDING' | 'PACKING' | 'SHIPPED' | 'DELIVERED' | 'CAN
 export type PaymentStatus = 'PAID' | 'PENDING' | 'REFUNDED';
 export type PaymentMethod = 'UPI' | 'Card' | 'NetBanking' | 'COD';
 
+export interface ShippingLabelData {
+  awbNumber: string;
+  courierName: string;
+  serviceType: string;
+  routingCode: string;
+  weightKg: number;
+  dimensionsCm: string;
+  generatedAt: string;
+  dispatchHub: {
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+    pincode: string;
+  };
+}
+
 export interface Order {
   id: string;
   orderNumber: string;
@@ -34,5 +51,7 @@ export interface Order {
   orderStatus: OrderStatus;
   createdAt: string;
   estimatedDelivery?: string;
+  shippingLabel?: ShippingLabelData;
+  cancellationReason?: string;
 }
 
