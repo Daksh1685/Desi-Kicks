@@ -133,13 +133,21 @@ CREATE TABLE IF NOT EXISTS public.returns_exchanges (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 8. ENABLE ROW LEVEL SECURITY (RLS)
+-- 8. SITE SETTINGS TABLE (Editable Footer, Storefront CMS & Navigation)
+CREATE TABLE IF NOT EXISTS public.site_settings (
+    key TEXT PRIMARY KEY,
+    value JSONB NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 9. ENABLE ROW LEVEL SECURITY (RLS)
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.product_variants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.coupons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.hero_slides ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.returns_exchanges ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
 
 -- 9. RLS POLICIES (Safe for re-running)
 
@@ -211,6 +219,18 @@ DROP POLICY IF EXISTS "Allow view returns_exchanges" ON public.returns_exchanges
 CREATE POLICY "Allow view returns_exchanges" 
     ON public.returns_exchanges FOR SELECT 
     USING (true);
+
+-- Site Settings (Footer & Navigation CMS) Policies
+DROP POLICY IF EXISTS "Allow public read on site_settings" ON public.site_settings;
+CREATE POLICY "Allow public read on site_settings" 
+    ON public.site_settings FOR SELECT 
+    USING (true);
+
+DROP POLICY IF EXISTS "Allow all manage site_settings" ON public.site_settings;
+CREATE POLICY "Allow all manage site_settings" 
+    ON public.site_settings FOR ALL 
+    USING (true)
+    WITH CHECK (true);
 
 -- 10. STORAGE BUCKET FOR PRODUCT IMAGES (Multi-Angle Photography)
 INSERT INTO storage.buckets (id, name, public) 

@@ -38,7 +38,9 @@ export function AdminHeader({
                   ? 'Size Exchanges (36h Window)'
                   : activeSection === 'coupons'
                     ? 'Coupons & Promotions'
-                    : 'Hero Banners & Carousel'}
+                    : activeSection === 'footer'
+                      ? 'Footer & Navigation CMS'
+                      : 'Hero Banners & Carousel'}
         </h1>
         <p className="text-xs text-gray-400">
           {activeSection === 'dashboard' && 'Sales overview and key metrics'}
@@ -47,6 +49,7 @@ export function AdminHeader({
           {activeSection === 'returns' && 'Customer 36-hour size exchange requests (Exchange-only policy)'}
           {activeSection === 'coupons' && 'Manage promotional discount codes & minimum order rules'}
           {activeSection === 'banners' && `${heroSlidesCount} banners (${activeHeroSlidesCount} live on homepage)`}
+          {activeSection === 'footer' && 'Live edit footer navigation, links, social profiles, and legal disclaimers'}
         </p>
       </div>
 

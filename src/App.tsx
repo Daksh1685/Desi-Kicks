@@ -34,6 +34,7 @@ import { WishlistProvider } from './context/WishlistContext';
 import { ProductModalProvider } from './context/ProductModalContext';
 import { HeroProvider } from './context/HeroContext';
 import { AuthProvider } from './context/AuthContext';
+import { FooterProvider } from './context/FooterContext';
 import { ProductDetailModal } from './components/ProductDetailModal';
 
 export type PageRoute = 'landing' | 'profile' | 'cart';
@@ -111,13 +112,14 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <ProductProvider>
-          <HeroProvider>
-            <OrderProvider>
-            <CartProvider>
-              <WishlistProvider>
-                <ProductModalProvider>
-                <ScrollAndHashRedirectHandler />
+        <FooterProvider>
+          <ProductProvider>
+            <HeroProvider>
+              <OrderProvider>
+              <CartProvider>
+                <WishlistProvider>
+                  <ProductModalProvider>
+                  <ScrollAndHashRedirectHandler />
                 <Routes>
                   {/* Admin Operations Portal (Code-Split with Nested Sub-Routes) */}
                   <Route
@@ -177,6 +179,7 @@ function App() {
           </OrderProvider>
           </HeroProvider>
         </ProductProvider>
+        </FooterProvider>
       </AuthProvider>
     </BrowserRouter>
   );

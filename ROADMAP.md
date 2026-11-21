@@ -152,6 +152,9 @@ flowchart TD
 - [x] **Storefront Maintenance Mode Switch (`AdminHeader.tsx`, `AdminPage.tsx`, `MaintenanceScreen.tsx`, `App.tsx`)**:
   - Instant one-click toggle in Admin header to lock customer storefront during catalog restocking or upgrades.
   - Displays a high-converting, branded maintenance announcement with customer support contacts and admin bypass link.
+- [x] **Editable Footer CMS (`FooterSection.tsx`, `FooterContext.tsx`, `Footer.tsx`, `supabase.ts`)**:
+  - Full WYSIWYG & structured admin portal editor for all storefront footer columns, links, social channels, concierge contacts, and legal copy.
+  - Real-time cloud synchronization via Supabase `site_settings` table and instant interactive live preview.
 - [x] **Admin Authentication Guard (`AdminLoginPage.tsx`, `AdminPage.tsx`)**:
   - Configurable credentials via environment variables (`VITE_ADMIN_USER`, `VITE_ADMIN_PASSWORD`), persistent session tokens, and route protection.
 

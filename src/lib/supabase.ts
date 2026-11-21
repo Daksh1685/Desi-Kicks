@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import type { Order, OrderItem } from '../types/order';
 import type { Product, NewProductInput, ProductGender } from '../types/product';
 import type { HeroSlide } from '../context/HeroContext';
+import type { FooterContent } from '../types/footer';
 
 export interface AdminCoupon {
   id: string;
@@ -949,6 +950,55 @@ export async function toggleHeroSlideStatusInSupabase(
       .eq('id', id);
     return !error;
   } catch {
+    return false;
+  }
+}
+
+/**
+ * Fetch footer content from Supabase 'site_settings' table
+ */
+export async function getFooterContentFromSupabase(): Promise<FooterContent | null> {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'footer_content')
+      .maybeSingle();
+
+    if (error) {
+      console.warn('[Supabase] Get footer_content warning:', error.message);
+      return null;
+    }
+    return (data?.value as FooterContent) || null;
+  } catch (err) {
+    console.warn('[Supabase] getFooterContent exception:', err);
+    return null;
+  }
+}
+
+/**
+ * Save footer content into Supabase 'site_settings' table
+ */
+export async function saveFooterContentToSupabase(content: FooterContent): Promise<boolean> {
+  if (!supabase) return false;
+  try {
+    const { error } = await supabase.from('site_settings').upsert(
+      {
+        key: 'footer_content',
+        value: content,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'key' }
+    );
+
+    if (error) {
+      console.warn('[Supabase] Save footer_content error:', error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn('[Supabase] saveFooterContent exception:', err);
     return false;
   }
 }

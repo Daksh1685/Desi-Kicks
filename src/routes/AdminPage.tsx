@@ -26,6 +26,7 @@ import { OrdersSection } from './admin/OrdersSection';
 import { BannersSection } from './admin/BannersSection';
 import { CouponsSection } from './admin/CouponsSection';
 import { ReturnsSection } from './admin/ReturnsSection';
+import { FooterSection } from './admin/FooterSection';
 import {
   AddProductModal,
   EditProductModal,
@@ -146,6 +147,7 @@ export function AdminPage() {
     if (path.includes('/admin/returns')) return 'returns';
     if (path.includes('/admin/coupons')) return 'coupons';
     if (path.includes('/admin/banners')) return 'banners';
+    if (path.includes('/admin/footer')) return 'footer';
     return 'dashboard';
   }, [location.pathname]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -523,6 +525,7 @@ export function AdminPage() {
     { id: 'returns', label: 'Size Exchanges (36h)', icon: 'package', path: '/admin/returns' },
     { id: 'coupons', label: 'Coupons', icon: 'tag', path: '/admin/coupons' },
     { id: 'banners', label: 'Hero Banners', icon: 'lifestyle', path: '/admin/banners', count: heroSlides.length },
+    { id: 'footer', label: 'Footer CMS', icon: 'edit', path: '/admin/footer' },
   ];
 
   return (
@@ -656,6 +659,10 @@ export function AdminPage() {
                   showToast={showToast}
                 />
               }
+            />
+            <Route
+              path="footer"
+              element={<FooterSection showToast={showToast} />}
             />
             <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
           </Routes>
