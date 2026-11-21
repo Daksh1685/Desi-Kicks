@@ -15,8 +15,7 @@ const NAV_LINKS: NavLinkItem[] = [
   { name: 'Men', path: '/collections/men' },
   { name: 'Women', path: '/collections/women' },
   { name: 'Kids', path: '/collections/kids' },
-  { name: 'Festive & Ethnic', path: '/collections/festive-ethnic' },
-  { name: 'Daily Comfort', path: '/collections/daily-comfort' },
+  { name: 'Best Sellers', path: '/#best-sellers' },
   { name: 'All Collections', path: '/collections' },
 ];
 
@@ -25,7 +24,7 @@ export function Navbar() {
   const { wishlistCount } = useWishlist();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  const { pathname, search } = useLocation();
+  const { pathname, search, hash } = useLocation();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -54,7 +53,9 @@ export function Navbar() {
         {/* Middle: Centered Category Navigation Links */}
         <nav className="hidden md:flex items-center justify-center gap-6 lg:gap-8 xl:gap-10 text-sm font-semibold tracking-wide">
           {NAV_LINKS.map((link) => {
-            const isActive = pathname === link.path;
+            const isActive = link.path.startsWith('/#')
+              ? pathname === '/' && hash === link.path.replace('/', '')
+              : pathname === link.path;
             return (
               <Link
                 key={link.name}
@@ -198,7 +199,9 @@ export function Navbar() {
               Collections &amp; Categories
             </p>
             {NAV_LINKS.map((link) => {
-              const isActive = pathname === link.path;
+              const isActive = link.path.startsWith('/#')
+                ? pathname === '/' && hash === link.path.replace('/', '')
+                : pathname === link.path;
               return (
                 <Link
                   key={link.name}

@@ -39,7 +39,8 @@ const GENDER_CARDS: GenderCategoryCard[] = [
 export function GenderSelection() {
   return (
     <section
-      className="w-full max-w-[1600px] mx-auto px-2 sm:px-4 md:px-6 py-3 sm:py-5 md:py-6"
+      id="collections"
+      className="w-full max-w-[1600px] mx-auto px-2 sm:px-4 md:px-6 py-3 sm:py-5 md:py-6 scroll-mt-20"
       aria-label="Shop by Category"
     >
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4 md:gap-6">

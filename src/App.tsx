@@ -54,6 +54,15 @@ function ScrollAndHashRedirectHandler() {
     // Scroll to top on route change unless navigating to a specific hash anchor
     if (!location.hash) {
       window.scrollTo(0, 0);
+    } else {
+      const id = location.hash.replace(/^#/, '');
+      const timer = setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 60);
+      return () => clearTimeout(timer);
     }
   }, [location.pathname, location.hash]);
 

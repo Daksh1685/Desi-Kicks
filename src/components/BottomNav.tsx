@@ -38,16 +38,11 @@ export function BottomNav({ onNavigate }: BottomNavProps = {}) {
     },
     {
       icon: 'category' as IconName,
-      label: 'Occasions',
+      label: 'Collections',
       action: () => {
-        if (pathname !== '/') {
-          handleNav('/', 'landing');
-        }
-        setTimeout(() => {
-          document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' });
-        }, 80);
+        navigate('/collections');
       },
-      active: false,
+      active: pathname.startsWith('/collections'),
     },
     {
       icon: 'shopping_bag' as IconName,

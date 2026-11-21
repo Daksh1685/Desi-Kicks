@@ -19,6 +19,51 @@ export interface CollectionMeta {
 
 export const COLLECTIONS_CONFIG: CollectionMeta[] = [
   {
+    slug: 'men',
+    name: 'Men',
+    headline: "Men's Retro Casuals & Street Sneakers",
+    description:
+      'Handcrafted retro timeless low-tops, vintage gum sole sneakers, and everyday street casuals engineered with high-density memory foam.',
+    seoTitle: "Men's Sneakers, Casuals & Street Footwear | CraftYourSole",
+    seoDescription:
+      "Explore CraftYourSole men's footwear: handcrafted retro timeless sneakers, vintage street low-tops, and daily casuals with COD & free pan-India delivery.",
+    countLabel: '210+ Planned Styles',
+    img: '/hero/category-men.webp',
+    categoryKeywords: ['men', 'retro', 'sneaker', 'casual', 'street', 'timeless', 'heritage', 'loafer', 'formal', 'chappal'],
+    roadmapNote:
+      'Size-by-size filtering, vintage patina previews, and bespoke width selectors for men are currently under development.',
+  },
+  {
+    slug: 'women',
+    name: 'Women',
+    headline: "Women's Collection in Bloom — Pastels & Slides",
+    description:
+      'Contoured botanical cork slides, pastel retro sneakers, and cushioned block heels crafted for all-day comfort and elegance.',
+    seoTitle: "Women's Sneakers, Slides & Block Heels | CraftYourSole",
+    seoDescription:
+      "Shop CraftYourSole women's collection: floral botanical cork slides, pastel retro sneakers, and comfortable block heels designed for all-day wear.",
+    countLabel: '185+ Planned Styles',
+    img: '/hero/category-women.webp',
+    categoryKeywords: ['women', 'bloom', 'flora', 'slide', 'pastel', 'sneaker', 'heel', 'cork', 'botanical', 'sandal', 'daily', 'festive'],
+    roadmapNote:
+      'New women-exclusive pastel colorways, floral botanical slides, and wide-fit comfort wedges are currently in active development.',
+  },
+  {
+    slug: 'kids',
+    name: 'Kids',
+    headline: "Playful Kids' Sneaker Collection",
+    description:
+      'Lightweight, shock-absorbing easy-strap sneakers designed with flexible soles and non-stop playground durability.',
+    seoTitle: "Kids' Easy-Strap Sneakers & Playful Shoes | CraftYourSole",
+    seoDescription:
+      "Explore CraftYourSole kids' footwear: featherlight easy-strap sneakers, shock-absorbing playground shoes, and playful active designs for boys and girls.",
+    countLabel: '60+ Planned Styles',
+    img: '/hero/category-kids.webp',
+    categoryKeywords: ['kid', 'playful', 'sneaker', 'strap', 'playground', 'boy', 'girl', 'junior', 'youth', 'child'],
+    roadmapNote:
+      'Growing-feet sizing guidance and high-durability school & sports collections are currently under development.',
+  },
+  {
     slug: 'festive-ethnic',
     name: 'Festive & Ethnic',
     headline: 'Festive Juttis & Embroidered Mojaris',
@@ -32,51 +77,6 @@ export const COLLECTIONS_CONFIG: CollectionMeta[] = [
     categoryKeywords: ['festive', 'ethnic', 'mojari', 'jutti'],
     roadmapNote:
       'Our Jaipur and Amritsar artisan workshops are uploading additional bridal, groom, and regional Kolhapuri SKUs. Launch signature pairs are ready to explore below.',
-  },
-  {
-    slug: 'men',
-    name: 'Men',
-    headline: "Men's Heritage & Everyday Footwear",
-    description:
-      'Full-grain burnished leather loafers, festive sherwani mojaris, breathable daily slip-ons, and high-rebound athletic trainers.',
-    seoTitle: "Men's Loafers, Mojaris & Comfort Footwear | CraftYourSole",
-    seoDescription:
-      "Explore CraftYourSole men's footwear: Agra burnished leather loafers, Jaipur festive mojaris, daily slip-ons, and gym runners with COD & free delivery.",
-    countLabel: '210+ Planned Styles',
-    img: 'https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?q=80&w=800&auto=format&fit=crop',
-    categoryKeywords: ['formal', 'loafer', 'mojari', 'daily', 'gym', 'runner', 'chappal'],
-    roadmapNote:
-      'Size-by-size filtering, leather patina previews, and bespoke width selectors for men are currently under development.',
-  },
-  {
-    slug: 'women',
-    name: 'Women',
-    headline: "Women's Heels, Festive Flats & Daily Comfort",
-    description:
-      'Cushioned block heels, metallic evening sandals, embroidered juttis, and featherlight everyday slip-ons crafted for Indian feet.',
-    seoTitle: "Women's Block Heels, Festive Flats & Comfort Wear | CraftYourSole",
-    seoDescription:
-      "Shop CraftYourSole women's cushioned block heels, shimmer evening sandals, and everyday slip-ons designed for wedding celebrations and all-day wear.",
-    countLabel: '185+ Planned Styles',
-    img: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=800&auto=format&fit=crop',
-    categoryKeywords: ['women', 'heel', 'sandal', 'daily', 'festive'],
-    roadmapNote:
-      'New women-exclusive jutti embroidery drops, kitten heels, and wide-fit ethnic wedges are currently in active development.',
-  },
-  {
-    slug: 'kids',
-    name: 'Kids',
-    headline: "Boys, Girls & Kids' Comfortable Footwear",
-    description:
-      'Lightweight, breathable sneakers, easy-on hook-and-loop straps, and durable play-proof everyday shoes for active kids.',
-    seoTitle: "Kids' Sneakers, Sandals & Casual Shoes | CraftYourSole",
-    seoDescription:
-      "Explore CraftYourSole kids' footwear: featherlight sneakers, anti-slip playground shoes, and festive ethnic footwear for boys and girls.",
-    countLabel: '60+ Planned Styles',
-    img: '/hero/category-kids-ref.jpg',
-    categoryKeywords: ['kid', 'boy', 'girl', 'junior', 'youth', 'child'],
-    roadmapNote:
-      'Growing-feet sizing guidance and high-durability school & sports collections are currently under development.',
   },
   {
     slug: 'daily-comfort',

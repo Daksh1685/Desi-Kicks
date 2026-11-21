@@ -114,19 +114,25 @@ export function Footer() {
           <ul className="space-y-2.5 text-xs md:text-sm text-white/60">
             <li>
               <Link to="/collections/men" className="hover:text-primary transition-colors flex items-center justify-between group">
-                <span>Men's Heritage &amp; Loafers</span>
+                <span>Men's Collection — Retro Casuals</span>
                 <span className="opacity-0 group-hover:opacity-100 transition-opacity text-primary text-xs">→</span>
               </Link>
             </li>
             <li>
               <Link to="/collections/women" className="hover:text-primary transition-colors flex items-center justify-between group">
-                <span>Women's Heels, Slides &amp; Flats</span>
+                <span>Women's Collection in Bloom</span>
                 <span className="opacity-0 group-hover:opacity-100 transition-opacity text-primary text-xs">→</span>
               </Link>
             </li>
             <li>
               <Link to="/collections/kids" className="hover:text-primary transition-colors flex items-center justify-between group">
-                <span>Kids' Sneakers &amp; Casuals</span>
+                <span>Kids' Playful Sneaker Collection</span>
+                <span className="opacity-0 group-hover:opacity-100 transition-opacity text-primary text-xs">→</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/#best-sellers" className="hover:text-primary transition-colors flex items-center justify-between group">
+                <span>Best Sellers Showcase</span>
                 <span className="opacity-0 group-hover:opacity-100 transition-opacity text-primary text-xs">→</span>
               </Link>
             </li>
@@ -139,12 +145,6 @@ export function Footer() {
             <li>
               <Link to="/collections/daily-comfort" className="hover:text-primary transition-colors flex items-center justify-between group">
                 <span>Daily Comfort &amp; Ortho Slides</span>
-                <span className="opacity-0 group-hover:opacity-100 transition-opacity text-primary text-xs">→</span>
-              </Link>
-            </li>
-            <li>
-              <Link to="/collections/gym-sports" className="hover:text-primary transition-colors flex items-center justify-between group">
-                <span>Gym Trainers &amp; Athletic Runners</span>
                 <span className="opacity-0 group-hover:opacity-100 transition-opacity text-primary text-xs">→</span>
               </Link>
             </li>
