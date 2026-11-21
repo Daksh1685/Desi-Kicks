@@ -45,6 +45,39 @@ const INITIAL_ORDERS: Order[] = [
   },
   {
     id: 'ord-demo-2',
+    orderNumber: 'CYS-2026-9502',
+    customerName: 'Vikramaditya Rathore',
+    customerEmail: 'vikram.rathore@example.com',
+    customerPhone: '+91 99887 76655',
+    shippingAddress: {
+      street: '12, Heritage Haveli, Old City',
+      city: 'Udaipur',
+      state: 'Rajasthan',
+      pincode: '313001',
+    },
+    items: [
+      {
+        id: 'item-3',
+        productId: 'artisan-burnished-leather-oxford',
+        productName: 'Artisan Burnished Leather Formal Loafer',
+        size: 'UK 10',
+        price: 3495,
+        quantity: 1,
+        img: 'https://images.unsplash.com/photo-1533867617858-e7b97e060509?q=80&w=800&auto=format&fit=crop',
+      },
+    ],
+    subtotal: 3495,
+    discount: 0,
+    shippingFee: 0,
+    totalAmount: 3495,
+    paymentMethod: 'COD',
+    paymentStatus: 'PENDING',
+    orderStatus: 'PENDING',
+    createdAt: new Date(Date.now() - 1800000).toISOString(),
+    estimatedDelivery: '2-3 Business Days',
+  },
+  {
+    id: 'ord-demo-3',
     orderNumber: 'CYS-2026-8123',
     customerName: 'Priya Sundaram',
     customerEmail: 'priya.s@example.com',
@@ -91,6 +124,39 @@ const INITIAL_ORDERS: Order[] = [
         pincode: '302022',
       },
     },
+  },
+  {
+    id: 'ord-demo-4',
+    orderNumber: 'CYS-2026-1044',
+    customerName: 'Rohit Verma',
+    customerEmail: 'rohit.v@example.com',
+    customerPhone: '+91 91234 56789',
+    shippingAddress: {
+      street: 'Tower B, Sector 62',
+      city: 'Noida',
+      state: 'Uttar Pradesh',
+      pincode: '201301',
+    },
+    items: [
+      {
+        id: 'item-4',
+        productId: 'pro-runner-cushioned-trainer',
+        productName: 'Pro-Glide Road Running Trainer',
+        size: 'UK 8',
+        price: 3295,
+        quantity: 1,
+        img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop',
+      },
+    ],
+    subtotal: 3295,
+    discount: 300,
+    shippingFee: 0,
+    totalAmount: 2995,
+    paymentMethod: 'UPI',
+    paymentStatus: 'PAID',
+    orderStatus: 'DELIVERED',
+    createdAt: new Date(Date.now() - 3600000 * 72).toISOString(),
+    estimatedDelivery: 'Delivered',
   },
 ];
 
@@ -150,10 +216,8 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          return parsed.filter(
-            (o) => !o.id?.startsWith('ord-100') && o.customerEmail !== 'aarav.sharma@example.com'
-          );
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
         }
       }
     } catch {
@@ -279,7 +343,11 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
 
   const resetOrders = useCallback(() => {
     setOrders(INITIAL_ORDERS);
-    localStorage.removeItem(STORAGE_KEY);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_ORDERS));
+    } catch {
+      // ignore
+    }
   }, []);
 
   const clearAllOrders = useCallback(() => {

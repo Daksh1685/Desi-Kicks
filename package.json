@@ -9,7 +9,8 @@
     "prebuild": "node scripts/generate-sitemap.mjs",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "loadtest": "node scripts/load-test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0",
